@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Valuation Report - <%= companyName %></title>
+    <style>
+        body { font-family: Arial; margin: 0; padding: 20px; }
+        .header { background: #233977; color: white; padding: 30px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        .valuation-box { background: #1aa79c; color: white; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>BUSINESS VALUATION REPORT</h1>
+        <p>Generated on: <%= reportDate %></p>
+    </div>
+    
+    <div class="section">
+        <h2>Company Information</h2>
+        <p><strong>Company Name:</strong> <%= companyName %></p>
+        <p><strong>Country:</strong> <%= companyDetails.country %></p>
+        <p><strong>Currency:</strong> <%= companyDetails.currency %></p>
+        <p><strong>Industry:</strong> <%= companyDetails.industry %></p>
+    </div>
+    
+    <div class="valuation-box">
+        <h2>Valuation Summary</h2>
+        <p><strong>Equity Value:</strong> <%= formatCurrency(valuation.equityValue, valuation.currency) %></p>
+        <p><strong>Net Debt:</strong> <%= formatCurrency(valuation.netDebt, valuation.currency) %></p>
+        <p><strong>Total Enterprise Value:</strong> <%= formatCurrency(valuation.totalValue, valuation.currency) %></p>
+    </div>
+    
+    <div class="section">
+        <h3>Report Details</h3>
+        <p>Order ID: <%= orderId || 'Not specified' %></p>
+        <p>This is a dynamic report generated using EJS template engine.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+
+.list-group {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.list-group-item strong {
+    color: #333;
+    font-size:16px
+}
+
+.list-group-item span {
+    color: #666;
+}
+
+.widget-content-area ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.status-pending {
+    color: orange;
+}
+
+.status-failed {
+    color: red;
+}
+
+.status-success {
+    color: green;
+}
+
+.order-new {
+    color: blue;
+}
+
+.order-upgrade {
+    color: purple;
+}

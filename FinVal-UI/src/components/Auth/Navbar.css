@@ -1,0 +1,23 @@
+/* Ensure the dropdown menu is hidden initially */
+.nav-item.dropdown.hover-dropdown .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+}
+
+
+/* Show dropdown on hover */
+.nav-item.dropdown.hover-dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    transition: all 0.3s ease-in-out;
+}
+@media (max-width: 768px) {
+    .new-class::after{
+    display: none!important;
+}
+
+}

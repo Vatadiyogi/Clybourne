@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"efff8bc6725e40c299484741c76a7b3a","collectionName":"razorpayrecords","type":"collection"}

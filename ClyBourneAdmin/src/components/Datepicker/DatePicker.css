@@ -1,0 +1,30 @@
+.flatpickr-calendar {
+    z-index: 1050; /* Adjust the z-index to be higher than the modal */
+}
+
+.flatpickr-calendar .flatpickr-monthDropdown-months,
+.flatpickr-calendar .flatpickr-current-month {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flatpickr-calendar .flatpickr-monthDropdown-months .flatpickr-current-month {
+    position: relative;
+    z-index: 1051; /* Ensure the month dropdown is above the calendar */
+}
+
+.flatpickr-calendar .flatpickr-monthDropdown-months {
+    background: white;
+}
+
+.flatpickr-calendar .flatpickr-monthDropdown-months .flatpickr-current-month:hover {
+    cursor: pointer;
+    background: #f1f1f1;
+}
+
+/* custom-flatpickr.css */
+.flatpickr-wrapper {
+    display: block !important; /* or any other value you prefer */
+}
+

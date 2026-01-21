@@ -1,0 +1,27 @@
+.centered-img {
+    display: block;
+    margin: 0 auto;
+    width: 50%;
+}
+
+.form-control{
+    padding: 1rem 1.25rem!important;
+}
+.sign-in-heading{
+    color: black!important;
+    font-weight: 700;
+}
+.for-size-padding{
+    font-size: 16px!important;
+    font-weight: 700!important;
+    padding: 1rem 1.25rem!important;
+}
+@media (max-width: 768px) {
+    .div-with-bg {
+        display: none; /* Hide the background div */
+    }
+    
+    .login-div {
+        width: 100%; /* Make the login div take the full width */
+    }
+}

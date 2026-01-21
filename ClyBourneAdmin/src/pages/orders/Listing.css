@@ -1,0 +1,18 @@
+.table-container {
+    width: 100%; /* Ensure the table takes full width */
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+
+.dataTable-row {
+    white-space: nowrap; /* Prevent word breaking */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Display ellipsis for overflowed text */
+}
+
+.dataTable-column {
+    width: 100%; /* Ensure columns respect 100% width */
+}
+
+.dropdown-menu-custom-style {
+    min-width: 150px; /* Ensure dropdown width */
+}

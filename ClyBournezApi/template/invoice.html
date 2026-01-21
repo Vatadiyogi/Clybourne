@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice - {{planName}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border: 1px solid #ddd;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #4CAF50;
+      margin: 0;
+    }
+    .company-info {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .invoice-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .bill-to, .invoice-details {
+      width: 48%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    table th {
+      background-color: #f4f4f4;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    table td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+    .total-row {
+      font-weight: bold;
+      background-color: #f9f9f9;
+    }
+    .footer {
+      margin-top: 50px;
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+    .status-badge {
+      background-color: #4CAF50;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Company Header -->
+    <div class="company-info">
+      <h2>FinVal</h2>
+      <p>123 Business Street, City, Country</p>
+      <p>Email: support@finval.com | Phone: +1 234 567 8900</p>
+    </div>
+
+    <!-- Invoice Header -->
+    <div class="header">
+      <h1>INVOICE</h1>
+      <p>Invoice #: {{invoiceNumber}}</p>
+      <p>Date: {{invoiceDate}}</p>
+      <span class="status-badge">PAID</span>
+    </div>
+
+    <!-- Bill To and Invoice Details -->
+    <div class="invoice-info">
+      <div class="bill-to">
+        <h3>Bill To:</h3>
+        <p><strong>{{userName}}</strong></p>
+        <p>{{userEmail}}</p>
+        <p>Customer ID: {{userId}}</p>
+      </div>
+      <div class="invoice-details">
+        <h3>Invoice Details:</h3>
+        <p><strong>Plan ID:</strong> {{planSeqId}}</p>
+        <p><strong>Plan Type:</strong> {{planType}}</p>
+        <p><strong>Purchase Date:</strong> {{purchaseDate}}</p>
+        <p><strong>Expiry Date:</strong> {{expiryDate}}</p>
+      </div>
+    </div>
+
+    <!-- Plan Details Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Plan Name</th>
+          <th>Reports</th>
+          <th>Access Days</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Subscription Plan</td>
+          <td>{{planName}}</td>
+          <td>{{reportCount}}</td>
+          <td>{{accessDays}}</td>
+          <td>${{amount}}</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="4" style="text-align: right;">Total:</td>
+          <td>${{totalAmount}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Payment Information -->
+    <div style="margin-top: 30px;">
+      <h3>Payment Information:</h3>
+      <p><strong>Payment Method:</strong> Stripe</p>
+      <p><strong>Payment Status:</strong> Paid</p>
+      <p><strong>Transaction ID:</strong> {{transactionId}}</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Thank you for your business!</p>
+      <p>If you have any questions about this invoice, please contact us at support@finval.com</p>
+      <p>This is an auto-generated invoice. No signature required.</p>
+    </div>
+  </div>
+</body>
+</html>

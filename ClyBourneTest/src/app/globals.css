@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* @import "flowbite"; */
+@import "../static/fonts//inter-font//stylesheet.css";
+@import "../static/fonts/montserrat-font/stylesheet.css";
+@import "../static/fonts/teko-font/stylesheet.css";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+[data-tooltip] {
+  z-index: 9999 !important;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter';
+  font-weight: 400;
+}
+
+h1, h2 {
+  font-family: 'Teko';
+  font-weight: 400;
+
+}
+
+html {
+  scroll-behavior: smooth !important;
+}
+
+
+.ant-select-show-search:where(.css-dev-only-do-not-override-l9pxc0).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border: none;
+}
+
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  background-color: #f5f5f5 !important;
+  border: none !important;
+}
+
+.ant-select-single .ant-select-selector {
+  height: 38px !important;
+  /* Adjust to your desired height */
+  padding: 15px !important;
+  /* Optional: add internal padding */
+  line-height: normal !important;
+  /* Ensures text centers vertically */
+}
+
+/* Global checkbox class */
+.custom-checkbox {
+  /* Hide the default checkbox */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #a29b9b;
+  /* Border color */
+  color: #1aa79c;
+  border-radius: 4px;
+  /* Rounded corners */
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fff;
+}
+
+/* Checked state */
+.custom-checkbox:checked {
+  background-color: white;
+  /* Green background when checked */
+  border-color: #1aa79c;
+}
+
+/* Add a checkmark */
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #1aa79c;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Hover effect */
+.custom-checkbox:hover {
+  border-color: #1aa79c;
+}
+
+
+
+/* //blog details  */
+.blog-details {
+  h2 {
+    font-size: 30px;
+
+    span {
+      font-size: unset !important;
+    }
+  }
+
+  h3 {
+    font-size: 24px;
+    font-family: 'Teko' !important;
+
+    span {
+      font-size: unset !important;
+    }
+  }
+}
+
+.custom-select .ant-select-selection-placeholder {
+  color: #373743 !important;
+  /* your color */
+}
+
+/* Custom Scrollbar for Specific Container */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #e4dddd;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #1abc9c;
+  /* Teal color */
+  border-radius: 10px;
+  max-height: 40px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #16a085;
+}
+/* Remove autofill background in Chrome, Edge, and Safari */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #000 !important; /* Keep text visible */
+}
+
+/* Optional: Add transition to smooth autofill removal */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+
+
+
+
+.my-custom-select :where(.ant-select-selector) {
+  cursor: pointer !important;
+  
+}
+
+.my-custom-select.ant-select > .ant-select-selector {
+  border-radius: 6px !important;
+  border: 1px solid #d1d5db !important;
+  padding: 8px 12px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
+}
+/* Change placeholder font for TreeSelect input */
+.my-custom-select.ant-select .ant-select-selection-search-input::placeholder {
+  font-family: "Poppins", sans-serif !important;
+  color: #999 !important;       /* optional */
+  font-size: 10px !important;   /* optional */
+}
+
+/* Also apply font-family to displayed text after selection */
+.my-custom-select.ant-select .ant-select-selector {
+  font-family: "Poppins", sans-serif !important;
+}
+
+
+.select-arrow-left {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+ 
+}

@@ -1,0 +1,24 @@
+/* Prevent content from breaking within elements */
+* {
+    page-break-inside: avoid;
+    overflow-wrap: break-word; /* Handle word wrapping */
+  }
+  
+  /* Apply page breaks before certain sections */
+  h3, h4, h5, table, ul, li {
+    page-break-before: avoid;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  
+  /* Ensure long text wraps properly */
+  p {
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  
+  /* To control breaks between divs or large blocks */
+  .break-section {
+    page-break-before: always;
+  }
+  

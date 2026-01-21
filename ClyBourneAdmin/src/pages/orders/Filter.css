@@ -1,0 +1,5 @@
+.table-cell {
+    white-space: nowrap; /* Prevent breaking words by keeping the content on a single line */
+    overflow-wrap: break-word; /* Allow wrapping at word boundaries */
+    word-break: normal; /* Prevent breaking words mid-way */
+}

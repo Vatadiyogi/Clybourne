@@ -1,0 +1,105 @@
+/* Modal Background */
+.modal {
+    display: block; /* Ensure the modal is visible */
+    position: fixed;
+    z-index: 1050; /* Ensure it's on top of other content */
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px; /* Increased padding for better spacing */
+    width: 80%;
+    max-width: 600px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between; /* This will push the close button to the right */
+    align-items: center; /* Vertically center the close button and title */
+}
+
+.close {
+    color: #ff3e3e; /* Red color for the close button */
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover, .close:focus {
+    color: #d90000; /* Darker red on hover */
+}
+
+/* Modal Body */
+.modal-body {
+    margin-top: 5px;
+    max-height: 60vh; /* Limit the height of the modal */
+    overflow-y: auto; /* Enable scrolling if content exceeds max height */
+}
+
+/* Document List */
+.document-list {
+    list-style-type: none; /* Remove bullet points */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+
+/* Document Item */
+.document-item {
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space out items */
+    align-items: center; /* Center items vertically */
+    padding: 10px; /* Add padding for better spacing */
+    margin-bottom: 5px; /* Space between items */
+    border-bottom: 1px solid #ddd; /* Add a bottom border */
+    transition: background-color 0.3s; /* Smooth background transition */
+}
+
+/* Alternate Background Colors */
+.document-item:nth-child(even) {
+    background-color: #f9f9f9; /* Light grey background for even items */
+}
+
+.document-item:nth-child(odd) {
+    background-color: #ffffff; /* White background for odd items */
+}
+
+/* Document Info */
+.document-info {
+    flex: 1; /* Allow name to take available space */
+}
+
+.document-name {
+    font-size: 16px; /* Adjust font size */
+    color: #333; /* Dark text color */
+    font-weight: bold; /* Bold document name */
+}
+
+/* Download Button */
+.btn-download {
+    background-color: #28a745; /* Green color for download button */
+    color: white;
+    padding: 8px 12px; /* Add padding */
+    text-decoration: none; /* Remove underline */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    font-weight: bold; /* Bold text */
+}
+
+/* Serial Number */
+.serial-number {
+    font-weight: bold; /* Bold serial number */
+    margin-right: 10px; /* Spacing between serial number and name */
+    width: 30px; /* Fixed width for alignment */
+}

@@ -1,0 +1,13 @@
+/* Initially hide the dropdown */
+.header-cart .cart-item-list {
+    display: none;
+    position: absolute; /* Position it absolutely within the parent container */
+    top: 100%; /* Position it below the link */
+    right: 0; /* Align it to the right */
+    z-index: 1000; /* Make sure it appears above other content */
+}
+
+/* Show the dropdown when hovering over the parent .header-cart element */
+.header-cart:hover .cart-item-list {
+    display: block;
+}

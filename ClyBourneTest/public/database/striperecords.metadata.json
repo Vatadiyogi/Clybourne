@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"fc4cd88c71e04a99927c7410c10b5694","collectionName":"striperecords","type":"collection"}

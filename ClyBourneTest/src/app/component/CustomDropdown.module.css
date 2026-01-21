@@ -1,0 +1,55 @@
+.custom-dropdown {
+  position: relative;
+}
+
+.dropdown-options {
+  display: none;
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.dropdown-header-button {
+  background: none;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown-option {
+  display: block;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-option:hover {
+  background-color: #f0f0f0;
+}
+
+.custom-tree-select :global(.ant-select-selector) {
+  min-height: 38px !important;
+  border-radius: 6px !important;
+  border: 1px solid #d1d5db !important;
+  padding: 6px 10px !important;
+  box-shadow: none !important;
+}
+
+.custom-tree-select :global(.ant-select-selector:hover) {
+  border-color: #1aa79c !important;
+}
+
+.custom-tree-select :global(.ant-select-focused .ant-select-selector) {
+  border-color: #1aa79c !important;
+  box-shadow: none !important;
+}
+
+.custom-tree-select :global(.ant-select-selection-placeholder) {
+  color: #9ca3af !important;
+}
+
+.custom-tree-select :global(.ant-select-arrow) {
+  display: flex !important;
+  align-items: center !important;
+}

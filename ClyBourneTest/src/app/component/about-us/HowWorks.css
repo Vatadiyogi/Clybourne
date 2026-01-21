@@ -1,0 +1,140 @@
+/* Root section */
+.howwork-section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+    /* background-color: rgba(250, 250, 250, 1); */
+}
+
+.howwork-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 27%;
+    background-color: #19a79b;
+    /* themegreen */
+    z-index: -1;
+    height: 100%;
+}
+
+
+/* Container */
+.howwork-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Grid Layout */
+.howwork-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4rem;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+/* Headings */
+.howwork-heading .heading-primary {
+    font-size: 2.25rem;
+    line-height: 1.25;
+    margin-bottom: 1.5rem;
+    color: #0a2d4d;
+    /* themeblue */
+}
+
+.howwork-heading .heading-secondary {
+    font-size: 1.875rem;
+    line-height: 1.25;
+    color: #19a79b;
+    /* themegreen */
+}
+
+/* Steps */
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+}
+
+.step-card {
+    font-family: 'Inter', sans-serif;
+}
+
+.step-content {
+    background-color: #0a2d4d;
+    /* themeblue */
+    color: white;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    min-height: 300px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.step-title {
+    color: #19a79b;
+    /* themegreen */
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.step-description {
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+
+@media (min-width: 1024px) {
+    .howwork-section {
+        padding-top: 6rem;
+        padding-bottom: 6rem;
+    }
+
+    .howwork-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .howwork-heading .heading-primary {
+        font-size: 4rem;
+    }
+
+    .howwork-heading .heading-secondary {
+        font-size: 3rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .steps-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* .howwork-background {
+
+        display: none;
+    } */
+}
+
+@media(max-width:1023px) {
+   .howwork-background {
+
+        display: none;
+    } 
+    .step-content {
+    min-height: 250px;
+}
+}
+
+@media(max-width:768px) {
+   .howwork-background {
+
+        display: none;
+    } 
+    .step-content {
+    min-height: 0;
+}
+}

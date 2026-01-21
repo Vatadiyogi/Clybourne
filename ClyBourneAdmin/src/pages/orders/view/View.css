@@ -1,0 +1,148 @@
+.report {
+    padding-top : 2%;
+}
+.label-value {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Adjust spacing between rows */
+}
+
+.label {
+    flex: 0 0 auto; /* Allow label to grow as needed */
+    font-weight: bold;
+    margin-right: 5px; /* Adjust spacing between label and value */
+    color: black;
+}
+
+
+.valuation-container{
+    height: 1000px;
+    overflow-y: scroll;
+    padding-top:5%;
+}
+
+.year-section {
+    border: 1px solid #e0e6ed;
+    background-color: #f3e9f9!important;
+    border-radius: 8px;
+    color: black;
+    padding: 5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px; /* Add space below the section */
+    
+    
+}
+
+.year-item {
+    padding: 0px!important;
+    padding-left: 5px!important;
+    padding-right: 5px!important;
+    text-align: center;
+}
+
+.form-control-additonal-style{
+    background-color: #fbf5ff!important;
+    
+    font-size: 12px!important;
+    padding: 10px!important;
+    text-align: right;
+
+}
+.sum-bold{ font-weight: bold;}
+.value-item-heading {
+    padding: 9px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    text-align: left;
+}
+
+.equity-value-item-heading {
+    padding: 9px;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.sheet-heading{
+    margin-top: 10px;
+    margin-bottom: 10px!important;
+    font-size: 23px!important;
+}
+
+.equity-first-item {
+    width: 40%; /* Adjust as needed */
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: black;
+}
+
+.first-item {
+    width: 40%; /* Adjust as needed */
+    margin-bottom: 5px;
+    font-weight: bold;
+    background-color: #f3e9f9!important;
+    color: black;
+}
+
+.other-items {
+    
+    width: 10%; /* Adjust as needed */
+}
+
+.xlsdata{ height: 250px !important}
+
+.label1{
+    width: 50%;
+    font-weight: bold;
+    color: black;
+    text-align: right;
+}
+.label2{
+    width: 50%;
+    margin-left:2px ;
+}
+/* parameter form feilds */
+.usd-input-box{
+    width: 80px!important;
+    background-color: #fbf5ff !important;
+    border: 1px solid #bfc9d4;
+    border-radius: 6px;
+    margin-left: 4px;
+    padding: .375rem .75rem!important;
+    text-align: right;
+
+}
+.form-control-in-parmeterForm {
+    padding: 10px!important;
+    width: 150px;
+    background: #fbf5ff !important;
+    text-align: right;
+}
+.form-control-input-parmeterForm {
+    padding: 10px!important;
+    width: 150px;
+    text-align: right;
+
+}
+.first-td{
+    text-align: right;
+}
+
+.summary-table thead tr th{
+  font-size: 12px!important;
+  padding: 8px 11px 10px 11px !important;
+}
+
+.summary-table tbody {
+    font-size: 12px!important;
+  }
+
+.textRight {
+ text-align: right;
+}
+.valuation-parameters-h4{
+    padding-top: 10px;
+    font-size: 20px;
+    color: black;
+}

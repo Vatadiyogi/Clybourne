@@ -1,0 +1,18 @@
+.financial-projections .label1 {
+    display: block;
+    width: 100%;
+}
+
+.financial-projections .year-item {
+    padding: 5px 10px;
+}
+
+.financial-projections .other-items {
+    text-align: center;
+}
+
+.bar-graph{
+    border: 1px solid #ccc ;
+    padding-bottom: 2%;
+    padding-left: 2%;
+}

@@ -1,0 +1,25 @@
+/* Add this to your CSS file */
+
+.border-red {
+    border: 2px solid red;
+}
+
+.text-danger {
+    color: red;
+    font-size:14px;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.1em;
+}
+
+.ms-3px {
+    margin-left: 3px;
+}

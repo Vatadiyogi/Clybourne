@@ -1,0 +1,3196 @@
+<!-- backend/src/templates/valuation-report.html -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> Valuation Report</title>
+        <link rel="stylesheet" href="valuatin-report.css">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- 
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+             -->
+        <style>
+
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            
+            @page {
+                size: A4;
+                margin: 0;
+            }
+           p {
+                margin: 0px;
+            }
+            .page {
+                /* border: 2px solid red; */
+                display: flex;
+                flex-direction: column;
+                margin: auto;
+                /* padding: 90px 0; */
+                background-color: #FFF;
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                width: 210mm ;
+                height: 297mm;
+                color: #000;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+
+            .page .section {
+                padding: 90px 70px;
+            }
+            .stylus {
+                color: white;
+                font-size: 20px;
+                font-weight: 400;
+            }
+.paragraph{
+      font-size: 14px;
+}
+.smallpara{
+    font-size: 12px;
+}
+            .color {
+                color: #1aa79c;
+            }
+            .colorPurple {
+                color: #233977 !important;
+            }
+            .heading{
+                color: #1aa79c;
+                font-size: 16px;
+               margin-bottom: 4px;
+            }
+            .context{
+                color: #233977;
+                font-size: 14px;
+               margin-bottom: 4px;
+            }
+            
+
+
+
+
+            /* psge-1 */
+
+            .page1 {
+                display: flex;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .report-title {
+                font-size: 24px;
+                opacity: 0.9;
+            }
+
+            .page2 {
+                /* border: 2px solid yellow; */
+                position: relative;
+                overflow: hidden;
+            }
+
+         .logo2 {
+    position: absolute;
+    top: -16%;
+    right: -3.7%;
+    width: 370px;
+}
+            
+
+            .icon {
+                width: 100%;
+                height: 100%;
+            }
+         
+            .container {
+                position: relative;
+                flex: 1;
+                /* padding: 0px 80px; */
+            }
+
+            .parentLogo {
+                padding-top: 110px;
+            }
+
+            .logo {
+                width: 70%;
+                height: fit-content;
+            }
+
+            .img {
+                width: 100%;
+                height: 100%;
+            }
+
+            .bussinessHead {
+                width: fit-content;
+                font-size: 65px;
+                padding: 10px 46px 10px 26px;
+                font-weight: 900;
+                background-color: #1aa79c;
+            }
+
+            .valuationHead {
+                background-color: #233977;
+            }
+
+            .headContent {
+                flex: 1;
+                background-color: #233977; 
+                /* padding: 0px 80px 90px 80px; */
+            }
+
+            .title {
+                font-weight: 350 !important;
+                letter-spacing: 0px;
+                font-size: 42px;
+                margin-bottom: 8px;
+            }
+
+            .bussinessValuation {
+                position: absolute;
+                bottom: 0%;
+            }
+
+            /* page2 */
+            .featureSecion {
+                position: relative;
+                margin-bottom: 30px;
+            }
+
+            .strip {
+                min-width: 30% !important;
+                position: absolute;
+                left: -12.2%;
+                padding: 6px 50px 6px 80px;
+                width: fit-content;
+                background-color: #233977;
+            }
+
+            .value{
+                font-size: 14px !important;
+                 position: absolute;
+                left: 43%;
+                top: 2%;
+            }
+
+            .strip::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: -13px;
+                width: 10px;
+                height: 100%;
+                background-color: #1aa79c;
+            }
+
+            .companyInfo {
+                display: flex;
+                justify-content: space-between;
+                margin: 15px 0px;
+            }
+
+            .child {
+                width: 35%;
+                padding: 0px 10px;
+                border-left: 2px solid #233977;
+            }
+
+            @media print {
+                body {
+                    padding: 0px;
+                }
+
+                .page1 {
+                    break-inside: avoid;
+                }
+
+                .section {
+                    break-inside: avoid;
+                }
+                
+            }
+            
+                .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .chart-box {
+       
+        padding: 0px;
+    
+    }
+
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .sideStrip{
+       color: white;
+    position: absolute;
+    top: 37%;
+    right: -11%;
+    display: flex;
+    width: 58%;
+ 
+ 
+    }
+    .footIcon{
+         
+    position: absolute;
+    width: 480px;
+    bottom: -194px;
+    left: 156px;
+}
+    
+/* page-6 */
+  .section {
+        margin-bottom: 25px;
+    }
+
+    /* Section Header */
+    .section-header {
+        display: flex;
+        align-items: center;
+        background: #233977;
+        color: white;
+        font-weight: bold;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .section-header::after {
+        content: "";
+        width: 6px;
+        height: 100%;
+        background: #1aa79c;
+        margin-left: auto;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        color: #233977;
+    }
+
+    th, td {
+        border: 1px solid #233977;
+        padding: 6px 8px;
+        text-align: center;
+    }
+
+    th {
+        background: #233977;
+        color: white;
+        font-weight: bold;
+    }
+
+    /* First column */
+    td:first-child, th:first-child {
+        text-align: left;
+        font-weight: bold;
+        background: #f5f7fb;
+    }
+
+    /* Year columns */
+    .year {
+        background: #1aa79c;
+        color: white;
+        font-weight: bold;
+    }
+
+    /* Small table */
+    .small-table {
+        width: 100%;
+    }
+
+    
+.containerwow {
+    
+    padding-bottom: 40px;
+
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 1fr;
+    gap: 10px;
+    /* align-items: center; */
+}
+
+.chart-box {
+    /* height: 300px; */
+      /* border-left: 2PX solid gray; */
+}
+
+.circular-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+      /* border-left: 2PX solid gray; */
+    flex-direction: column;
+    gap: 18px;
+}
+
+.circle-row {
+    width:fit-content;
+    position: relative;
+    display: flex;
+    
+    align-items: center;
+    gap: 10px;
+}
+.percentage {
+    position: absolute;
+    left: 31%;
+    font-size: 10px;
+}
+
+.circle-row canvas {
+    width: 50px !important;
+    height: 50px !important;
+}
+
+.speedometer {
+    height:100%;
+    display: flex;
+    border-left: 2PX solid gray;
+    /* padding-left: 30px; */
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
+    gap: 20px;
+}
+.speedometer div{
+   padding-left: 16px;
+}
+.base{
+   
+    position: absolute;
+    color: black;
+    width: 38px;
+    background: black;
+    height: 2px;
+    right: 14.5%;
+}
+
+#gaugeLow,#gaugeBase,#gaugeBest {
+    width: 70px !important;
+    height: 35px !important;
+}
+.label {
+    font-size: 11px;
+    color: #233977;
+    /* text-align: center; */
+}
+
+.subhead{
+    background:#f1f5f9;
+    font-weight:600;
+}
+
+.arrow-row{
+    position:relative;
+    text-align:center;
+    height:36px;
+}
+
+.arrow-line{
+    height:2px;
+    background:#243a7a;
+    width:15%;
+   
+    position: absolute;
+    left: 44%;
+    top: 27px;
+    height: 2px;
+    background: #243a7a;
+    width: 15%;
+   
+
+}
+
+.arrow-line::after{
+    content:"";
+    position:absolute;
+    right:-8px;
+    top:-4px;
+    border-left:8px solid #243a7a;
+    border-top:5px solid transparent;
+    border-bottom:5px solid transparent;
+}
+
+.circle{
+    position:absolute;
+    top:9px;
+    left:75%;
+    transform:translateX(-50%);
+    background:#fff;
+    border:2px solid #243a7a;
+    border-radius:50%;
+    width:38px;
+    height:38px;
+    line-height:34px;
+    font-weight:bold;
+    font-size:11px;
+}
+
+.small-table th{
+    background:#243a7a;
+}
+
+.small-table th.right{
+    background:#1aa79c;
+}
+
+.small-table td.left{
+    font-weight:600;
+}
+.horizontalChart canvas{
+    width: 100% !important;
+    height: 100% !important;
+}
+.horizontalChart{
+    border-left: 2px solid gray;
+    border-right: 2px solid gray;
+    height: 320px !important;
+}
+        </style>
+    </head>
+    <body>
+
+        <div class="maintain" style="background-color: white;">
+            <!-- Hidden div to store chart data as JSON -->
+            <div id="chart-data"
+                data-revenue='<%= JSON.stringify(chartData.revenue) %>'
+                data-cogs='<%= JSON.stringify(chartData.cogs) %>'
+                data-ebitda='<%= JSON.stringify(chartData.ebitda) %>'
+                data-profit='<%= JSON.stringify(chartData.profit) %>'
+                data-cash='<%= JSON.stringify(chartData.cash) %>'
+                style="display: none;">
+            </div>
+            <!-- page1 -->
+            <div class="page1 page">
+                <div class="container section"
+                    style="padding-top: 0px; margin-bottom: 0;">
+                    <div class="parentLogo">
+                        <div class="logo">
+                            <img class="img"
+                                src="<%= process.env.NODE_ENV === 'production' ? 'https://finval-server.technolite.in' : 'http://localhost:5050' %>/assets/logo.png"
+                                alt="Logo">
+
+                        </div>
+                    </div>
+                    <div class="bussinessValuation">
+                        <div class="bussinessHead">
+                            <p
+                                style="line-height:55px; color: white;">BUSINESS
+                            </p>
+                        </div>
+                        <div class="bussinessHead valuationHead">
+                            <p
+                                style="line-height:55px; color: white;">VALUATION
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="headContent section"
+                    style="color: white; padding-top: 0px;">
+                    <div class="bussinessHead reportHead"
+                        style="margin-bottom: 110px;">
+                        <p style="line-height:55px;color: white;">
+                            REPORT
+
+                        </p>
+                    </div>
+                    <div class=" "
+                        style="width: 70%; padding: 0px 0px 0px 12px; text-align: start;">
+                        <p class="title" style="line-height:45px;">
+                            Fin Advisor Consulting
+                            Pvt. Ltd.
+                        </p>
+                        <p
+                            style="font-size: 20px ; font-weight: 500; color: #1aa79c;text-align: start; font-weight: 500; padding-bottom: 100px;">
+                            This Report was Generated on October 26, 2024
+                        </p>
+                    </div>
+                    <p class
+                        style="line-height:25px; font-weight: 300;text-align: start; padding: 0px 0px 0px 12px; font-size: 16px;">
+                        Valuation of Company is based on the information
+                        provided by the client and we have
+                        not conducted any audit on the accuracy of the
+                        numbers
+                    </p>
+                </div>
+            </div>
+            <!-- page-2 -->
+            <div class="page page-break  page2">
+                <div class="section">
+                    <div class="logo2">
+                        <img class="icon"
+                            src="<%= process.env.NODE_ENV === 'production' ? 'https://finval-server.technolite.in' : 'http://localhost:5050' %>/assets/logo3.png"
+                            alt="icon">
+                    </div>
+                    <!-- company summary -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>Company
+                                <span class="color">
+                                    Summary
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 45px;">
+                            <p class=" colorPurple"
+                                style="font-size: 18px; margin-bottom: 4px;">Company
+                                Name</p>
+                            <p class="heading"
+                                style="font-weight: 500 !important; margin-bottom: 10px;font-size: 18px;">
+                                <span>
+                                    <%= companyDetails.name || "N/A" %> |
+                                </span>
+                                <span>
+                                    <%= companyDetails.country || "N/A" %>
+                                </span>
+                            </p>
+                            <p class="colorPurple"
+                                style="font-size: 14px !important; ">Currency:
+                                <span class="color" style="font-weight: 600 ">
+                                    <%= companyDetails.currency || "N/A" %>
+                                </span>
+                            </p>
+                            <div class="companyInfo">
+                                <div class="child">
+                                    <p class="context">Type
+                                        of Company
+                                    </p>
+                                    <p class=" heading "
+                                        style="font-weight: 500;">
+                                        <%= companyDetails.type || "N/A" %>
+                                    </p>
+                                </div>
+                                <div class="child">
+                                    <p class="context">Years
+                                        in Business:
+                                    </p>
+                                    <p class=" heading "
+                                        style="font-weight: 500;">
+                                        <%= companyDetails.yearsInBusiness ||
+                                        "5+" %> years
+                                    </p>
+                                </div>
+                                <div class="child">
+                                    <p class="context">Industry
+                                    </p>
+                                    <p class=" heading "
+                                        style="font-weight: 500;">
+                                        <%= companyDetails.industry || "N/A" %>
+                                    </p>
+                                </div>
+                            </div>
+                            <p class="paragraph" style="line-height: 22px;">
+  <%= companyDetails.description || "N/A" %>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- current operation -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>Current
+                                <span class="color">
+                                    Operations
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 45px;">
+                            <div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Development
+                                            Phase
+                                        </p>
+                                        <p class=" heading " style="font-weight: 500;">
+                                            <% 
+                                            const age = companyDetails.yearsInBusiness;
+                                            let stage = "N//A";
+                                            
+                                            if (age === "0-1" || age === "2-5" || age === "0-2" || age === "1-5") {
+                                                stage = "Early Stage";
+                                            } else if ( age === "5+") {
+                                                stage = "Growing Stage";
+                                            }
+                                            %>
+                                            <%= stage %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Scalable
+                                            Product
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.scalable || "Yes"
+                                            %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Profitability
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                           <%= companyDetails.earningTrend === "increasing_non_sustainable" ? "No"
+                                            : "Yes" %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Current
+                                            Business Levels
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.earningTrend ===
+                                            "declining_no_turnaround" ?
+                                            "Declining (No Turnaround)" :
+                                            companyDetails.earningTrend ===
+                                            "increasing" ? "Increasing Profits"
+                                            :
+                                            "Stable" %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Equity
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.earningTrend === "increasing_non_sustainable" ? "No"
+                                            : "Yes" %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Debt
+                                        </p>
+                                       <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.earningTrend === "increasing_non_sustainable" ? "No"
+                                            : "Yes" %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- competitors -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>
+                                Competitors
+                            </p>
+                        </div>
+                        <div style="padding-top: 45px;">
+                            <div>
+                                <div class="companyInfo"
+                                    style="justify-content: left;">
+                                    <div class="child" style="width: 40%;">
+                                        <p class="context">
+                                            Competitor - 1
+                                        </p>
+                                             
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                           
+                                            <%= companyDetails.similarCompany %>
+                                       
+                                        </p>
+                                        <p class="context">
+                                            www.acuitykp.com
+                                        </p>
+                                    </div>
+                                    <div class="child" style="width: 40%;">
+                                        <p class="context">
+                                            Competitor - 2
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                             <%= companyDetails.competitor2 %>
+                                        </p>
+                                        <p class="context">
+                                            www.xsdacuitykp.com
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- operatin performance -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>Operating
+                                <span class="color">
+                                    Performance
+                                </span>
+                            </p>
+                        </div>
+                        <p class="context value" style="font-size: 18px;">
+                            (All values in <%= companyDetails.currency || "INR"
+                            %>)
+                        </p>
+                        <div style="padding-top: 45px;">
+                            <p class=" heading "
+                                style="font-weight: 500;">
+                                <%= companyDetails.financialYear ||
+                                "Jan 2024 – Dec 2024" %>
+                            </p>
+                            <div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">
+                                            Revenue
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.revenue)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            EBITDA
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.ebitda)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            EBITDA Margin
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(financialData.ebitdaMargin)
+                                            %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">
+                                            Net Profit
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.netProfit)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            Net Profit Margin
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(financialData.netProfitMargin)
+                                            %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            Cash in Hand
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.cashBalance)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="paragraph"
+                                style="    line-height: 20px; margin: 5px 0px 10px 0px ;">
+                                The Company operates in the <%=
+                                companyDetails.industry || "financial services"
+                                %>
+                                sector and reported revenue of <%=
+                                companyDetails.currency %> <%=
+                                formatNumber(financialData.revenue) %> <%= companyDetails.unitOfNumber %>
+                                in FY <%= companyDetails.financialYearEnd ||
+                                "2024" %>, achieving a Net Profit
+                                Margin of <%=
+                                formatPercentage(financialData.netProfitMargin)
+                                %>.
+                            </p>
+                            <p class="paragraph" style="    line-height: 20px;">
+                                As of December 2024, the Company held a cash
+                                balance
+                                of <%= companyDetails.currency %> <%=
+                                formatNumber(financialData.cashBalance) %>
+                                <%= companyDetails.unitOfNumber %> and had a net debt position
+                                of
+                                <%= companyDetails.currency %> <%=
+                                formatNumber(financialData.netDebt) %> <%= companyDetails.unitOfNumber %>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- page-3 -->
+            <div class="page page-break  page2">
+                <div class="section">
+                    <div class="stylus strip"
+                        style="left: 0; min-width: 18% !important;">
+                        <p>Forecast
+                            <span class="color">
+                                Summary
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="grid " style="padding-top: 65px;">
+
+                        <!-- Revenue -->
+                        <div class="chart-box">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">Revenue
+                                Growth (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>
+                                )</p>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+
+                        <!-- COGS -->
+                        <div class="chart-box">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">
+                                COGS (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>)
+                            </p>
+
+                            <canvas id="cogsChart"></canvas>
+                        </div>
+
+                        <!-- EBITDA -->
+                        <div class="chart-box" style="margin:30px 0 0 0 ;">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">
+                                EBITDA (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>),
+                                EBITDA Margin (%)
+                            </p>
+
+                            <canvas id="ebitdaChart"></canvas>
+                        </div>
+
+                        <!-- Net Profit -->
+                        <div class="chart-box" style="margin:30px 0 0 0 ;">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">
+                                Net Profit (<%= companyDetails.currency %>
+                                <%= companyDetails.unitOfNumber %>), NP Margin (%)
+                            </p>
+
+                            <canvas id="profitChart"></canvas>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-box" style="margin-top:60px">
+                        <p class=" colorPurple"
+                            style="font-size: 16px; margin-bottom: 18px;">
+                            Cash Forecast (<%= companyDetails.currency %>
+                            <%= companyDetails.unitOfNumber %>)
+                        </p>
+
+                        <canvas id="cashChart"></canvas>
+                    </div>
+
+                    <p class="heading "
+                        style="font-style: italic; margin-top: 30px;">
+                        // Full Income Statement and Cash Flow Statements on
+                        page no. 6
+                    </p>
+
+                </div>
+
+            </div>
+            <!-- page-4 -->
+            <div class="page page-break  page2">
+                <div class="section">
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Valuation
+                                <span class="color">
+                                    Methodology
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara" style="line-height: 18px;">
+                                Our approach combines both intrinsic and
+                                market-based valuation techniques to ensure a
+                                comprehensive and balanced perspective. We
+                                have utilized the Discounted Cash Flow (DCF)
+                                method to estimate the companyʼs intrinsic value
+                                based on its projected future cash flows,
+                                and complemented this with a Relative Valuation
+                                approach using comparable industry multiples.
+                                This blended methodology enables us to
+                                capture both the companyʼs fundamental earning
+                                potential and its position relative to its
+                                peers, resulting in a robust valuation estimate.
+                            </p>
+                            <p class="smallpara"
+                                style="line-height: 18px; padding-top: 15px;">
+                                The valuation performed using globally
+                                recognized valuation approaches, used key
+                                matrices of peers sourced from reliable data
+                                sources
+                                like S&P Capital IQ, Bloomberg, etc.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Discounted
+                                <span class="color">
+                                    Cash Flow
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara" style="line-height: 18px;">
+                                Discounted cash flow method is based on the
+                                premise that the value of a business is the
+                                equivalent of the future periodsʼ cash flows,
+                                discounted by an appropriate discount rate,
+                                reflecting the riskiness of the business.
+                            </p>
+                            <p class="smallpara"
+                                style="line-height: 18px; padding-top: 15px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;"> Purpose</span>:
+                                Captures the intrinsic
+                                value of the business based on its future cash
+                                flow potential
+                            </p>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Approach:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Forecast Free
+                                        Cash Flows to Firm (FCFF)
+                                        for 5 years</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Apply a
+                                        Terminal Value to account for
+                                        value beyond the explicit forecast
+                                        period</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Discount
+                                        these cash flows to present
+                                        value using the companyʼs Weighted
+                                        Average Cost of Capital (WACC)</li>
+                                </ul>
+                            </div>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Output:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Enterprise
+                                        Value (EV)</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Equity Value
+                                        = EV minus Net Debt</li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Relative
+                                <span class="color">
+                                    Valuation
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara" style="line-height: 18px;">
+                                The Relative Valuation method assesses the
+                                companyʼs value by comparing it to similar
+                                businesses within the same industry. This
+                                approach relies on valuation multiples such as
+                                EV/EBITDA, EV/Sales, and Price-to-Earnings
+                                (P/E), derived from a selected group of
+                                comparable companies
+                            </p>
+                            <p class="smallpara"
+                                style="line-height: 18px; padding-top: 15px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;"> Purpose</span>:
+                                Benchmarks the companyʼs valuation against
+                                comparable companies in the industry
+                            </p>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Approach:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Identify a
+                                        peer group of companies in the sector in
+                                        which company is operating</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Use relevant
+                                        valuation multiples derived from the
+                                        peer group</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Apply these
+                                        multiples to the companyʼs forecasted
+                                        financial metrics</li>
+                                </ul>
+                            </div>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Output:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Cross-check
+                                        valuation ranges derived from various
+                                        valuation multiples</li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Valuation
+                                <span class="color">
+                                    Summary
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara"
+                                style="line-height: 18px; max-width: 45%;">
+                                The valuation displayed below is the result of
+                                the
+                                weighted average of the DCF, and the relative
+                                valuation
+                                using various relevant multiples. The relative
+                                multiples
+                                were sourced from S&P Capital IQ.
+                            </p>
+                        </div>
+                        <div class="sideStrip">
+                            <div
+                                style="padding: 14px; background-color: #1aa79c; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                                <p
+                                    style="font-size: 20px; font-weight: 600; flex-wrap: nowrap !important;">
+                                    <%=
+                                    formatCurrencySymbol(valuation.enterpriseAvgValue || dcfTableData.enterpriseAvgValue || 0)
+                                    %>
+                                </p>
+                                <p
+                                    style="text-align: center; font-size: 10px;"><%= companyDetails.unitOfNumber %></p>
+                            </div>
+                            <div
+                                style="padding: 14px; background-color: #233977;">
+                                <p class="heading color"
+                                    style="font-weight: 700;">Valuation</p>
+                                <p class="smallpara">The total Enterprise Value of the   
+                                    <%= companyDetails.name %>
+                                    is estimated at  <%= companyDetails.unitOfNumber %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- page 5 -->
+            <div class="page page-break  page2">
+                <div class="section" style="padding-top: 70px;">
+                    <div class="containerwow">
+                        <!-- LEFT: Method Labels (Dynamic) -->
+                        <div
+                            style="text-align: end; height: 100%;display: flex;flex-direction: column; justify-content:space-around; align-items:center;">
+                            <% if (activeMethods.length === 0) { %>
+                            <p class="smallpara"
+                                style="width: 100%; text-align: end !important; padding: 0 20px 10px 0px;">
+                                No methods
+                            </p>
+                            <% } else { %>
+                            <% for(let i = 0; i < activeMethods.length; i++) {
+                            %>
+                            <p class="smallpara"
+                                style="width: 100%; text-align: end !important; padding: 0 20px <%= i === activeMethods.length - 1 ? '0px' : '10px' %> 0px;">
+                                <%= activeMethods[i] %>
+                            </p>
+                            <% } %>
+                            <% } %>
+                        </div>
+
+                        <!-- LEFT: Horizontal Bars Chart -->
+                        <div class="chart-box horizontalChart"
+                            style="display: flex; justify-content:center; align-items:center;">
+                            <canvas id="methodBars"></canvas>
+                        </div>
+
+                        <!-- CENTER: Method Weights -->
+                        <div>
+                            <div class="circular-box">
+                                <p class="heading colorPurple">Method
+                                    Weights</p>
+
+                                <div class="circle-row">
+                                    <canvas id="w1"></canvas>
+                                    <span class="percentage"><%= dcfWeightPercentage %>%</span>
+                                </div>
+                                <div class="circle-row">
+                                    <canvas id="w2"></canvas>
+                                    <span class="percentage"><%=
+                                        formatNumber(weightPercentages[1]) %>%</span>
+                                </div>
+                                <div class="circle-row">
+                                    <canvas id="w3"></canvas>
+                                    <span class="percentage"><%=
+                                        formatNumber(weightPercentages[2]) %>%</span>
+                                </div>
+                                <div class="circle-row">
+                                    <canvas id="w4"></canvas>
+                                    <span class="percentage"><%=
+                                        formatNumber(weightPercentages[3]) %>%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Speedometers -->
+                        <div class="speedometer">
+                            <p class="heading colorPurple">Equity Value</p>
+
+                            <div>
+                                <canvas id="gaugeLow" width="200"
+                                    height="90"></canvas>
+                                <div class="base"></div>
+                                <div class="label" >Min Value<br><%=
+                                    formatDCFValue(dcfTableData.equityValueMin) %> <%= companyDetails.unitOfNumber %></div>
+                            </div>
+
+                            <div style="margin-top: 16px;">
+                                <canvas id="gaugeBase" width="200"
+                                    height="90"></canvas>
+                                <div class="base"></div>
+                                <div class="label">Average Value<br><%=
+                                    formatDCFValue(dcfTableData.equityValue) %> <%= companyDetails.unitOfNumber %></div>
+                            </div>
+
+                            <div style="margin-top: 16px;">
+                                <canvas id="gaugeBest" width="200"
+                                    height="90"></canvas>
+                                <div class="base"></div>
+                                <div class="label" >Max Value<br><%=
+                                    formatDCFValue(dcfTableData.equityValueMax) %> <%= companyDetails.unitOfNumber %></div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden data for JavaScript -->
+                        <div id="method-data"
+                            data-method-labels='<%= JSON.stringify(methodLabels) %>'
+                            data-equity-values='<%= JSON.stringify(equityValues) %>'
+                            data-equity-min-values='<%= JSON.stringify(equityMinValues) %>'
+                            data-equity-max-values='<%= JSON.stringify(equityMaxValues) %>'
+                            data-weight-percentages='<%= JSON.stringify(weightPercentages) %>'
+                            data-min-value="<%= minValue %>"
+                            data-base-value="<%= baseValue %>"
+                            data-max-value="<%= maxValue %>"
+                            data-equity-value-min="<%= dcfTableData.equityValueMin %>"
+                            data-equity-value-avg="<%= dcfTableData.equityValue %>"
+                            data-equity-value-max="<%= dcfTableData.equityValueMax %>"
+                            style="display: none;">
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 15px;">
+                        <div class="stylus strip">
+                            <p>
+                                DCF
+                                <span class="color">
+                                    Synopsis
+                                </span>
+                            </p>
+                        </div>
+                        <div class="table-box" style="padding-top: 50px;">
+                            <table>
+                                <tr>
+                                    <th class="left"
+                                        style="background-color: #233977;">For
+                                        DCF</th>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.years.length; i++) { %>
+                                    <th class="year"><%= dcfTableData.years[i]
+                                        %></th>
+                                    <% } %>
+                                </tr>
+
+                                <tr>
+                                    <td class="left">EBITDA</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.ebitda.length; i++) { %>
+                                    <td><%=
+                                        formatDCFValue(dcfTableData.ebitda[i])
+                                        %></td>
+                                    <% } %>
+                                    <% if(dcfTableData.ebitda.length <
+                                    dcfTableData.years.length) { %>
+                                    <td></td>
+                                    <% } %>
+                                </tr>
+
+                                <tr>
+                                    <td class="left">Adjustments for Impact of
+                                        Tax on Interest</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.taxAdjustment.length; i++) { %>
+                                    <td><%= dcfTableData.taxAdjustment[i] === 0
+                                        ? '-' :
+                                        formatDCFValue(dcfTableData.taxAdjustment[i])
+                                        %></td>
+                                    <% } %>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.terminalTax)
+                                        %>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="left">Change in Working
+                                        Capital</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.workingCapital.length; i++) {
+                                    %>
+                                    <td><%=
+                                        formatParentheses(dcfTableData.workingCapital[i])
+                                        %></td>
+                                    <% } %>
+                                    <td></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="left">CAPEX</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.capex.length; i++) { %>
+                                    <td><%=
+                                        formatParentheses(dcfTableData.capex[i])
+                                        %></td>
+                                    <% } %>
+                                    <td></td>
+                                </tr>
+
+                                <tr class="subhead">
+                                    <td class="left">Free Cash-Flow (FCFF)</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.fcff.length; i++) { %>
+                                    <td><%= formatDCFValue(dcfTableData.fcff[i])
+                                        %></td>
+                                    <% } %>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.terminalValue)
+                                        %>
+                                    </td>
+                                </tr>
+
+                                <!-- WACC ARROW ROW -->
+                                <tr>
+                                    <td
+                                        colspan="<%= dcfTableData.years.length + 1 %>"
+                                        class="left"
+                                        style="padding: 20px 8px; position:relative">
+                                        <div>Weighted Average Cost of Capital
+                                            (WACC)</div>
+                                        <div class="arrow-line"></div>
+                                        <div class="circle">
+                                            <p style="text-align: center;">
+                                                <%=
+                                                formatPercentage(dcfTableData.wacc)
+                                                %>
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="left">Present Value of FCFF</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.presentValue.length; i++) { %>
+                                    <td><%=
+                                        formatDCFValue(dcfTableData.presentValue[i])
+                                        %></td>
+                                    <% } %>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfData.terminalPresentFCFF)
+                                        %>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- ================= SUMMARY TABLE ================= -->
+                        <div class="table-box" style="margin-top: 15px;">
+                            <table class="small-table">
+                                <tr>
+                                    <th class="left">Particulars</th>
+                                    <th class="right">Values in <%=
+                                        companyDetails.currency %> <%= companyDetails.unitOfNumber %></th>
+                                </tr>
+                                <tr>
+                                    <td class="left">Enterprise Value</td>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.enterpriseValue || dcfTableData.enterpriseValue)
+                                        %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="left">Net Debt</td>
+                                    <td>
+                                        <%= dcfTableData.netDebt === 0 ? '-' :
+                                        formatDCFValue(dcfTableData.netDebt) %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="left">Equity Value of the
+                                        Company</td>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.equityValue)
+                                        %>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 0px;">
+                        <div class="stylus strip">
+                            <p>
+                                Key
+                                <span class="color">
+                                    Assumptions
+                                </span>
+                            </p>
+                        </div>
+
+                        <div style="padding-top: 45px;">
+                            <div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Cost of Equity
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.costOfEquity
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Cost of Debt
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.costOfDebt
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Adjusted Beta
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= adjustedBeta.toFixed(2) %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Equity Market Risk
+                                            Premium
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.equityRiskPremium
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Company Discount
+                                            Factor
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.cmpnyDiscFactor
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Perpetual Growth Rate
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.perpetualGrowthRate
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- page 6 -->
+            <div class="page page-break page2">
+                <div class="section">
+                <div class="">
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Relative Valuation
+                                <span class="color">Synopsis</span>
+                            </p>
+                        </div>
+                        <!-- ========== TABLE 1: MULTIPLES (DYNAMIC) ========== -->
+                        <div style="padding-top: 45px;">
+                            <table class="small-table">
+                                <tr>
+                                    <th
+                                        style="background-color: #233977;">Multiples</th>
+                                    <th class="year">Industry Average</th>
+                                </tr>
+
+                                <%
+                                // Function to check and add multiple if valid
+                                function addIfValid(multipleArray, checkbox,
+                                multipleData, name) {
+                                if (checkbox && multipleData &&
+                                multipleData.multipleFactor !== undefined) {
+                                multipleArray.push({
+                                name: name,
+                                value: multipleData.multipleFactor
+                                });
+                                }
+                                }
+
+                                const checkedMultiples = [];
+
+                                // Add checked multiples
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPE_1, PE_1,
+                                'P/E Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPS_1, PS_1,
+                                'P/S Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_SALES_1, EV_SALES_1,
+                                'EV/Sales Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_EBITDA_1,
+                                EV_EBITDA_1,
+                                'EV/EBITDA Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPE, PE,
+                                'P/E Multiple');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPS, PS,
+                                'P/S Multiple');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_SALES, EV_SALES,
+                                'EV/Sales Multiple');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_EBITDA, EV_EBITDA,
+                                'EV/EBITDA Multiple');
+                                %>
+
+                                <% if (checkedMultiples.length === 0) { %>
+                                <tr>
+                                    <td colspan="2"
+                                        style="text-align: center; font-size: 12px; padding: 20px;">
+                                        No selected valuation multiples
+                                        available
+                                    </td>
+                                </tr>
+                                <% } else { %>
+                                <% for(let i = 0; i < checkedMultiples.length;
+                                i++) { %>
+                                <tr>
+                                    <td class="context"
+                                        style="font-size: 12px;">
+                                        <%= checkedMultiples[i].name %>
+                                    </td>
+                                    <td
+                                        style="text-align: center; font-weight: bold;">
+                                        <%=
+                                        formatMultiple(checkedMultiples[i].value)
+                                        %>x
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% } %>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="featureSecion" style="margin-bottom: 25px;">
+                    <div class="stylus strip">
+                        <p>
+                            Income
+                            <span class="color">Statement</span>
+                        </p>
+                    </div>
+                    <!-- ========== TABLE 2: INCOME STATEMENT (DYNAMIC) ========== -->
+                    <div style="padding-top: 45px;">
+                        <table>
+                            <tr>
+                                <th
+                                    style="background-color: #233977;">Particulars</th>
+                                <% for(let i = 0; i < years.length; i++) { %>
+                                <th class="year"><%= years[i] %></th>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Revenue</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.sales || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">COGS</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.cogs || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">EBITDA</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.ebitda ||
+                                    0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr style="background-color: rgb(238, 238, 238);">
+                                <td class="context"
+                                    style="font-size: 12px; background-color: rgb(238, 238, 238);">EBITDA
+                                    Margin (%)</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                const margin = workIncStmt[i]?.sales ?
+                                ((workIncStmt[i]?.ebitda || 0) /
+                                workIncStmt[i]?.sales) * 100 : 0;
+                                %>
+                                <td><%= formatPercentage(margin) %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Depreciation</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%=
+                                    formatDecimal(workIncStmt[i]?.depreciation
+                                    || 0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Interest
+                                    Expenses</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatDecimal(workIncStmt[i]?.intExp ||
+                                    0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">EBIT</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.ebit || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context" style="font-size: 12px;">Net
+                                    Profit</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.netProfit
+                                    || 0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr style="background-color: rgb(238, 238, 238);">
+                                <td class="context"
+                                    style="font-size: 12px; background-color: rgb(238, 238, 238);">Net
+                                    Profit Margin (%)</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                const netMargin = workIncStmt[i]?.sales ?
+                                ((workIncStmt[i]?.netProfit || 0) /
+                                workIncStmt[i]?.sales) * 100 : 0;
+                                %>
+                                <td><%= formatPercentage(netMargin) %></td>
+                                <% } %>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="featureSecion" style="margin-bottom: 25px;">
+                    <div class="stylus strip">
+                        <p>
+                            Cash Flow
+                            <span class="color">Statement</span>
+                        </p>
+                    </div>
+                    <!-- ========== TABLE 3: CASH FLOW STATEMENT (DYNAMIC) ========== -->
+                    <div style="padding-top: 45px;">
+                        <table>
+                            <tr>
+                                <th
+                                    style="background-color: #233977;">Particulars</th>
+                                <%
+                                // Get years safely
+                                const cashYears = [];
+                                if (years && Array.isArray(years) &&
+                                years.length > 0) {
+                                // Cash flow starts from 2026 (skip first year)
+                                for (let j = 1; j < years.length; j++) {
+                                cashYears.push(years[j]);
+                                }
+                                } else {
+                                // Default years if not available
+                                cashYears.push(2026, 2027, 2028, 2029, 2030);
+                                }
+
+                                // Display column headers
+                                for (let col = 0; col < cashYears.length; col++)
+                                {
+                                %>
+                                <th class="year"><%= cashYears[col] %></th>
+                                <% } %>
+                            </tr>
+
+                            <!-- Net Profit -->
+                            <tr>
+                                <td class="context" style="font-size: 12px;">Net
+                                    Profit</td>
+                                <%
+                                const cashData = workCashFlowStmt || [];
+                                for (let col = 0; col < cashYears.length; col++)
+                                {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatNumber(item.netProfit || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Depreciation -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Depreciation</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDecimal(item.depreciation || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Change in Working Capital (empty row) -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Change in Working
+                                    Capital</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) { %>
+                                <td></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Receivables -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Receivables</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.receivable || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Inventories -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Inventories</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.inventory || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Payables -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Payables</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.payable || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Capital Expenditure -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Capital
+                                    Expenditure</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.capExp || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Change in Debt -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Change in Debt</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.debtChange || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Equity Fund Raised -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Equity Fund
+                                    Raised</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                const equityFund = item.equityFund || 0;
+                                %>
+                                <td><%= equityFund === 0 ? '-' :
+                                    formatNumber(equityFund) %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Net Cash Movement -->
+                            <tr>
+                                <td class="context" style="font-size: 12px;">Net
+                                    Cash Movement</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDCFValue(item.netCashMovement || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Beginning Balance of Cash -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Beginning Balance
+                                    of Cash</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDCFValue(item.yearBegnCash || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Year End Cash Balance -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Year End Cash
+                                    Balance</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDCFValue(item.yearEndCash || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!-- page7 -->
+            <div class="page page-break  page2">
+
+                <div class="section"
+                    style=" height: -webkit-fill-available; justify-content: space-between; flex-direction: column; display: flex; position:relative; padding-bottom: 55px;">
+                    <div> 
+                        <div class="featureSecion"
+                            style="margin-bottom: 25px;">
+                            <div class="stylus strip">
+                                <p>
+                                    Disclaimer
+                                </p>
+                            </div>
+                            <div style="padding: 55px 0px 40px 0px;">
+                                <p class="smallpara"
+                                    style="line-height: 18px;">
+                                    Our Valuation Report (the "Report") does
+                                    not
+                                    intend to assist in any investment/sale
+                                    advice
+                                    or a binding recommendation to the
+                                    Client on
+                                    its
+                                    future course of action
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    The Report and our services are strictly
+                                    for
+                                    the
+                                    benefit, and use of Client and
+                                    accordingly
+                                    should not be relied upon and used by
+                                    (or
+                                    for
+                                    the
+                                    benefit of) any third party ("Third
+                                    Party"),
+                                    including any prospective buyer.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    Our Report is based on the information
+                                    provided
+                                    by the Company, which we did not have
+                                    direct
+                                    access to.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    In carrying out our work and preparing
+                                    the
+                                    Report, we have worked solely for the
+                                    Clientʼs
+                                    interest. Our Report may not have
+                                    considered
+                                    issues relevant to the Third Party. Any
+                                    use
+                                    that
+                                    the Third Party may choose to make of
+                                    the
+                                    Report
+                                    is entirely at their own risk, and we
+                                    shall
+                                    have no responsibility whatsoever in
+                                    relation to
+                                    any such use. Accordingly, we do not owe
+                                    a
+                                    duty
+                                    of care to the Third Party reader of
+                                    this
+                                    Report.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    In preparing our report, our primary
+                                    source
+                                    has
+                                    been the Companyʼs internal management
+                                    information and representations made to
+                                    us
+                                    by
+                                    the Company management. We do not accept
+                                    responsibility for such information
+                                    which
+                                    remains the responsibility of the
+                                    management.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    The Report has been based on the data
+                                    made
+                                    available to us as of the date of the
+                                    Report. We
+                                    will not be updating this Report with
+                                    respect
+                                    to any circumstances, and information
+                                    that
+                                    becomes available, after that date.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    We appreciate the opportunity to service
+                                    yo
+                                </p>
+                                <div class="smallpara"
+                                    style="padding-top: 15px;">
+                                    <p style="line-height: 18px;">Yours
+                                        faithfully,</p>
+                                    <p>Clybourne Consulting Pvt Ltd
+                                    </p>
+                                </div>
+                            </div>
+                            <hr />
+                        </div>
+                        <div class="featureSecion"
+                            style="margin-bottom: 25px;">
+                            <div class="stylus strip">
+                                <p>
+                                    About
+                                    <span class="color">
+                                        Clybourne
+                                    </span>
+                                </p>
+                            </div>
+                            <div
+                                style="padding: 55px 0px 40px 0px; max-width: 60%;">
+                                <p class="smallpara"
+                                    style="line-height: 18px;">
+                                    Clybourne Insights provides independent
+                                    financial advisory services based on
+                                    seasoned experience and strong research.
+                                    Our
+                                    services are designed to build,
+                                    manage, and conserve businesses across
+                                    the
+                                    globe
+                                    through effective
+                                    understanding of their needs
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    For more information about Clybourne
+                                    Insights
+                                    service offerings, please visit us at
+                                    www.clybourneinsights.com
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between;">
+                        <a href="#" class="smallpara colorPurple"
+                            style="text-decoration: none;">www.clybourneinsight.com</a>
+                        <p class="smallpara colorPurple">Copyright®Clybourne
+                            insights</p>
+                    </div>
+                    <div class="footIcon">
+                        <img class="icon"
+                            src="<%= process.env.NODE_ENV === 'production' ? 'https://finval-server.technolite.in' : 'http://localhost:5050' %>/assets/logo3.png"
+                            alt="icon">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // Get chart data from data attributes
+  const chartDataEl = document.getElementById('chart-data');
+  
+  if (!chartDataEl) {
+    console.warn('No chart data element found');
+    return;
+  }
+
+  // Parse chart data from data attributes
+  const chartData = {
+    revenue: JSON.parse(chartDataEl.dataset.revenue || '{"labels":[],"data":[]}'),
+    cogs: JSON.parse(chartDataEl.dataset.cogs || '{"labels":[],"data":[]}'),
+    ebitda: JSON.parse(chartDataEl.dataset.ebitda || '{"labels":[],"data":[],"margins":[]}'),
+    profit: JSON.parse(chartDataEl.dataset.profit || '{"labels":[],"data":[],"margins":[]}'),
+    cash: JSON.parse(chartDataEl.dataset.cash || '{"labels":[],"cashIn":[],"cashOut":[]}')
+  };
+
+  // Check if we have data
+  if (!chartData.revenue || chartData.revenue.data.length === 0) {
+    console.warn('No chart data available');
+    return;
+  }
+
+  // Canvas references
+  const revenueChart = document.getElementById('revenueChart');
+  const cogsChart = document.getElementById('cogsChart');
+  const ebitdaChart = document.getElementById('ebitdaChart');
+  const profitChart = document.getElementById('profitChart');
+  const cashChart = document.getElementById('cashChart');
+
+  // Helper function to format numbers in millions
+  function formatInMillions(value) {
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1) + 'M';
+    }
+    if (value >= 1000) {
+      return (value / 1000).toFixed(1) + 'K';
+    }
+    return value.toFixed(1);
+  }
+
+  // ===== Revenue Chart =====
+  if (revenueChart && chartData.revenue.data.length > 0) {
+    new Chart(revenueChart, {
+      type: 'bar',
+      data: {
+        labels: chartData.revenue.labels,
+        datasets: [{
+          data: chartData.revenue.data,
+          backgroundColor: '#1e3a8a',
+          barThickness: 15
+        }]
+      },
+      options: {
+        animation: false,
+        plugins: {
+          legend: { display: true },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${formatInMillions(context.raw)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { 
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return formatInMillions(value);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ===== COGS Chart =====
+  if (cogsChart && chartData.cogs.data.length > 0) {
+    new Chart(cogsChart, {
+      type: 'bar',
+      data: {
+        labels: chartData.cogs.labels,
+        datasets: [{
+          data: chartData.cogs.data,
+          backgroundColor: '#233977',
+          barThickness: 15
+        }]
+      },
+      options: {
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${formatInMillions(context.raw)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { 
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return formatInMillions(value);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ===== EBITDA Chart =====
+  if (ebitdaChart && chartData.ebitda.data.length > 0) {
+    new Chart(ebitdaChart, {
+      data: {
+        labels: chartData.ebitda.labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'EBITDA',
+            data: chartData.ebitda.data,
+            backgroundColor: '#233977',
+            barThickness: 15,
+            yAxisID: 'y'
+          },
+          {
+            type: 'line',
+            label: 'Margin %',
+            data: chartData.ebitda.margins,
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                if (context.datasetIndex === 0) {
+                  return `EBITDA: ${formatInMillions(context.raw)}`;
+                } else {
+                  return `Margin: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return formatInMillions(value);
+              }
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return value + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ===== Net Profit Chart =====
+  if (profitChart && chartData.profit.data.length > 0) {
+    new Chart(profitChart, {
+      data: {
+        labels: chartData.profit.labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Net Profit',
+            data: chartData.profit.data,
+            backgroundColor: '#233977',
+            barThickness: 15,
+            yAxisID: 'y'
+          },
+          {
+            type: 'line',
+            label: 'Margin %',
+            data: chartData.profit.margins,
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                if (context.datasetIndex === 0) {
+                  return `Net Profit: ${formatInMillions(context.raw)}`;
+                } else {
+                  return `Margin: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return formatInMillions(value);
+              }
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return value + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ===== Cash Flow Chart =====
+  if (cashChart && chartData.cash.cashIn.length > 0) {
+    new Chart(cashChart, {
+      type: 'bar',
+      data: {
+        labels: chartData.cash.labels,
+        datasets: [
+          {
+            label: 'Cash In',
+            data: chartData.cash.cashIn,
+            backgroundColor: '#233977',
+            barThickness: 15
+          },
+          {
+            label: 'Cash Out',
+            data: chartData.cash.cashOut,
+            backgroundColor: '#1aa79c',
+            barThickness: 15
+          }
+        ]
+      },
+      options: {
+        animation: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${formatInMillions(context.raw)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            categoryPercentage: 0.6,
+            barPercentage: 0.7,
+            grid: { display: false }
+          },
+          y: {
+            grid: { display: false },
+            ticks: {
+              callback: function(value) {
+                return formatInMillions(value);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+});
+</script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+
+        <script>
+    // Chart data
+    // In your backend, before creating reportData, prepare chartData:
+
+// Prepare chart data
+
+// Then add chartData to your reportData object:
+
+    // const chartData = {
+    //     revenue: {
+    //         labels: ['2025', '2026', '2027', '2028', '2029'],
+    //         data: [6.5, 8.2, 10.5, 13.2, 16.8]
+    //     },
+    //     cogs: {
+    //         labels: ['2025', '2026', '2027', '2028', '2029'],
+    //         data: [3.5, 4.2, 5.1, 6.2, 7.5]
+    //     },
+    //     ebitda: {
+    //         labels: ['2025', '2026', '2027', '2028', '2029'],
+    //         data: [1.2, 2.5, 4.1, 6.0, 8.2],
+    //         margins: [18.5, 30.5, 39.0, 45.5, 48.8]
+    //     },
+    //     profit: {
+    //         labels: ['2025', '2026', '2027', '2028', '2029'],
+    //         data: [0.3, 1.2, 2.3, 3.7, 5.3],
+    //         margins: [4.6, 14.6, 21.9, 28.0, 31.5]
+    //     },
+    //     cash: {
+    //         labels: ['2025', '2026', '2027', '2028', '2029'],
+    //         cashIn: [25, 50, 70, 80, 100],
+    //         cashOut: [22, 45, 60, 70, 90]
+    //     }
+    // };
+
+//     document.addEventListener('DOMContentLoaded', function () {
+
+//         const labels = chartData.revenue.labels;
+
+//         // Canvas references
+//         const revenueChart = document.getElementById('revenueChart');
+//         const cogsChart = document.getElementById('cogsChart');
+//         const ebitdaChart = document.getElementById('ebitdaChart');
+//         const profitChart = document.getElementById('profitChart');
+//         const cashChart = document.getElementById('cashChart');
+
+//         // ===== Revenue =====
+//         new Chart(revenueChart, {
+//             type: 'bar',
+//             data: {
+//                 labels,
+//                 datasets: [{
+//                     data: chartData.revenue.data,
+//                     backgroundColor: '#1e3a8a',
+//                     barThickness: 15
+//                 }]
+//             },
+//             options: {
+//                 animation: false,
+//                 plugins: {
+//                     legend: {
+//                         display: false
+//                     }
+//                 },
+//                 scales: {
+//                     x: {
+//                         grid: {
+//                             display: false
+//                         }
+//                     },
+//                     y: {
+//                         grid: {
+//                             display: false
+//                         }
+//                     }
+//                 }
+//             }
+//         });
+
+//         // ===== COGS =====
+//         new Chart(cogsChart, {
+//             type: 'bar',
+//             data: {
+//                 labels: chartData.cogs.labels,
+//                 datasets: [{
+//                     data: chartData.cogs.data,
+//                     backgroundColor: '#233977',
+//                     barThickness: 15
+//                 }]
+//             },
+//             options: {
+//                 animation: false, // PDF-safe
+//                 plugins: {
+//                     legend: {
+//                         display: false
+//                     }
+//                 },
+//                 scales: {
+//                     x: {
+//                         grid: {
+//                             display: false
+//                         }
+//                     },
+//                     y: {
+//                         grid: {
+//                             display: false
+//                         }
+//                     }
+//                 }
+//             }
+//         });
+
+//         // ===== EBITDA =====
+//         new Chart(ebitdaChart, {
+//             data: {
+//                 labels: chartData.ebitda.labels,
+//                 datasets: [
+//                     {
+//                         type: 'bar',
+//                         label: 'EBITDA',
+//                         data: chartData.ebitda.data,
+//                         backgroundColor: '#233977',
+//                         barThickness: 15
+//                     },
+//                     {
+//                         type: 'line',
+//                         label: 'Margin %',
+//                         data: chartData.ebitda.margins,
+//                         borderColor: '#06b6d4',
+//                         yAxisID: 'y1'
+//                     }
+//                 ]
+//             },
+//             options: {
+//                 plugins: {
+//                     legend: {
+//                         display: true,
+//                         position: 'bottom'
+//                     }
+//                 },
+//                 scales: {
+//                     x: {
+//                         grid: {
+//                             display: false
+//                         }
+//                     },
+//                     y1: {
+//                         position: 'right',
+//                         ticks: { callback: v => v + '%' },
+//                         grid: { display: false },
+//                         border: { display: false },
+                        
+//                     },
+//                     y: {                 // 👈 PRIMARY AXIS (IMPORTANT)
+//                         grid: { display: false },
+//                         // border: { display: false }
+//                     },
+//                 }
+//             }
+//         });
+
+//         // ===== Net Profit =====
+//         new Chart(profitChart, {
+//             data: {
+//                 labels: chartData.profit.labels,
+//                 datasets: [
+//                     {
+//                         type: 'bar',
+//                         label: 'Net Profit',
+//                         data: chartData.profit.data,
+//                         backgroundColor: '#233977',
+//                         barThickness: 15
+//                     },
+//                     {
+//                         type: 'line',
+//                         label: 'Margin %',
+//                         data: chartData.profit.margins,
+//                         borderColor: '#06b6d4',
+//                         yAxisID: 'y1'
+//                     }
+//                 ]
+//             },
+//             options: {
+//                 plugins: {
+//                     legend: {
+//                         display: true,
+//                         position: 'bottom'
+//                     }
+//                 },
+//                 scales: {
+//                     x: {
+//                         grid: {
+//                             display: false
+//                         }
+//                     },
+//                     y1: {
+//                         position: 'right',
+//                         ticks: { callback: v => v + '%' },
+//                         grid: { display: false },
+//                         border: { display: false },
+                        
+//                     },
+//                     y: {                 // 👈 PRIMARY AXIS (IMPORTANT)
+//                         grid: { display: false },
+//                         // border: { display: false }
+//                     },
+//                 }
+//             }
+//         });
+
+//         // ===== Cash =====
+//         new Chart(cashChart, {
+//             type: 'bar',
+//             data: {
+//                 labels: chartData.cash.labels,
+//                 datasets: [
+//                     {
+//                         label: 'Cash In',
+//                         data: chartData.cash.cashIn,
+//                         backgroundColor: '#233977',
+//                         barThickness:15
+//                     },
+//                     {
+//                         label: 'Cash Out',
+//                         data: chartData.cash.cashOut,
+//                         backgroundColor: '#1aa79c',
+//                         barThickness:15
+//                     }
+//                 ]
+//             },
+//             options: {
+//                 animation: false, // PDF-safe
+//                 plugins: {
+//                     legend: {
+//                         display: false
+//                     }
+//                 },
+//                 scales: {
+//                     x: {
+//                         categoryPercentage: 0.6, // 👈 gap between years
+//                         barPercentage: 0.7,      // 👈 gap between bars
+//                         grid: { display: false }
+//                     },
+//                     y: {
+//                         grid: { display: false }
+//                     }
+//                 }
+//             }
+//         });
+
+//     });
+// </script>
+
+        <script>
+document.addEventListener('DOMContentLoaded', function () {
+    
+    // Get data from hidden element
+    const methodDataEl = document.getElementById('method-data');
+    if (!methodDataEl) return;
+    
+    const methodLabels = JSON.parse(methodDataEl.dataset.methodLabels || '[]');
+    const equityValues = JSON.parse(methodDataEl.dataset.equityValues || '[]');
+    const equityMinValues = JSON.parse(methodDataEl.dataset.equityMinValues || '[]');
+    const equityMaxValues = JSON.parse(methodDataEl.dataset.equityMaxValues || '[]');
+    const weightPercentages = JSON.parse(methodDataEl.dataset.weightPercentages || '[0,0,0,0]');
+    const minValue = parseFloat(methodDataEl.dataset.minValue) || 0;
+    const baseValue = parseFloat(methodDataEl.dataset.baseValue) || 0;
+    const maxValue = parseFloat(methodDataEl.dataset.maxValue) || 0;
+    
+    // Get Equity Value data from the table (for speedometers)
+    const equityValueMin = parseFloat(methodDataEl.dataset.equityValueMin || '0');
+    const equityValueAvg = parseFloat(methodDataEl.dataset.equityValueAvg || '0');
+    const equityValueMax = parseFloat(methodDataEl.dataset.equityValueMax || '0');
+    
+    // Helper function
+    function formatInMillions(value) {
+        if (value >= 1000000) {
+            return '$' + (value / 1000000).toFixed(1) + 'M';
+        }
+        if (value >= 1000) {
+            return '$' + (value / 1000).toFixed(1) + 'K';
+        }
+        return '$' + value.toFixed(1);
+    }
+    
+    // ===== METHOD COMPARISON BARS (Min-Max Range Chart - All Methods Centered) =====
+    if (equityValues.length > 0 && equityMinValues.length > 0 && equityMaxValues.length > 0) {
+        const methodBarsCanvas = document.getElementById('methodBars');
+        if (methodBarsCanvas) {
+            // Get DCF values from Equity Value of the Company table
+            const dcfMinFromTable = parseFloat(equityValueMin || 0);
+            const dcfAvgFromTable = parseFloat(equityValueAvg || 0);
+            const dcfMaxFromTable = parseFloat(equityValueMax || 0);
+            
+            // Find DCF index in the methods array
+            const dcfIndex = methodLabels.findIndex(label => label === 'DCF' || label.includes('DCF'));
+            
+            // Replace DCF values with table values if DCF exists
+            if (dcfIndex >= 0 && dcfMinFromTable > 0 && dcfMaxFromTable > 0) {
+                equityMinValues[dcfIndex] = dcfMinFromTable;
+                equityValues[dcfIndex] = dcfAvgFromTable;
+                equityMaxValues[dcfIndex] = dcfMaxFromTable;
+            }
+            
+            // Find overall min and max across all methods for scaling
+            const allMinValues = equityMinValues.map(v => parseFloat(v) || 0);
+            const allMaxValues = equityMaxValues.map(v => parseFloat(v) || 0);
+            const overallMin = Math.min(...allMinValues, ...equityValues.map(v => parseFloat(v) || 0));
+            const overallMax = Math.max(...allMaxValues, ...equityValues.map(v => parseFloat(v) || 0));
+            const range = overallMax - overallMin || 1; // Avoid division by zero
+            
+            // Create center division line plugin (vertical dashed line at center = 0)
+            // All methods are centered at 0, so the division line passes through the center
+            const centerLine = {
+                id: 'centerLine',
+                afterDraw(chart) {
+                    const { ctx, chartArea, scales: { x } } = chart;
+                    // Position center line exactly at 0 (center of chart)
+                    // The scale is -60 to +60, so 0 is the exact center
+                    const xCenter = x.getPixelForValue(0);
+                    ctx.save();
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = '#233977';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    // Draw line from top to bottom of chart area, passing through center
+                    ctx.moveTo(xCenter, chartArea.top);
+                    ctx.lineTo(xCenter, chartArea.bottom);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            };
+
+            // Prepare data: left segment (min to avg) and right segment (avg to max)
+            // All methods will be centered at their average positions (0)
+            const leftSegmentData = [];
+            const rightSegmentData = [];
+            
+            equityValues.forEach((avgValue, index) => {
+                const minVal = parseFloat(equityMinValues[index] || avgValue);
+                const maxVal = parseFloat(equityMaxValues[index] || avgValue);
+                const avgVal = parseFloat(avgValue || 0);
+                
+                // Calculate distances from average
+                const distanceFromAvgToMin = avgVal - minVal;
+                const distanceFromAvgToMax = maxVal - avgVal;
+                
+                // Normalize distances to percentage of overall range
+                const leftDistancePercent = (distanceFromAvgToMin / range) * 100;
+                const rightDistancePercent = (distanceFromAvgToMax / range) * 100;
+                
+                // For stacked bars to be centered at 0 with two colors:
+                // The bar should go from -leftDistance to +rightDistance
+                // - First dataset (left, teal): starts at -leftDistance, length = leftDistance (ends at 0)
+                // - Second dataset (right, blue): starts at 0, length = rightDistance (ends at +rightDistance)
+                //
+                // In Chart.js stacked bars:
+                // - First dataset value = starting position
+                // - Second dataset value = additional length that stacks on first
+                //
+                // So: first = -leftDistance (bar starts here)
+                //     second = leftDistance + rightDistance (extends from -leftDistance to +rightDistance)
+                // But this makes second dataset one color for entire length
+                //
+                // To get two colors, we need the segments to be separate:
+                // Actually, with 2 datasets, we can't easily get two distinct colors with a division
+                // Let's use: first = -leftDistance (position), second = leftDistance (left segment length)
+                // Then we'd need a third for right, but we only have 2
+                //
+                // Alternative: Use the base property or calculate differently
+                // For now, let's ensure bars are centered by using proper start positions
+                
+                // For stacked bars to be centered at 0:
+                // Bar should extend from -leftDistance to +rightDistance
+                // In Chart.js stacked bars: first dataset = base position, second = extends from base
+                //
+                // To center: 
+                // - First dataset: -leftDistance (bar starts here, this is the left segment)
+                // - Second dataset: leftDistance + rightDistance (extends to +rightDistance)
+                // This creates a bar from -leftDistance to +rightDistance, centered at 0
+                
+                // For Chart.js stacked horizontal bars to center at 0:
+                // We need the bar to extend from -leftDistance to +rightDistance
+                // 
+                // The issue: Chart.js stacked bars might not handle negative starting positions correctly
+                // Solution: Calculate the offset needed to center the bar
+                //
+                // Bar should span: from (avg - min) to (avg + max - avg) = from -leftDist to +rightDist
+                // To center at 0, we need: barStart = -leftDist, barEnd = +rightDist
+                //
+                // In stacked format:
+                // - First dataset: barStart position = -leftDistancePercent
+                // - Second dataset: length to add = leftDistancePercent + rightDistancePercent
+                // Result: bar goes from -leftDist to (-leftDist + leftDist + rightDist) = +rightDist ✓
+                
+                // But wait - if first dataset is negative, Chart.js might interpret it differently
+                // Let me try: first = leftDistance (positive, but we'll position it), second = rightDistance
+                // Actually, for stacked bars, negative values in first dataset should work
+                
+                // Try explicit calculation:
+                const barStartPosition = -leftDistancePercent;
+                const leftSegmentLength = leftDistancePercent;
+                const rightSegmentLength = rightDistancePercent;
+                
+                // For stacked bars: first dataset is the base, second stacks on it
+                // If first = -leftDist and second = leftDist, bar goes from -leftDist to 0
+                // Then we need third for right, but we only have 2 datasets
+                //
+                // Alternative: Use first = -leftDist, second = totalLength
+                // This should work: bar from -leftDist to (-leftDist + totalLength) = +rightDist
+                
+                // Calculate values for centered bar
+                const leftDist = leftDistancePercent;
+                const rightDist = rightDistancePercent;
+                
+                // For Chart.js stacked bars to be perfectly centered at 0:
+                // If we use first = -leftDist and second = totalLength,
+                // the bar goes from -leftDist to (-leftDist + totalLength) = rightDist
+                // Center = (-leftDist + rightDist) / 2, which is only 0 if leftDist = rightDist
+                //
+                // To always center at 0, we need to shift the bar:
+                // Current center = (-leftDist + rightDist) / 2
+                // Shift needed = -center = (leftDist - rightDist) / 2
+                // New start = -leftDist + shift = -leftDist + (leftDist - rightDist) / 2 = -(leftDist + rightDist) / 2
+                // New end = rightDist + shift = rightDist + (leftDist - rightDist) / 2 = (leftDist + rightDist) / 2
+                // Total length = (leftDist + rightDist) / 2 - (-(leftDist + rightDist) / 2) = leftDist + rightDist
+                //
+                // So for stacked bars:
+                // First dataset: -(leftDist + rightDist) / 2 (bar starts here)
+                // Second dataset: leftDist + rightDist (extends to end)
+                // Result: bar from -(leftDist + rightDist)/2 to +(leftDist + rightDist)/2, centered at 0
+                
+                const totalLength = leftDist + rightDist;
+                const barStart = -(leftDist + rightDist) / 2;
+                
+                leftSegmentData.push(barStart);
+                rightSegmentData.push(totalLength);
+            });
+            
+            // Use centered scale for all methods (-60 to +60, with 0 at center)
+            const scaleMin = -60;
+            const scaleMax = 60;
+            
+            // Debug: Log the calculated values to verify
+            console.log('Chart Data:', {
+                leftSegmentData: leftSegmentData,
+                rightSegmentData: rightSegmentData,
+                scaleMin: scaleMin,
+                scaleMax: scaleMax
+            });
+            
+            new Chart(methodBarsCanvas, {      
+                type: 'bar',
+                data: {
+                    labels: methodLabels,
+                    datasets: [
+                        {
+                            label: 'Min to Avg',
+                            data: leftSegmentData,
+                            backgroundColor: '#0ea5a5', // Teal for left segment
+                            barThickness: 5
+                        },
+                        {
+                            label: 'Avg to Max',
+                            data: rightSegmentData,
+                            backgroundColor: '#233977', // Dark blue for right segment
+                            barThickness: 5
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    animation: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const datasetIndex = context.datasetIndex;
+                                    if (datasetIndex === 0) {
+                                        // Left segment: show min to avg
+                                        return `Min: ${formatInMillions(equityMinValues[index])} → Avg: ${formatInMillions(equityValues[index])}`;
+                                    } else {
+                                        // Right segment: show avg to max
+                                        return `Avg: ${formatInMillions(equityValues[index])} → Max: ${formatInMillions(equityMaxValues[index])}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            min: -60,
+                            max: 60,
+                            beginAtZero: false, // Don't force zero, use our min/max
+                            ticks: { display: false },
+                            grid: { drawTicks: false, display: false },
+                            display: false
+                        },
+                        y: {
+                            stacked: true,
+                            grid: { display: false },
+                            display: false,
+                            categoryPercentage: 0.4,
+                            barPercentage: 0.5,
+                            offset: true
+                        }
+                    }
+                },
+                plugins: [centerLine]
+            });
+        }
+    }
+
+    // ===== CIRCULAR WEIGHTS =====
+    function createCircularChart(id, percentage) {
+        const canvas = document.getElementById(id);
+        if (canvas && percentage > 0) {
+            const colors = ['#0ea5a5', '#233977', '#1aa79c', '#06b6d4'];
+            const index = parseInt(id.replace('w', '')) - 1;
+            const color = colors[index] || '#0ea5a5';
+            
+            new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [percentage, 100 - percentage],
+                        backgroundColor: [color, '#e5e7eb'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    animation: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    }
+    
+    // Create weight charts
+    for (let i = 1; i <= 4; i++) {
+        createCircularChart(`w${i}`, weightPercentages[i-1] || 0);
+    }
+
+    // ===== SPEEDOMETERS =====
+    const gaugeNeedle = {
+        id: 'gaugeNeedle',
+        afterDraw(chart) {
+            const { ctx, chartArea } = chart;
+            const value = chart.options.plugins.gauge.value;
+            const angle = Math.PI + (value / 100) * Math.PI;
+            const cx = (chartArea.left + chartArea.right) / 2;
+            const cy = chartArea.bottom;
+            const radius = (chartArea.right - chartArea.left) / 2 - 10;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, -3);
+            ctx.lineTo(radius, 0);
+            ctx.lineTo(0, 3);
+            ctx.fillStyle = '#111827';
+            ctx.fill();
+            ctx.restore();
+            
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#111827';
+            ctx.fill();
+        }
+    };
+    
+    function createSpeedometer(canvasId, value, minVal, maxVal) {
+        const canvas = document.getElementById(canvasId);
+        if (canvas && maxVal > minVal) {
+            const normalizedValue = ((value - minVal) / (maxVal - minVal)) * 100;
+            
+            new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
+                        backgroundColor: [
+                            '#1aa79c', '#2EC4B6', '#F4D35E',
+                            '#ff000050', '#e75252', '#ff1d1d'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    rotation: -90,
+                    circumference: 180,
+                    cutout: '75%',
+                    animation: false,
+                    plugins: {
+                        legend: { display: false },
+                        gauge: { 
+                            value: Math.min(100, Math.max(0, normalizedValue)) 
+                        }
+                    }
+                },
+                plugins: [gaugeNeedle]
+            });
+        }
+    }
+    
+    // Create speedometers using Equity Value min, avg, max from the table
+    if (equityValueMax > equityValueMin) {
+        createSpeedometer('gaugeLow', equityValueMin, equityValueMin, equityValueMax);
+        createSpeedometer('gaugeBase', equityValueAvg, equityValueMin, equityValueMax);
+        createSpeedometer('gaugeBest', equityValueMax, equityValueMin, equityValueMax);
+    }
+});
+</script>
+        <!-- <script>
+
+            
+    // horizontal
+    // ===== DIVERGING HORIZONTAL BAR (METHOD COMPARISON) =====
+
+    const centerLine = {
+        id: 'centerLine',
+        afterDraw(chart) {
+            const { ctx, chartArea, scales: { x } } = chart;
+            const xZero = x.getPixelForValue(0);
+
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = '#233977';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(xZero, chartArea.top);
+            ctx.lineTo(xZero, chartArea.bottom);
+            ctx.stroke();
+            ctx.restore();
+        }
+    };
+
+    new Chart(document.getElementById('methodBars'), {      
+        type: 'bar',
+        data: {
+            labels: [
+                'DCF',
+                'P/S', 
+                'P/S One Year Fwd',
+                'EV/Sales One Year Fwd'
+            ],
+            datasets: [
+                {
+                    // LEFT SIDE (Negative)
+                    data: [-40, -35, -45, -38],
+                    backgroundColor: '#0ea5a5',
+                    barThickness: 5
+                },
+                {
+                    // RIGHT SIDE (Positive)
+                    data: [60, 55, 45, 48],
+                    backgroundColor: '#233977',
+                    barThickness: 5
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            animation: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    min: -70,
+                    max: 70,
+                    ticks: { display: false },
+                    grid: { drawTicks: false },
+                    display: false
+                },
+                y: {
+                    stacked: true,
+                    grid: { display: false },
+                    display: false,
+                    // Adjust these values for more spacing
+                    categoryPercentage: 0.4, // Increased from 0.1 (controls space between categories)
+                    barPercentage: 0.5,      // Controls bar thickness within category
+                    // You can also adjust the offset
+                    offset: true
+                }
+            }
+        },
+        plugins: [centerLine]
+    });
+    // circular
+    function circular(id, value) {
+        new Chart(id, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [value, 100 - value],
+                    backgroundColor: ['#0ea5a5', '#e5e7eb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '70%',
+                animation: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    circular(w1, 50);
+    circular(w2, 20);
+    circular(w3, 10);
+    circular(w4, 35);
+    // speedometer
+    const gaugeNeedle = {
+        id: 'gaugeNeedle',
+        afterDraw(chart) {
+            const { ctx, chartArea } = chart;
+            const value = chart.options.plugins.gauge.value;
+
+            const angle = Math.PI + (value / 100) * Math.PI;
+            const cx = (chartArea.left + chartArea.right) / 2;
+            const cy = chartArea.bottom;
+            const radius = (chartArea.right - chartArea.left) / 2 - 10;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+
+            // needle
+            ctx.beginPath();
+            ctx.moveTo(0, -3);
+            ctx.lineTo(radius, 0);
+            ctx.lineTo(0, 3);
+            ctx.fillStyle = '#111827';
+            ctx.fill();
+            ctx.restore();
+
+            // center dot
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#111827';
+            ctx.fill();
+        }
+    };
+    function createSpeedometer(canvasId, value) {
+        return new Chart(document.getElementById(canvasId), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
+                    backgroundColor: [
+                        '#1aa79c',
+                        '#2EC4B6',
+                        '#F4D35E',
+                        '#ff000050',
+                        '#e75252',
+                        '#ff1d1d'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: false,
+                rotation: -90,
+                circumference: 180,
+                cutout: '75%',
+                animation: false,
+                plugins: {
+                    legend: { display: false },
+                    gauge: { value } // 👈 dynamic needle value
+                }
+            },
+            plugins: [gaugeNeedle]
+        });
+    }
+    createSpeedometer('gaugeLow', 35);   // Lower Case
+    createSpeedometer('gaugeBase', 55);  // Base Case
+    createSpeedometer('gaugeBest', 80);  // Best Case
+
+    new Chart(gaugeLow, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                   data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
+                backgroundColor: [
+                    '#1aa79c', // red
+                    '#2EC4B6', // orange
+                    // '#ffd500', // green
+                    '#F4D35E' ,
+                     "#ff000050",
+                    "#e75252", 
+                    "#ff1d1d",
+                    "#ff000050"// grey remainder
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: false,
+            rotation: -90,
+            circumference: 180,
+            cutout: '75%',
+            animation: false,
+            plugins: {
+                legend: { display: false },
+                gauge: {
+                    value: 45 // 👈 needle position (0–100)
+                }
+            }
+        },
+        plugins: [gaugeNeedle]
+    });
+</script> -->
