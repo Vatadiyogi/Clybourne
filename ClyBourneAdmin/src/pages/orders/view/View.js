@@ -33,7 +33,7 @@ const View = () => {
             try {
                 const response = await axios.get(`${apiURL}api/admin/orders/${id}`);
                 const { customer, order, calculations } = response.data;
-
+               
                 // Update state with fetched order and customer data
                 setOrder({
                     customerName: customer.customerName,

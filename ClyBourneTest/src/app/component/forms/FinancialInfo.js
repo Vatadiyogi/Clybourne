@@ -113,7 +113,17 @@ const DropdownIndicator = (props) => {
         </components.DropdownIndicator>
     );
 };
+const getScaledUnit = (values, currentUnit) => {
+    // Always show one level higher than selected
+    const higherUnits = {
+        'Thousands': 'Millions',
+        'Millions': 'Billions',
+        'Billions': 'Trillions',
+        'Trillions': 'Trillions' // No higher unit
+    };
 
+    return higherUnits[currentUnit] || currentUnit;
+};
 const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => {
     const router = useRouter();
 
@@ -148,6 +158,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
     const [companyData, setCompanyData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [chartData, setChartData] = useState([]);
+    const [chartUnit, setChartUnit] = useState(formData.unitOfNumber || 'Millions');
 
     const selectStyles = {
         control: (base) => ({
@@ -164,6 +175,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
         }),
     };
 
+    // Enhanced chart data generation with proper calculations and 2 decimal formatting
     // Enhanced chart data generation with proper calculations and 2 decimal formatting
     const generateChartData = useMemo(() => {
         const finYearEnd = companyData.yearEndYear ? parseInt(companyData.yearEndYear) : new Date().getFullYear();
@@ -183,9 +195,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                 return {
                     year: `${year}`,
                     salesMain: formData.sales ? formatToTwoDecimals(parseFloat(formData.sales) || 0) : 0,
-                    // salesExtra: 0,
                     cogsMain: formData.costOfSales ? formatToTwoDecimals(parseFloat(formData.costOfSales) || 0) : 0,
-                    // cogsExtra: 0,
                     ebitda: formData.ebitda ? formatToTwoDecimals(parseFloat(formData.ebitda) || 0) : 0,
                     netProfit: formData.netProfit ? formatToTwoDecimals(parseFloat(formData.netProfit) || 0) : 0,
                     netMargin: formData.sales && formData.netProfit ?
@@ -196,9 +206,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                 return {
                     year: `${year}`,
                     salesMain: 0,
-                    // salesExtra: 0,
                     cogsMain: 0,
-                    // cogsExtra: 0,
                     ebitda: 0,
                     netProfit: 0,
                     netMargin: 0
@@ -206,37 +214,58 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
             }
         });
 
-        // Apply rounding based on the unit of number from financial data
+        // Collect raw values BEFORE any formatting for unit calculation
+        const rawValues = [
+            formData.sales ? parseFloat(formData.sales) || 0 : 0,
+            formData.costOfSales ? parseFloat(formData.costOfSales) || 0 : 0,
+            formData.ebitda ? parseFloat(formData.ebitda) || 0 : 0,
+            formData.netProfit ? parseFloat(formData.netProfit) || 0 : 0
+        ];
+
+        // Get the appropriate unit based on raw calculated values
+        const calculatedChartUnit = getScaledUnit(rawValues, formData.unitOfNumber || 'Millions');
+
+        // Save the calculated unit to localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('calculatedChartUnit', calculatedChartUnit);
+            // Also save the base unit for reference
+            localStorage.setItem('baseChartUnit', formData.unitOfNumber || 'Millions');
+        }
+        // Apply rounding based on the CALCULATED unit
         const salesData = baseData.map(item => item.salesMain);
         const cogsData = baseData.map(item => item.cogsMain);
         const ebitdaData = baseData.map(item => item.ebitda);
         const netProfitData = baseData.map(item => item.netProfit);
 
-        const roundedSales = roundOffNumber(salesData, { valueType: [formData.unitOfNumber || 'Millions'] });
-        const roundedCogs = roundOffNumber(cogsData, { valueType: [formData.unitOfNumber || 'Millions'] });
-        const roundedEbitda = roundOffNumber(ebitdaData, { valueType: [formData.unitOfNumber || 'Millions'] });
-        const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [formData.unitOfNumber || 'Millions'] });
+        const roundedSales = roundOffNumber(salesData, { valueType: [calculatedChartUnit] });
+        const roundedCogs = roundOffNumber(cogsData, { valueType: [calculatedChartUnit] });
+        const roundedEbitda = roundOffNumber(ebitdaData, { valueType: [calculatedChartUnit] });
+        const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [calculatedChartUnit] });
 
         // Update baseData with rounded values and ensure 2 decimal places
         const finalData = baseData.map((item, index) => ({
             ...item,
             salesMain: formatToTwoDecimals(roundedSales.roundedNumbers[index]),
-            // salesExtra: 0,
             cogsMain: formatToTwoDecimals(roundedCogs.roundedNumbers[index]),
-            // cogsExtra: 0,
             ebitda: formatToTwoDecimals(roundedEbitda.roundedNumbers[index]),
             netProfit: formatToTwoDecimals(roundedNetProfit.roundedNumbers[index]),
             // netMargin remains as percentage, format to 2 decimal places
             netMargin: formatToTwoDecimals(item.netMargin)
         }));
 
-        return finalData;
-    }, [formData, companyData]);// Removed forecastYears from dependencies since it's defined inside
+        // Return both the data and the calculated unit
+        return {
+            chartData: finalData,
+            chartUnit: calculatedChartUnit
+        };
+    }, [formData, companyData]);
     // Update chart data when form data changes
+    // Update chart data when dependencies change
     useEffect(() => {
-        setChartData(generateChartData);
+        const { chartData: generatedData, chartUnit: generatedUnit } = generateChartData;
+        setChartData(generatedData);
+        setChartUnit(generatedUnit);
     }, [generateChartData]);
-
     // Get the current order ID
     const getCurrentOrderId = () => {
         if (orderId && orderId !== "null" && orderId !== "undefined") {
@@ -315,9 +344,25 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
     const handleSelectChange = (name, selected) => {
-        setFormData((prev) => ({ ...prev, [name]: selected.value }));
+        const newValue = selected.value;
+        setFormData((prev) => ({ ...prev, [name]: newValue }));
+
+        // If the unit of number is changed, update chartUnit to the new selected unit
+        if (name === 'unitOfNumber') {
+            setChartUnit(newValue);
+            // Save to localStorage immediately
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('calculatedChartUnit', newValue);
+                localStorage.setItem('baseChartUnit', newValue);
+            }
+        }
     };
 
+    useEffect(() => {
+        if (chartUnit && typeof window !== 'undefined') {
+            localStorage.setItem('calculatedChartUnit', chartUnit);
+        }
+    }, [chartUnit])
     const validateForm = () => {
         const requiredFields = [
             "unitOfNumber",
@@ -522,7 +567,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                     <span className='text-[22px] cxs:text-[28px] text-gray-700 font-bold font-sans'>New Order:</span>
                     <span className='text-[18px] cxs:text-[26px] text-gray-700 fw-medium font-sans'> Current Financial Information</span>
                     <p className='text-gray-700 text-sm text-medium'>
-                        Ensure that all values are positive numbers with up to two decimal places, and also include the historical numbers for the year 2024.
+                        Ensure that all values are positive, limited to a maximum of two decimal places, and that the added values correspond to the previous financial year.
                     </p>
                 </div>
                 <div className="w-full flex justify-end text-[10px] cxs:text-sm">
@@ -861,10 +906,10 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                                     </p> */}
 
                                     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-                                        {shouldShowSalesChart && <SalesChart yearly={chartData} unit={formData.unitOfNumber || "Millions"} />}
-                                        {shouldShowCogsChart && <CogsChart yearly={chartData} unit={formData.unitOfNumber || "Millions"} />}
-                                        {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={formData.unitOfNumber || "Millions"} />}
-                                        {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={formData.unitOfNumber || "Millions"} />}
+                                        {shouldShowSalesChart && <SalesChart yearly={chartData} unit={chartUnit} />}
+                                        {shouldShowCogsChart && <CogsChart yearly={chartData} unit={chartUnit} />}
+                                        {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={chartUnit} />}
+                                        {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={chartUnit} />}
                                         {shouldShowNetMarginChart && <NetMarginChart yearly={chartData} />}
                                     </div>
                                 </div>

@@ -809,13 +809,13 @@ router.put('/update', [
     } = req.body;
 
     // ✅ NOW SAFELY USE THE VARIABLES
-    console.log('forcast_bal_sheet_data:', forcast_bal_sheet_data);
-    console.log('forcast_rip_days_data:', forcast_rip_days_data);
+    // console.log('forcast_bal_sheet_data:', forcast_bal_sheet_data);
+    // console.log('forcast_rip_days_data:', forcast_rip_days_data);
     console.log('====================================');
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+      // console.log('Validation errors:', errors.array());
       return res.status(500).json({ status: false, message: errors.array()[0].msg, 'data': [] });
     }
 
@@ -825,8 +825,8 @@ router.put('/update', [
       return res.status(500).json({ 'status': false, 'message': "Invalid Order.", 'data': [] });
     }
 
-    console.log('Found order:', order._id);
-    console.log('Current order status:', order.matadata.status);
+    // console.log('Found order:', order._id);
+    // console.log('Current order status:', order.matadata.status);
 
     const order_completed = order.matadata.status === 'Completed' ? 1 : 0;
     const current_date = moment().format();

@@ -742,8 +742,8 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                     printBackground: true,
                     margin: { top: '40px', right: '20px', bottom: '40px', left: '20px' },
                     displayHeaderFooter: true,
-                    headerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Valuation Report</div>',
-                    footerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
+                    // headerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Valuation Report</div>',
+                    // footerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
                     preferCSSPageSize: true,
                     timeout: 60000
                 });
@@ -2141,10 +2141,6 @@ router.post('/complete-order', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-
-
-
-
 async function buildDocumentUrls(order) {
     if (order.documents && order.documents.length > 0) {
         return order.documents.map(doc => {

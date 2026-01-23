@@ -6,7 +6,7 @@ const ParameterFormFields = ({calculations, businessDetails, formValues, errors,
     let debtLoan = parseFloat(calculations.finance.debtLoan);
     
     let result = (debtLoan === 0) ? 0.00 : ((interestExpense / debtLoan) * 100).toFixed(2);
-
+console.log("formValues",formValues)
    return (
 
 <div className="row justify-content-center">
@@ -32,7 +32,7 @@ const ParameterFormFields = ({calculations, businessDetails, formValues, errors,
                         </tr>
                         <tr>
                             <td className="first-td">Financial Year End :</td>
-                            <td>{businessDetails.FinYrEndMonth ? `${businessDetails.FinYrEndDate} ${getMonthName(businessDetails.FinYrEndMonth)} ${businessDetails.FinYrEnd}` : ''}
+                            <td>{businessDetails.FinYrEndMonth ? `${businessDetails.FinYrEndDate} ${businessDetails.FinYrEndMonth} ${businessDetails.FinYrEnd}` : ''}
                             </td>
                         </tr>
                         <tr>

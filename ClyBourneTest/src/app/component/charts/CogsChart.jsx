@@ -18,7 +18,7 @@ export default function CogsChart({ yearly, unit }) {
                         data={yearly}
                         barCategoryGap="30%"
                         barGap={5}
-                       margin={{
+                        margin={{
                             top: 30,
                             right: 10,
                             left: 10,
@@ -32,7 +32,7 @@ export default function CogsChart({ yearly, unit }) {
                             tick={{ fontSize: 10, fill: "#555" }}
                         />
                         <Tooltip />
-                        <Legend wrapperStyle={{ fontSize: "14px", fontFamily: "Arial", boxShadow: "none" }} />
+                        {/* <Legend wrapperStyle={{ fontSize: "14px", fontFamily: "Arial", boxShadow: "none" }} /> */}
                         <Bar dataKey="cogsMain" stackId="a" fill="#233977" >
                             <LabelList
                                 dataKey="cogsMain"

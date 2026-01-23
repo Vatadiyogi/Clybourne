@@ -68,6 +68,7 @@ router.get("/:_id", async (req, res) => {
 // UPDATE route: this will update the details 
 router.put("/:_id", async (req, res) => {
   const { back_end_inputs, back_end_table } = req.body;
+  console.log("check is backend inputs", back_end_inputs)
   const query = await QueryModel.findById(req.params._id);
   // const query = await QueryModel.findByIdAndUpdate(req.params._id, req.body);
   if (query) {

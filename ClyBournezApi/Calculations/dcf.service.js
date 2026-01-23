@@ -25,6 +25,7 @@ var DcfService = exports.DcfService = function () {
             this.adjustedBeta = null;
             this.calculateCompanyEquityValue(dbQuery);
         }
+ 
 
         DcfService_1.prototype.getDaysRemaining = function (lastFinYrEnd) {
             var currentDate = new Date();
@@ -63,6 +64,7 @@ var DcfService = exports.DcfService = function () {
         };
 
         DcfService_1.prototype.calculateCompanyEquityValue = function (dbQuery) {
+                   console.log("DB_QUERRYYY",dbQuery)
             // if (!dbQuery) {
             //     return;
             // }
@@ -93,13 +95,23 @@ var DcfService = exports.DcfService = function () {
             }
             {
                 // Minimum 	 8,363 (WACC = 15% and perp = 1.5%)
-                var _b = this.computeFCFF(dbQuery, wacc + 0.05, perpetualGrowthRate - 0.01), eqVal = _b[0], fcffArray = _b[1];
+                var waccDelta = this.backEndService.workBackEndInputs.waccDelta / 100;  // Convert percentage to decimal
+                var pptlDelta = this.backEndService.workBackEndInputs.pptlDelta / 100;
+                var _b = this.computeFCFF(dbQuery, wacc + waccDelta, perpetualGrowthRate - pptlDelta), eqVal = _b[0], fcffArray = _b[1];
+                // var _b = this.computeFCFF(dbQuery, wacc + 0.05, perpetualGrowthRate - 0.01), eqVal = _b[0], fcffArray = _b[1];
                 this.companyEquityMinValue = eqVal;
+                //   var _b = this.computeFCFF(dbQuery, wacc + 1, perpetualGrowthRate - 0.5), eqVal = _b[0], fcffArray = _b[1];
+                // this.companyEquityMinValue = eqVal;
             }
             {
                 // Maximum 	 76,756 (WACC = 5% and Perp = 3.5%)
-                var _c = this.computeFCFF(dbQuery, wacc - 0.05, perpetualGrowthRate + 0.01), eqVal = _c[0], fcffArray = _c[1];
+                var waccDelta = this.backEndService.workBackEndInputs.waccDelta / 100;  // Convert percentage to decimal
+                var pptlDelta = this.backEndService.workBackEndInputs.pptlDelta / 100;
+                var _c = this.computeFCFF(dbQuery, wacc - waccDelta, perpetualGrowthRate + pptlDelta), eqVal = _c[0], fcffArray = _c[1];
+                // var _c = this.computeFCFF(dbQuery, wacc - 0.05, perpetualGrowthRate + 0.01), eqVal = _c[0], fcffArray = _c[1];
                 this.companyEquityMaxValue = eqVal;
+                //   var _c = this.computeFCFF(dbQuery, wacc - 1, perpetualGrowthRate + 0.5), eqVal = _c[0], fcffArray = _c[1];
+                // this.companyEquityMaxValue = eqVal;
             }
         };
 

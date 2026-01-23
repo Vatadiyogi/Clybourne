@@ -45,7 +45,18 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
     const [forecastData, setForecastData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [chartData, setChartData] = useState([]);
+    const [chartUnit, setChartUnit] = useState(() => {
+        if (typeof window === 'undefined') return 'Millions';
 
+        // Try to get the calculated unit from localStorage first
+        const savedCalculatedUnit = localStorage.getItem('calculatedChartUnit');
+        if (savedCalculatedUnit) {
+            return savedCalculatedUnit;
+        }
+
+        // Fallback to financial data unit or Millions
+        return financialData.unitOfNumber || 'Millions';
+    });
     // Get the current order ID
     const getCurrentOrderId = () => {
         if (orderId && orderId !== "null" && orderId !== "undefined") {
@@ -366,7 +377,7 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
 
                         {/* Forecasted Net Addition in CAPEX/Fixed Assets */}
                         <div className="">
-                            <p className="text-xs text-gray-700 mb-2">Forecasted Net Addition in CAPEX/Fixed Assets</p>
+                            <p className="text-xs text-gray-700 mb-2">Forecasted Net Addition in CAPEX/Fixed Assets*</p>
                             <div className="flex flex-wrap gap-1 xs:gap-2">
                                 {forecastYears.map((year, index) => (
                                     <div key={index} className="flex flex-col items-center justify-start">
@@ -387,7 +398,7 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
 
                         {/* Forecasted Debt/Loan */}
                         <div className="">
-                            <p className="mb-2 text-xs text-gray-700">Forecasted Debt/Loan</p>
+                            <p className="mb-2 text-xs text-gray-700">Forecasted Net Addition in Debt/Loan*</p>
                             <div className="flex flex-wrap gap-1 xs:gap-2">
                                 {forecastYears.map((year, index) => (
                                     <div key={index} className="flex flex-col items-center justify-start">
@@ -565,7 +576,7 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                             Back
                         </button>
                         <button
-                               onClick={handlePreview}
+                            onClick={handlePreview}
                             disabled={!editAllowed || isLoading}
                             className="bg-themegreen hover:bg-teal-600 text-white px-8 lg:px-[22px] py-2 text-sm rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
@@ -631,14 +642,14 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                                 <div className="bg-white rounded-lg p-6">
                                     <h3 className="text-lg font-semibold text-gray-700 mb-4">Financial Projections Preview</h3>
                                     <p className="text-gray-500 text-sm mb-4">
-                                        Showing projections based on your forecast inputs. All values in {financialData.unitOfNumber || 'Millions'}.
+                                        Showing projections based on your forecast inputs. All values in {companyData.currency || 'NA'}.
                                     </p>
 
                                     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-                                        {shouldShowSalesChart && <SalesChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                        {shouldShowCogsChart && <CogsChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                        {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                        {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
+                                        {shouldShowSalesChart && <SalesChart yearly={chartData} unit={chartUnit} />}
+                                        {shouldShowCogsChart && <CogsChart yearly={chartData} unit={chartUnit} />}
+                                        {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={chartUnit} />}
+                                        {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={chartUnit} />}
                                         {shouldShowNetMarginChart && <NetMarginChart yearly={chartData} />}
                                     </div>
                                 </div>

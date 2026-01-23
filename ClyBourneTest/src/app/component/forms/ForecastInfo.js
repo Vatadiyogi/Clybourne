@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Axios from '../../../utils/api';
 import Swal from 'sweetalert2';
-import {getCountryName} from "../../../utils/countryUtils";
+import { getCountryName } from "../../../utils/countryUtils";
 import GeoMapTwo from "../charts/GeoMapTwo";
 import SalesChart from "../charts/SalesChart";
 import CogsChart from "../charts/CogsChart";
@@ -42,7 +42,18 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
     const [financialData, setFinancialData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [chartData, setChartData] = useState([]);
+    const [chartUnit, setChartUnit] = useState(() => {
+        if (typeof window === 'undefined') return 'Millions';
 
+        // Try to get the calculated unit from localStorage first
+        const savedCalculatedUnit = localStorage.getItem('calculatedChartUnit');
+        if (savedCalculatedUnit) {
+            return savedCalculatedUnit;
+        }
+
+        // Fallback to financial data unit or Millions
+        return financialData.unitOfNumber || 'Millions';
+    });
     // Get the current order ID
     const getCurrentOrderId = () => {
         if (orderId && orderId !== "null" && orderId !== "undefined") {
@@ -297,14 +308,14 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
     const handleForecastChange = (yearIndex, field, value) => {
         // Validate numeric input
         const isNumeric = (val) => /^-?\d*\.?\d*$/.test(val);
-        
+
         if (!isNumeric(value) && value !== "") {
             return;
         }
-        
+
         // Check for negative values in fields that cannot be negative
         const cannotBeNegativeFields = ["cogsPercent", "interestRate", "depreciationRate"];
-        
+
         if (cannotBeNegativeFields.includes(field)) {
             const numValue = parseFloat(value);
             if (value !== "" && numValue < 0) {
@@ -321,7 +332,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                 return;
             }
         }
-        
+
         setFormData(prev => ({
             ...prev,
             forecastData: prev.forecastData.map((item, index) =>
@@ -336,48 +347,48 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
         const hasData = formData.forecastData.some(yearData =>
             Object.values(yearData).some(value => value && value !== "")
         );
-        
+
         if (!hasData) {
-            return { 
-                valid: false, 
+            return {
+                valid: false,
                 field: "at least one forecast field",
                 errorType: "empty"
             };
         }
-        
+
         // Validate all entered values
         for (let [yearIndex, yearData] of formData.forecastData.entries()) {
             for (let [field, value] of Object.entries(yearData)) {
                 if (value && value !== "") {
                     const numValue = parseFloat(value);
-                    
+
                     if (isNaN(numValue)) {
-                        return { 
-                            valid: false, 
+                        return {
+                            valid: false,
                             field: `${getFieldDisplayName(field)} for Year ${yearIndex + 1}`,
                             errorType: "invalid",
                             message: `Please enter a valid number for ${getFieldDisplayName(field)} in Year ${yearIndex + 1}`
                         };
                     }
-                    
+
                     // Check for negative values in fields that cannot be negative
                     const cannotBeNegativeFields = ["cogsPercent", "interestRate", "depreciationRate"];
                     if (cannotBeNegativeFields.includes(field) && numValue < 0) {
-                        return { 
-                            valid: false, 
+                        return {
+                            valid: false,
                             field: `${getFieldDisplayName(field)} for Year ${yearIndex + 1}`,
                             errorType: "negative",
                             message: `${getFieldDisplayName(field)} cannot be negative for Year ${yearIndex + 1}`
                         };
                     }
-                    
+
                     // Validate percentage ranges
                     if (['salesGrowth', 'cogsPercent', 'ebitdaMargin', 'netProfitMargin', 'interestRate', 'depreciationRate'].includes(field)) {
                         if (field === 'cogsPercent') {
                             // COGS percentage should be between 0 and 100 (or up to 1000 for extreme cases)
                             if (numValue < 0 || numValue > 1000) {
-                                return { 
-                                    valid: false, 
+                                return {
+                                    valid: false,
                                     field: `${getFieldDisplayName(field)} for Year ${yearIndex + 1}`,
                                     errorType: "range",
                                     message: `${getFieldDisplayName(field)} must be between 0% and 1000% for Year ${yearIndex + 1}`
@@ -386,8 +397,8 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                         } else if (field === 'interestRate' || field === 'depreciationRate') {
                             // Interest and depreciation rates should be non-negative
                             if (numValue < 0 || numValue > 1000) {
-                                return { 
-                                    valid: false, 
+                                return {
+                                    valid: false,
                                     field: `${getFieldDisplayName(field)} for Year ${yearIndex + 1}`,
                                     errorType: "range",
                                     message: `${getFieldDisplayName(field)} must be between 0% and 1000% for Year ${yearIndex + 1}`
@@ -396,8 +407,8 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                         } else {
                             // Other percentages can be negative or positive within reasonable bounds
                             if (numValue < -100 || numValue > 1000) {
-                                return { 
-                                    valid: false, 
+                                return {
+                                    valid: false,
                                     field: `${getFieldDisplayName(field)} for Year ${yearIndex + 1}`,
                                     errorType: "range",
                                     message: `${getFieldDisplayName(field)} must be between -100% and 1000% for Year ${yearIndex + 1}`
@@ -408,7 +419,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                 }
             }
         }
-        
+
         return { valid: true };
     };
 
@@ -442,7 +453,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
         const check = validateForm();
         if (!check.valid) {
             let errorMessage = check.message || `Please enter a valid ${check.field}`;
-            
+
             Swal.fire({
                 icon: "error",
                 title: "Validation Error",
@@ -474,7 +485,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                 interestRate: parseFloat(item.interestRate) || 0,
                 netProfitMargin: parseFloat(item.netProfitMargin) || 0
             }));
-console.log("forecast_inc_stmt_dataforecast_inc_stmt_data:",forecast_inc_stmt_data)
+            console.log("forecast_inc_stmt_dataforecast_inc_stmt_data:", forecast_inc_stmt_data)
             const response = await Axios.put("/api/order/update", {
                 orderId: currentOrderId,
                 forecast_inc_stmt_data,
@@ -770,47 +781,47 @@ console.log("forecast_inc_stmt_dataforecast_inc_stmt_data:",forecast_inc_stmt_da
 
                         {/* Financial Charts */}
                         {(shouldShowSalesChart || shouldShowCogsChart || shouldShowEbitdaChart || shouldShowNetProfitChart || shouldShowNetMarginChart) && (
-                        <div className="py-2 md:py-6">
-                            <div className="bg-white rounded-lg ">
-                                <h3 className="text-lg font-semibold text-gray-700 mb-4">Financial Projections</h3>
+                            <div className="py-2 md:py-6">
+                                <div className="bg-white rounded-lg ">
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Financial Projections</h3>
 
-                                {chartData.length <= 1 ? (
-                                    <div className="text-center py-8">
-                                        <p className="text-gray-500 text-sm mb-4">
-                                            No forecast data entered yet. Enter values in the form to see projections.
-                                        </p>
-                                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 opacity-40">
-                                            {/* Placeholder charts */}
-                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
-                                                <p className="text-gray-400">Sales Chart</p>
-                                            </div>
-                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
-                                                <p className="text-gray-400">COGS Chart</p>
-                                            </div>
-                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
-                                                <p className="text-gray-400">EBITDA Chart</p>
-                                            </div>
-                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
-                                                <p className="text-gray-400">Net Profit Chart</p>
+                                    {chartData.length <= 1 ? (
+                                        <div className="text-center py-8">
+                                            <p className="text-gray-500 text-sm mb-4">
+                                                No forecast data entered yet. Enter values in the form to see projections.
+                                            </p>
+                                            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 opacity-40">
+                                                {/* Placeholder charts */}
+                                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
+                                                    <p className="text-gray-400">Sales Chart</p>
+                                                </div>
+                                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
+                                                    <p className="text-gray-400">COGS Chart</p>
+                                                </div>
+                                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
+                                                    <p className="text-gray-400">EBITDA Chart</p>
+                                                </div>
+                                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center">
+                                                    <p className="text-gray-400">Net Profit Chart</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <p className="text-gray-500 text-sm mb-4">
-                                            Showing projections based on your forecast inputs. All values in {financialData.unitOfNumber || 'Millions'}.
-                                        </p>
-                                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-                                            {shouldShowSalesChart && <SalesChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                            {shouldShowCogsChart && <CogsChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                            {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                            {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />}
-                                            {shouldShowNetMarginChart && <NetMarginChart yearly={chartData} />}
-                                        </div>
-                                    </>
-                                )}
+                                    ) : (
+                                        <>
+                                            <p className="text-gray-500 text-sm mb-4">
+                                                Showing projections based on your forecast inputs. All values in {companyData.currency || 'NA'}.
+                                            </p>
+                                            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
+                                                {shouldShowSalesChart && <SalesChart yearly={chartData} unit={chartUnit} />}
+                                                {shouldShowCogsChart && <CogsChart yearly={chartData} unit={chartUnit} />}
+                                                {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={chartUnit} />}
+                                                {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={chartUnit} />}
+                                                {shouldShowNetMarginChart && <NetMarginChart yearly={chartData} />}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                        </div>
                         )}
                     </div>
                 </div>

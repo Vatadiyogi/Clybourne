@@ -32,7 +32,7 @@ export default function SalesChart({ yearly, unit }) {
                             tick={{ fontSize: 10, fill: "#555" }}
                         />
                         <Tooltip />
-                        <Legend wrapperStyle={{ fontSize: "14px", fontFamily: "Arial", boxShadow: "none" }} />
+                        {/* <Legend wrapperStyle={{ fontSize: "14px", fontFamily: "Arial", boxShadow: "none" }} /> */}
                         <Bar dataKey="salesMain" stackId="a" fill="#233977" >
                              <LabelList
                                 dataKey="salesMain"

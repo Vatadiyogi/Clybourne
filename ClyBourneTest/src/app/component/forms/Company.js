@@ -845,7 +845,7 @@ const Company = ({ orderId, initialData, onSave, editAllowed }) => {
                             {/* Financial Year End */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    When did your financial year end? *
+                                    When did your last financial year end? *
                                 </label>
                                 <div className="flex gap-2">
                                     <Select

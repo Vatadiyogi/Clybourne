@@ -1539,7 +1539,7 @@ router.get('/customer-plan/:userId', async (req, res) => {
 // UPDATE route: this will update the details valuation Parameters  
 router.put("/valuation-parameters/:_id", async (req, res) => {
     const { back_end_inputs } = req.body;
-
+    console.log("valuation-parameters", back_end_inputs)
     // Find the query by ID
     const query = await Orders.findById(req.params._id);
 
