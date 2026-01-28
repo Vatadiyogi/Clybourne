@@ -33,76 +33,61 @@ export function calculateNetProfitMargin(salesNumber, netProfit) {
 
 export function roundOffNumber(numbers, finData) {
     if (!Array.isArray(numbers) || numbers.length === 0) {
-        console.error("Input is not a valid array of numbers");
         return {
             roundedNumbers: numbers.map(() => 0),
             valueType: finData?.valueType?.[0] || 'Millions'
         };
     }
 
-    // Filter out NaN values and find the largest number
-    const validNumbers = numbers.filter(num => !isNaN(num) && num !== null && num !== undefined);
+    // Get current unit
+    const currentUnit = finData?.valueType?.[0] || 'Millions';
+    
+    // Find the maximum absolute value
+    const validNumbers = numbers.filter(num => !isNaN(num));
     if (validNumbers.length === 0) {
         return {
             roundedNumbers: numbers.map(() => 0),
-            valueType: finData?.valueType?.[0] || 'Millions'
+            valueType: currentUnit
         };
     }
-
-    const largestNumber = Math.max(...validNumbers.map(num => Math.abs(num)));
-
-    // Handle case where largest number is 0
-    if (largestNumber === 0) {
-        return {
-            roundedNumbers: numbers.map(num => isNaN(num) ? 0 : parseFloat(num.toFixed(2))),
-            valueType: finData?.valueType?.[0] || 'Millions'
-        };
+    
+    const maxAbsValue = Math.max(...validNumbers.map(num => Math.abs(num)));
+    
+    // Define unit hierarchy
+    const unitHierarchy = {
+        'Thousands': { next: 'Millions', divisor: 1000 },
+        'Millions': { next: 'Billions', divisor: 1000000 },
+        'Billions': { next: 'Trillions', divisor: 1000000000 },
+        'Trillions': { next: 'Trillions', divisor: 1 }
+    };
+    
+    let targetUnit = currentUnit;
+    let divisor = 1;
+    
+    // Check if we need to scale up
+    if (maxAbsValue > 0) {
+        const digitCount = Math.floor(Math.log10(maxAbsValue)) + 1;
+        const unitInfo = unitHierarchy[currentUnit];
+        
+        if (unitInfo) {
+            // Check threshold: 4 digits means we need to scale (e.g., 1000 in millions = 1 billion)
+            if (digitCount >= 4) {
+                targetUnit = unitInfo.next;
+                divisor = unitInfo.divisor;
+            }
+        }
     }
-
-    const digitCount = Math.floor(Math.log10(largestNumber)) + 1;
-    let currencyValues = finData?.valueType?.[0] || 'Millions';
-
-    // Determine the divisor based on the digit count
-    let divisor;
-    if (digitCount >= 4 && digitCount <= 6) {
-        divisor = 1000;
-        currencyValues = currencyValues === 'Absolute'
-            ? 'Thousands'
-            : (currencyValues === 'Thousands'
-                ? 'Millions'
-                : (currencyValues === 'Millions'
-                    ? 'Billions'
-                    : 'Trillions'));
-    } else if (digitCount >= 7 && digitCount <= 9) {
-        divisor = 1000000;
-        currencyValues = currencyValues === 'Absolute'
-            ? 'Millions'
-            : (currencyValues === 'Thousands'
-                ? 'Billions'
-                : (currencyValues === 'Millions'
-                    ? 'Trillions'
-                    : 'Trillions'));
-    } else if (digitCount >= 10) {
-        divisor = 1000000000;
-        currencyValues = currencyValues === 'Absolute'
-            ? 'Billions'
-            : (currencyValues === 'Thousands'
-                ? 'Trillions'
-                : 'Trillions');
-    } else {
-        divisor = 1; // No division if digit count is less than 4
-    }
-
-    // Divide all numbers by the divisor and round to 2 decimal places
+    
+    // Apply division and round
     const roundedNumbers = numbers.map(num => {
         const validNum = isNaN(num) ? 0 : num;
-        const result = Math.round((validNum / divisor) * 100) / 100;
-        return parseFloat(result.toFixed(2)); // Ensure exactly 2 decimal places
+        const result = divisor === 1 ? validNum : validNum / divisor;
+        return parseFloat(result.toFixed(2));
     });
-
+    
     return {
         roundedNumbers,
-        valueType: currencyValues
+        valueType: targetUnit
     };
 }
 
@@ -114,15 +99,30 @@ const DropdownIndicator = (props) => {
     );
 };
 const getScaledUnit = (values, currentUnit) => {
-    // Always show one level higher than selected
-    const higherUnits = {
-        'Thousands': 'Millions',
-        'Millions': 'Billions',
-        'Billions': 'Trillions',
-        'Trillions': 'Trillions' // No higher unit
+    // Find the largest absolute value
+    const maxAbsValue = Math.max(...values.map(v => Math.abs(v)));
+    
+    // Handle zero or very small values
+    if (maxAbsValue === 0) return currentUnit;
+    
+    const digitCount = Math.floor(Math.log10(maxAbsValue)) + 1;
+    
+    // Define scaling rules based on digit count
+    const scalingRules = {
+        'Thousands': { threshold: 4, next: 'Millions' },
+        'Millions': { threshold: 4, next: 'Billions' },
+        'Billions': { threshold: 4, next: 'Trillions' },
+        'Trillions': { threshold: 4, next: 'Trillions' }
     };
-
-    return higherUnits[currentUnit] || currentUnit;
+    
+    const rule = scalingRules[currentUnit] || scalingRules['Millions'];
+    
+    // If number of digits exceeds threshold, move to next unit
+    if (digitCount >= rule.threshold) {
+        return rule.next;
+    }
+    
+    return currentUnit;
 };
 const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => {
     const router = useRouter();
@@ -174,91 +174,79 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
             padding: "4px",
         }),
     };
-
-    // Enhanced chart data generation with proper calculations and 2 decimal formatting
-    // Enhanced chart data generation with proper calculations and 2 decimal formatting
-    const generateChartData = useMemo(() => {
-        const finYearEnd = companyData.yearEndYear ? parseInt(companyData.yearEndYear) : new Date().getFullYear();
-
-        // Define forecastYears here - 5 years starting from current financial year
-        const forecastYears = Array.from({ length: 6 }, (_, index) => finYearEnd + index);
-
-        // Helper function to format numbers to 2 decimal places
-        const formatToTwoDecimals = (num) => {
-            return Math.round((num + Number.EPSILON) * 100) / 100;
+ const generateChartData = useMemo(() => {
+    const finYearEnd = companyData.yearEndYear ? parseInt(companyData.yearEndYear) : new Date().getFullYear();
+    const forecastYears = Array.from({ length: 6 }, (_, index) => finYearEnd + index);
+    
+    // Create base data
+    const baseData = forecastYears.map((year, index) => ({
+        year: `${year}`,
+        salesMain: index === 0 ? (parseFloat(formData.sales) || 0) : 0,
+        cogsMain: index === 0 ? (parseFloat(formData.costOfSales) || 0) : 0,
+        ebitda: index === 0 ? (parseFloat(formData.ebitda) || 0) : 0,
+        netProfit: index === 0 ? (parseFloat(formData.netProfit) || 0) : 0,
+        netMargin: index === 0 ? (calculateNetProfitMargin(
+            parseFloat(formData.sales) || 0,
+            parseFloat(formData.netProfit) || 0
+        )) : 0
+    }));
+    
+    // Collect all values to determine scaling
+    const allValues = [];
+    baseData.forEach(item => {
+        allValues.push(item.salesMain, item.cogsMain, item.ebitda, item.netProfit);
+    });
+    
+    // Apply scaling based on current unit
+    const currentUnit = formData.unitOfNumber || 'Millions';
+    
+    // First, determine if we need to scale
+    const maxValue = Math.max(...allValues.map(v => Math.abs(v)));
+    const digitCount = maxValue > 0 ? Math.floor(Math.log10(maxValue)) + 1 : 0;
+    
+    // Define thresholds for each unit
+    const unitThresholds = {
+        'Thousands': 4, // 1000 = 4 digits
+        'Millions': 7,  // 1,000,000 = 7 digits  
+        'Billions': 10, // 1,000,000,000 = 10 digits
+        'Trillions': 13 // 1,000,000,000,000 = 13 digits
+    };
+    
+    let targetUnit = currentUnit;
+    let divisor = 1;
+    
+    // Check if we exceed the threshold for current unit
+    const threshold = unitThresholds[currentUnit] || 7;
+    if (digitCount >= threshold) {
+        // Move to next unit
+        const unitMap = {
+            'Thousands': { next: 'Millions', div: 1000 },
+            'Millions': { next: 'Billions', div: 1000000 },
+            'Billions': { next: 'Trillions', div: 1000000000 },
+            'Trillions': { next: 'Trillions', div: 1 }
         };
-
-        // Create base data with current year + 5 forecast years, all with zero values initially
-        const baseData = forecastYears.map((year, index) => {
-            if (index === 0) {
-                // Current year - use actual data from form
-                return {
-                    year: `${year}`,
-                    salesMain: formData.sales ? formatToTwoDecimals(parseFloat(formData.sales) || 0) : 0,
-                    cogsMain: formData.costOfSales ? formatToTwoDecimals(parseFloat(formData.costOfSales) || 0) : 0,
-                    ebitda: formData.ebitda ? formatToTwoDecimals(parseFloat(formData.ebitda) || 0) : 0,
-                    netProfit: formData.netProfit ? formatToTwoDecimals(parseFloat(formData.netProfit) || 0) : 0,
-                    netMargin: formData.sales && formData.netProfit ?
-                        formatToTwoDecimals(calculateNetProfitMargin(parseFloat(formData.sales), parseFloat(formData.netProfit))) : 0
-                };
-            } else {
-                // Forecast years - set to zero initially
-                return {
-                    year: `${year}`,
-                    salesMain: 0,
-                    cogsMain: 0,
-                    ebitda: 0,
-                    netProfit: 0,
-                    netMargin: 0
-                };
-            }
-        });
-
-        // Collect raw values BEFORE any formatting for unit calculation
-        const rawValues = [
-            formData.sales ? parseFloat(formData.sales) || 0 : 0,
-            formData.costOfSales ? parseFloat(formData.costOfSales) || 0 : 0,
-            formData.ebitda ? parseFloat(formData.ebitda) || 0 : 0,
-            formData.netProfit ? parseFloat(formData.netProfit) || 0 : 0
-        ];
-
-        // Get the appropriate unit based on raw calculated values
-        const calculatedChartUnit = getScaledUnit(rawValues, formData.unitOfNumber || 'Millions');
-
-        // Save the calculated unit to localStorage
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('calculatedChartUnit', calculatedChartUnit);
-            // Also save the base unit for reference
-            localStorage.setItem('baseChartUnit', formData.unitOfNumber || 'Millions');
+        const nextInfo = unitMap[currentUnit];
+        if (nextInfo) {
+            targetUnit = nextInfo.next;
+            divisor = nextInfo.div;
         }
-        // Apply rounding based on the CALCULATED unit
-        const salesData = baseData.map(item => item.salesMain);
-        const cogsData = baseData.map(item => item.cogsMain);
-        const ebitdaData = baseData.map(item => item.ebitda);
-        const netProfitData = baseData.map(item => item.netProfit);
-
-        const roundedSales = roundOffNumber(salesData, { valueType: [calculatedChartUnit] });
-        const roundedCogs = roundOffNumber(cogsData, { valueType: [calculatedChartUnit] });
-        const roundedEbitda = roundOffNumber(ebitdaData, { valueType: [calculatedChartUnit] });
-        const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [calculatedChartUnit] });
-
-        // Update baseData with rounded values and ensure 2 decimal places
-        const finalData = baseData.map((item, index) => ({
-            ...item,
-            salesMain: formatToTwoDecimals(roundedSales.roundedNumbers[index]),
-            cogsMain: formatToTwoDecimals(roundedCogs.roundedNumbers[index]),
-            ebitda: formatToTwoDecimals(roundedEbitda.roundedNumbers[index]),
-            netProfit: formatToTwoDecimals(roundedNetProfit.roundedNumbers[index]),
-            // netMargin remains as percentage, format to 2 decimal places
-            netMargin: formatToTwoDecimals(item.netMargin)
-        }));
-
-        // Return both the data and the calculated unit
-        return {
-            chartData: finalData,
-            chartUnit: calculatedChartUnit
-        };
-    }, [formData, companyData]);
+    }
+    
+    // Apply scaling
+    const scaledData = baseData.map(item => ({
+        ...item,
+        salesMain: divisor === 1 ? item.salesMain : parseFloat((item.salesMain / divisor).toFixed(2)),
+        cogsMain: divisor === 1 ? item.cogsMain : parseFloat((item.cogsMain / divisor).toFixed(2)),
+        ebitda: divisor === 1 ? item.ebitda : parseFloat((item.ebitda / divisor).toFixed(2)),
+        netProfit: divisor === 1 ? item.netProfit : parseFloat((item.netProfit / divisor).toFixed(2)),
+        netMargin: parseFloat(item.netMargin.toFixed(2))
+    }));
+    
+    return {
+        chartData: scaledData,
+        chartUnit: targetUnit
+    };
+}, [formData, companyData]);
     // Update chart data when form data changes
     // Update chart data when dependencies change
     useEffect(() => {
@@ -491,10 +479,13 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
 
             if (response.data.status) {
                 localStorage.setItem('financialFormData', JSON.stringify(formData));
+
                 Swal.fire({
                     icon: "success",
                     title: "Saved",
                     text: "Financial information saved successfully.",
+                    timer: 1500,
+                    showConfirmButton: false
                 }).then(() => {
                     if (onSave) {
                         onSave();

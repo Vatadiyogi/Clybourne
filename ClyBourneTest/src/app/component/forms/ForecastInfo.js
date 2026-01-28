@@ -29,7 +29,43 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
             { year: 5, salesGrowth: "", cogsPercent: "", ebitdaMargin: "", depreciationRate: "", interestRate: "", netProfitMargin: "" }
         ]
     });
+    // Helper function to determine the scaled unit based on values
+    const getScaledUnitForValues = (values, currentUnit) => {
+        if (!values || values.length === 0) return currentUnit;
 
+        // Find the maximum absolute value
+        const maxAbsValue = Math.max(...values.map(v => Math.abs(v)));
+        if (maxAbsValue === 0) return currentUnit;
+
+        // Count digits
+        const digitCount = Math.floor(Math.log10(maxAbsValue)) + 1;
+
+        // Define scaling thresholds for each unit
+        const thresholds = {
+            'Thousands': 4,  // 1000 has 4 digits
+            'Millions': 7,   // 1,000,000 has 7 digits
+            'Billions': 10,  // 1,000,000,000 has 10 digits
+            'Trillions': 13  // 1,000,000,000,000 has 13 digits
+        };
+
+        // Define next units
+        const nextUnits = {
+            'Thousands': 'Millions',
+            'Millions': 'Billions',
+            'Billions': 'Trillions',
+            'Trillions': 'Trillions'
+        };
+
+        // Get the threshold for current unit
+        const threshold = thresholds[currentUnit] || 7;
+
+        // If digit count exceeds threshold, move to next unit
+        if (digitCount >= threshold) {
+            return nextUnits[currentUnit] || currentUnit;
+        }
+
+        return currentUnit;
+    };
     const initializeFormData = () => {
         if (typeof window === 'undefined') return getDefaultForecastData();
 
@@ -47,12 +83,24 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
 
         // Try to get the calculated unit from localStorage first
         const savedCalculatedUnit = localStorage.getItem('calculatedChartUnit');
-        if (savedCalculatedUnit) {
-            return savedCalculatedUnit;
+        const savedBaseUnit = localStorage.getItem('baseChartUnit');
+
+        // If we have both, check if we need to recalculate based on forecasted values
+        if (savedCalculatedUnit && savedBaseUnit && financialData.sales) {
+            // Start with current values
+            const currentValues = [
+                parseFloat(financialData.sales) || 0,
+                parseFloat(financialData.costOfSales) || 0,
+                parseFloat(financialData.ebitda) || 0,
+                parseFloat(financialData.netProfit) || 0
+            ];
+
+            // Get scaled unit for current data
+            return getScaledUnitForValues(currentValues, savedBaseUnit);
         }
 
-        // Fallback to financial data unit or Millions
-        return financialData.unitOfNumber || 'Millions';
+        // Fallback
+        return savedCalculatedUnit || financialData.unitOfNumber || 'Millions';
     });
     // Get the current order ID
     const getCurrentOrderId = () => {
@@ -134,6 +182,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
     }, [companyData]);
 
     // Enhanced chart data generation that only shows data for years with user input
+
     const generateChartData = useMemo(() => {
         const finYearEnd = companyData.yearEndYear ? parseInt(companyData.yearEndYear) : new Date().getFullYear();
 
@@ -142,7 +191,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
             return Math.round((num + Number.EPSILON) * 100) / 100;
         };
 
-        // Start with current year data from financial form (always show this)
+        // Start with current year data from financial form
         const baseData = [
             {
                 year: `${finYearEnd}`,
@@ -164,7 +213,33 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
 
         // If no forecast data entered, return only current year data
         if (!hasForecastData) {
-            return baseData;
+            // Apply scaling to current year data only
+            const currentSales = baseData.map(item => item.salesMain);
+            const currentCogs = baseData.map(item => item.cogsMain);
+            const currentEbitda = baseData.map(item => item.ebitda);
+            const currentNetProfit = baseData.map(item => item.netProfit);
+
+            // Get the calculated unit from localStorage if available
+            const calculatedUnit = localStorage.getItem('calculatedChartUnit') || financialData.unitOfNumber || 'Millions';
+
+            const roundedSales = roundOffNumber(currentSales, { valueType: [calculatedUnit] });
+            const roundedCogs = roundOffNumber(currentCogs, { valueType: [calculatedUnit] });
+            const roundedEbitda = roundOffNumber(currentEbitda, { valueType: [calculatedUnit] });
+            const roundedNetProfit = roundOffNumber(currentNetProfit, { valueType: [calculatedUnit] });
+
+            const finalData = baseData.map((item, index) => ({
+                ...item,
+                salesMain: formatToTwoDecimals(roundedSales.roundedNumbers[index]),
+                cogsMain: formatToTwoDecimals(roundedCogs.roundedNumbers[index]),
+                ebitda: formatToTwoDecimals(roundedEbitda.roundedNumbers[index]),
+                netProfit: formatToTwoDecimals(roundedNetProfit.roundedNumbers[index]),
+                netMargin: formatToTwoDecimals(item.netMargin)
+            }));
+
+            // Update chart unit
+            setChartUnit(roundedSales.valueType);
+
+            return finalData;
         }
 
         // Calculate forecast years - only for years where user has entered data
@@ -259,33 +334,70 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
             });
         });
 
-        // Apply rounding based on the unit of number from financial data
+        // Collect all values to determine the maximum for scaling
         const salesData = baseData.map(item => item.salesMain);
         const cogsData = baseData.map(item => item.cogsMain);
         const ebitdaData = baseData.map(item => item.ebitda);
         const netProfitData = baseData.map(item => item.netProfit);
 
-        const roundedSales = roundOffNumber(salesData, { valueType: [financialData.unitOfNumber || 'Millions'] });
-        const roundedCogs = roundOffNumber(cogsData, { valueType: [financialData.unitOfNumber || 'Millions'] });
-        const roundedEbitda = roundOffNumber(ebitdaData, { valueType: [financialData.unitOfNumber || 'Millions'] });
-        const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [financialData.unitOfNumber || 'Millions'] });
+        // Find the maximum absolute value across all data
+        const allValues = [...salesData, ...cogsData, ...ebitdaData, ...netProfitData];
+        const maxAbsValue = Math.max(...allValues.map(v => Math.abs(v)));
 
-        // Update baseData with rounded values and ensure 2 decimal places
+        // Get base unit from financial data
+        const baseUnit = financialData.unitOfNumber || 'Millions';
+
+        // Calculate the digit count of the maximum value
+        const digitCount = maxAbsValue > 0 ? Math.floor(Math.log10(maxAbsValue)) + 1 : 0;
+
+        // Define unit hierarchy and thresholds
+        const unitHierarchy = {
+            'Thousands': { next: 'Millions', divisor: 1000, threshold: 4 },
+            'Millions': { next: 'Billions', divisor: 1000000, threshold: 4 },
+            'Billions': { next: 'Trillions', divisor: 1000000000, threshold: 4 },
+            'Trillions': { next: 'Trillions', divisor: 1, threshold: 4 }
+        };
+
+        let targetUnit = baseUnit;
+        let divisor = 1;
+
+        // Check if we need to scale based on the maximum value
+        const unitInfo = unitHierarchy[baseUnit];
+        if (unitInfo && digitCount >= unitInfo.threshold) {
+            targetUnit = unitInfo.next;
+            divisor = unitInfo.divisor;
+        }
+
+        // Apply scaling to all data
+        const scaledSales = salesData.map(num => divisor === 1 ? num : formatToTwoDecimals(num / divisor));
+        const scaledCogs = cogsData.map(num => divisor === 1 ? num : formatToTwoDecimals(num / divisor));
+        const scaledEbitda = ebitdaData.map(num => divisor === 1 ? num : formatToTwoDecimals(num / divisor));
+        const scaledNetProfit = netProfitData.map(num => divisor === 1 ? num : formatToTwoDecimals(num / divisor));
+
+        // Update chart unit state
+        setChartUnit(targetUnit);
+
+        // Save the calculated unit to localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('calculatedChartUnit', targetUnit);
+            localStorage.setItem('baseChartUnit', baseUnit);
+           
+        }
+
+        // Create final data with scaled values
         const finalData = baseData.map((item, index) => ({
             ...item,
-            salesMain: formatToTwoDecimals(roundedSales.roundedNumbers[index]),
-            salesExtra: formatToTwoDecimals(roundedSales.roundedNumbers[index] * 0.95),
-            cogsMain: formatToTwoDecimals(roundedCogs.roundedNumbers[index]),
-            cogsExtra: formatToTwoDecimals(roundedCogs.roundedNumbers[index] * 0.95),
-            ebitda: formatToTwoDecimals(roundedEbitda.roundedNumbers[index]),
-            netProfit: formatToTwoDecimals(roundedNetProfit.roundedNumbers[index]),
-            // netMargin remains as percentage, format to 2 decimal places
+            salesMain: formatToTwoDecimals(scaledSales[index]),
+            salesExtra: formatToTwoDecimals(scaledSales[index] * 0.95),
+            cogsMain: formatToTwoDecimals(scaledCogs[index]),
+            cogsExtra: formatToTwoDecimals(scaledCogs[index] * 0.95),
+            ebitda: formatToTwoDecimals(scaledEbitda[index]),
+            netProfit: formatToTwoDecimals(scaledNetProfit[index]),
             netMargin: formatToTwoDecimals(item.netMargin)
         }));
 
         return finalData;
     }, [formData, financialData, companyData, forecastYears]);
-
     // Update chart data when dependencies change
     useEffect(() => {
         setChartData(generateChartData);
@@ -503,6 +615,8 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                     icon: "success",
                     title: "Saved",
                     text: "Financial projections saved successfully.",
+                    timer: 1500,
+                    showConfirmButton: false
                 }).then(() => {
                     if (onSave) {
                         onSave();
@@ -812,11 +926,11 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
                                                 Showing projections based on your forecast inputs. All values in {companyData.currency || 'NA'}.
                                             </p>
                                             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
-                                                {shouldShowSalesChart && <SalesChart yearly={chartData} unit={chartUnit} />}
-                                                {shouldShowCogsChart && <CogsChart yearly={chartData} unit={chartUnit} />}
-                                                {shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={chartUnit} />}
-                                                {shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={chartUnit} />}
-                                                {shouldShowNetMarginChart && <NetMarginChart yearly={chartData} />}
+                                                { shouldShowSalesChart && <SalesChart yearly={chartData} unit={chartUnit} /> }
+                                                { shouldShowCogsChart && <CogsChart yearly={chartData} unit={chartUnit} /> }
+                                                { shouldShowEbitdaChart && <EbitdaChart yearly={chartData} unit={chartUnit} /> }
+                                                { shouldShowNetProfitChart && <NetProfitChart yearly={chartData} unit={chartUnit} />}
+                                                { shouldShowNetMarginChart && <NetMarginChart yearly={chartData} />}
                                             </div>
                                         </>
                                     )}

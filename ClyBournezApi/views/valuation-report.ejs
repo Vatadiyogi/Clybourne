@@ -15,6 +15,7 @@
         <style>
 
             * {
+                /* background-color: #000; */
                 margin: 0;
                 padding: 0;
             }
@@ -294,13 +295,13 @@
     th {
         background: #233977;
         color: white;
-        font-weight: bold;
+        font-weight: 400;
     }
 
     /* First column */
     td:first-child, th:first-child {
         text-align: left;
-        font-weight: bold;
+        font-weight: 400;
         background: #f5f7fb;
     }
 
@@ -321,10 +322,11 @@
     
     padding-bottom: 40px;
 
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr 1fr;
-    gap: 10px;
-    /* align-items: center; */
+    display: flex;
+    flex-direction: column;
+    /* grid-template-columns: 1fr 2fr 1fr 1fr; */
+    gap: 40px;
+    
 }
 
 .chart-box {
@@ -337,15 +339,14 @@
     justify-content: center;
     align-items: center;
       /* border-left: 2PX solid gray; */
-    flex-direction: column;
-    gap: 18px;
+    flex-direction: row;
+    gap: 30px;
 }
 
 .circle-row {
     width:fit-content;
     position: relative;
     display: flex;
-    
     align-items: center;
     gap: 10px;
 }
@@ -356,30 +357,27 @@
 }
 
 .circle-row canvas {
-    width: 50px !important;
-    height: 50px !important;
+    width: 100px !important;
+    height: 100px !important;
 }
 
 .speedometer {
     height:100%;
     display: flex;
-    border-left: 2PX solid gray;
+    /* border-left: 2PX solid gray; */
     /* padding-left: 30px; */
-    flex-direction: column;
-    /* justify-content: center; */
+    flex-direction: row;
+    justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 30px;
 }
-.speedometer div{
-   padding-left: 16px;
-}
+ 
 .base{
-   
-    position: absolute;
+    /* position: absolute; */
     color: black;
-    width: 38px;
+    width: 150px;
     background: black;
-    height: 2px;
+    height: 1px;
     right: 14.5%;
 }
 
@@ -390,7 +388,7 @@
 .label {
     font-size: 11px;
     color: #233977;
-    /* text-align: center; */
+    text-align: center;
 }
 
 .subhead{
@@ -453,22 +451,22 @@
 }
 
 .small-table td.left{
-    font-weight:600;
+    font-weight:400;
 }
 .horizontalChart canvas{
     width: 100% !important;
     height: 100% !important;
 }
 .horizontalChart{
-    border-left: 2px solid gray;
-    border-right: 2px solid gray;
-    height: 320px !important;
+    /* border-left: 2px solid gray; */
+    /* border-right: 2px solid gray; */
+    /* height: 320px !important; */
 }
         </style>
     </head>
     <body>
 
-        <div class="maintain" style="background-color: white;">
+        <div class="maintain" style="background-color: rgb(255, 255, 255);">
             <!-- Hidden div to store chart data as JSON -->
             <div id="chart-data"
                 data-revenue='<%= JSON.stringify(chartData.revenue) %>'
@@ -503,8 +501,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="headContent "
-                    style="color: white; padding-top: 0px;">
+                <div class="headContent section "
+                    style="color: white; padding-top: 0px;margin-bottom: 0px;">
                     <div class="bussinessHead reportHead"
                         style="margin-bottom: 110px;">
                         <p style="line-height:55px;color: white;">
@@ -515,12 +513,22 @@
                     <div class=" "
                         style="width: 70%; padding: 0px 0px 0px 12px; text-align: start;">
                         <p class="title" style="line-height:45px;">
-                            Fin Advisor Consulting
-                            Pvt. Ltd.
+                           <%= companyDetails.name || "N/A" %> 
                         </p>
+                        <% 
+                            const today = new Date();
+                            const formattedDate = today.toLocaleDateString('en-in', {
+                                 
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                            %>
+
+ 
                         <p
                             style="font-size: 20px ; font-weight: 500; color: #1aa79c;text-align: start; font-weight: 500; padding-bottom: 100px;">
-                            This Report was Generated on October 26, 2024
+                            This Report was Generated on <%= formattedDate %>
                         </p>
                     </div>
                     <p class
@@ -712,9 +720,9 @@
                                             <%= companyDetails.similarCompany %>
                                        
                                         </p>
-                                        <p class="context">
+                                        <!-- <p class="context">
                                             www.acuitykp.com
-                                        </p>
+                                        </p> -->
                                     </div>
                                     <div class="child" style="width: 40%;">
                                         <p class="context">
@@ -724,9 +732,9 @@
                                             style="font-weight: 500;">
                                              <%= companyDetails.competitor2 %>
                                         </p>
-                                        <p class="context">
+                                        <!-- <p class="context">
                                             www.xsdacuitykp.com
-                                        </p>
+                                        </p> -->
                                     </div>
                                 </div>
                             </div>
@@ -741,7 +749,7 @@
                                 </span>
                             </p>
                         </div>
-                        <p class="context value" style="font-size: 18px; margin-left: ;">
+                        <p class="context value" style="font-size: 18px; margin-left:20px ;">
                             (All values in <%= companyDetails.currency || "INR"
                             %>)
                         </p>
@@ -853,7 +861,7 @@
             </div>
             <!-- page-3 -->
             <div class="page page-break  page2">
-                <div class="section">
+                <div class="section"  style="padding-top: 60px;">
                     <div class="stylus strip"
                         style="left: 0; min-width: 18% !important;">
                         <p>Forecast
@@ -885,7 +893,7 @@
                         </div>
 
                         <!-- EBITDA -->
-                        <div class="chart-box" style="margin:30px 0 0 0 ;">
+                        <div class="chart-box" style="margin:35px 0 0 0 ;">
                             <p class=" colorPurple"
                                 style="font-size: 16px; margin-bottom: 18px;">
                                 EBITDA (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>),
@@ -896,14 +904,14 @@
                         </div>
 
                         <!-- Net Profit -->
-                        <div class="chart-box" style="margin:30px 0 0 0 ;">
+                        <div class="chart-box" style="margin:35px 0 0 0 ;">
                             <p class=" colorPurple"
                                 style="font-size: 16px; margin-bottom: 18px;">
                                 Net Profit (<%= companyDetails.currency %>
                                 <%= companyDetails.unitOfNumber %>), NP Margin (%)
                             </p>
 
-                            <canvas id="profitChart"></canvas>
+                            <canvas id="profitChart" style="height: 200px !important;"></canvas>
                         </div>
 
                     </div>
@@ -928,7 +936,7 @@
 
             </div>
             <!-- page-4 -->
-            <div class="page page-break  page2">
+            <div class="page page-break  page2"  >
                 <div class="section">
                     <div class="featureSecion" style="margin-bottom: 25px;">
                         <div class="stylus strip">
@@ -939,8 +947,8 @@
                                 </span>
                             </p>
                         </div>
-                        <div style="padding-top: 55px;">
-                            <p class="smallpara" style="line-height: 18px;">
+                        <div style="padding-top: 65px;">
+                            <p class="smallpara" style="line-height: 20px;">
                                 Our approach combines both intrinsic and
                                 market-based valuation techniques to ensure a
                                 comprehensive and balanced perspective. We
@@ -955,7 +963,7 @@
                                 peers, resulting in a robust valuation estimate.
                             </p>
                             <p class="smallpara"
-                                style="line-height: 18px; padding-top: 15px;">
+                                style="line-height: 20px; padding-top: 15px;">
                                 The valuation performed using globally
                                 recognized valuation approaches, used key
                                 matrices of peers sourced from reliable data
@@ -973,8 +981,8 @@
                                 </span>
                             </p>
                         </div>
-                        <div style="padding-top: 55px;">
-                            <p class="smallpara" style="line-height: 18px;">
+                        <div style="padding-top: 65px;">
+                            <p class="smallpara" style="line-height: 20px;">
                                 Discounted cash flow method is based on the
                                 premise that the value of a business is the
                                 equivalent of the future periodsʼ cash flows,
@@ -982,14 +990,14 @@
                                 reflecting the riskiness of the business.
                             </p>
                             <p class="smallpara"
-                                style="line-height: 18px; padding-top: 15px;">
+                                style="line-height: 20px; padding-top: 15px;">
                                 <span class="heading colorPurple"
                                     style="font-weight: 700;"> Purpose</span>:
                                 Captures the intrinsic
                                 value of the business based on its future cash
                                 flow potential
                             </p>
-                            <div style="padding-top: 10px;">
+                            <div style="padding-top: 20px;">
                                 <span class="heading colorPurple"
                                     style="font-weight: 700;">
                                     Approach:
@@ -1011,17 +1019,17 @@
                                         Average Cost of Capital (WACC)</li>
                                 </ul>
                             </div>
-                            <div style="padding-top: 10px;">
+                            <div style="padding-top: 20px;">
                                 <span class="heading colorPurple"
                                     style="font-weight: 700;">
                                     Output:
                                 </span>
                                 <ul>
                                     <li class="smallpara"
-                                        style="line-height: 18px;"> Enterprise
+                                        style="line-height: 20px;"> Enterprise
                                         Value (EV)</li>
                                     <li class="smallpara"
-                                        style="line-height: 18px;"> Equity Value
+                                        style="line-height: 20px;"> Equity Value
                                         = EV minus Net Debt</li>
 
                                 </ul>
@@ -1037,8 +1045,8 @@
                                 </span>
                             </p>
                         </div>
-                        <div style="padding-top: 55px;">
-                            <p class="smallpara" style="line-height: 18px;">
+                        <div style="padding-top: 65px;">
+                            <p class="smallpara" style="line-height: 20px;">
                                 The Relative Valuation method assesses the
                                 companyʼs value by comparing it to similar
                                 businesses within the same industry. This
@@ -1048,13 +1056,13 @@
                                 comparable companies
                             </p>
                             <p class="smallpara"
-                                style="line-height: 18px; padding-top: 15px;">
+                                style="line-height: 20px; padding-top: 15px;">
                                 <span class="heading colorPurple"
                                     style="font-weight: 700;"> Purpose</span>:
                                 Benchmarks the companyʼs valuation against
                                 comparable companies in the industry
                             </p>
-                            <div style="padding-top: 10px;">
+                            <div style="padding-top: 20px;">
                                 <span class="heading colorPurple"
                                     style="font-weight: 700;">
                                     Approach:
@@ -1074,7 +1082,7 @@
                                         financial metrics</li>
                                 </ul>
                             </div>
-                            <div style="padding-top: 10px;">
+                            <div style="padding-top: 20px;">
                                 <span class="heading colorPurple"
                                     style="font-weight: 700;">
                                     Output:
@@ -1089,154 +1097,177 @@
                             </div>
                         </div>
                     </div>
-                    <div class="featureSecion" style="margin-bottom: 25px;">
-                        <div class="stylus strip">
-                            <p>
-                                Valuation
-                                <span class="color">
-                                    Summary
-                                </span>
-                            </p>
-                        </div>
-                        <div style="padding-top: 55px;">
-                            <p class="smallpara"
-                                style="line-height: 18px; max-width: 45%;">
-                                The valuation displayed below is the result of
-                                the
-                                weighted average of the DCF, and the relative
-                                valuation
-                                using various relevant multiples. The relative
-                                multiples
-                                were sourced from S&P Capital IQ.
-                            </p>
-                        </div>
-                        <div class="sideStrip">
-                            <div
-                                style="padding: 14px; background-color: #1aa79c; display: flex; justify-content: center; flex-direction: column; align-items: center;">
-                                <p
-                                    style="font-size: 20px; font-weight: 600; flex-wrap: nowrap !important;">
-                                    <%=
-                                    formatCurrencySymbol(valuation.enterpriseAvgValue || dcfTableData.enterpriseAvgValue || 0)
-                                    %>
-                                </p>
-                                <p
-                                    style="text-align: center; font-size: 10px;"><%= companyDetails.unitOfNumber %></p>
-                            </div>
-                            <div
-                                style="padding: 14px; background-color: #233977;">
-                                <p class="heading color"
-                                    style="font-weight: 700;">Valuation</p>
-                                <p class="smallpara">The total Enterprise Value of the   
-                                    <%= companyDetails.name %>
-                                    is estimated at  <%= companyDetails.unitOfNumber %></p>
-                            </div>
-                        </div>
-                    </div>
+                   
                 </div>
             </div>
               <!-- Edited-page -->
-            <!-- page 5 -->
-            <div class="page page-break  page2">
-                <div class="section" style="padding-top: 70px;">
-                    <div class="containerwow">
-                        <!-- LEFT: Method Labels (Dynamic) -->
+            <div class="page page-break  page2"  >
+            <div class="section"> 
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                    <div class="stylus strip">
+                        <p>
+                            Valuation
+                            <span class="color">
+                                Summary
+                            </span>
+                        </p>
+                    </div>
+                    <div style="padding-top: 55px;">
+                        <p class="smallpara"
+                            style="line-height: 18px; max-width: 45%;">
+                            The valuation displayed below is the result of
+                            the
+                            weighted average of the DCF, and the relative
+                            valuation
+                            using various relevant multiples. The relative
+                            multiples
+                            were sourced from S&P Capital IQ.
+                        </p>
+                    </div>
+                    <div class="sideStrip">
                         <div
-                            style="text-align: end; height: 100%;display: flex;flex-direction: column; justify-content:space-around; align-items:center;">
-                            <% if (activeMethods.length === 0) { %>
-                            <p class="smallpara"
-                                style="width: 100%; text-align: end !important; padding: 0 20px 10px 0px;">
-                                No methods
+                            style="padding: 14px; background-color: #1aa79c; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                            <p
+                                style="font-size: 20px; font-weight: 600; flex-wrap: nowrap !important;">
+                                <%=
+                                formatCurrencySymbol(valuation.enterpriseAvgValue || dcfTableData.enterpriseAvgValue || 0)
+                                %>
                             </p>
-                            <% } else { %>
-                            <% for(let i = 0; i < activeMethods.length; i++) {
-                            %>
-                            <p class="smallpara"
-                                style="width: 100%; text-align: end !important; padding: 0 20px <%= i === activeMethods.length - 1 ? '0px' : '10px' %> 0px;">
-                                <%= activeMethods[i] %>
-                            </p>
-                            <% } %>
-                            <% } %>
+                            <p
+                                style="text-align: center; font-size: 10px;"><%= companyDetails.unitOfNumber %></p>
                         </div>
-
-                        <!-- LEFT: Horizontal Bars Chart -->
-                        <div class="chart-box horizontalChart"
-                            style="display: flex; justify-content:center; align-items:center;">
-                            <canvas id="methodBars"></canvas>
+                        <div
+                            style="padding: 14px; background-color: #233977;">
+                            <p class="heading color"
+                                style="font-weight: 700;">Valuation</p>
+                            <p class="smallpara">The total Enterprise Value of the   
+                                <%= companyDetails.name %>
+                                is estimated at  <%= companyDetails.unitOfNumber %></p>
                         </div>
+                    </div>
+                </div>
+                        <div class="containerwow" style="padding-top: 20px;">
+                    <!-- LEFT: Method Labels (Dynamic) -->
+                    
+                    <!-- <div  style="text-align: end; height: 100%;display: flex;flex-direction: row; justify-content:space-around; align-items:center;">
+                        <% if (activeMethods.length === 0) { %>
+                        <p class="smallpara"
+                            style="width: 100%; text-align: end !important; padding: 0 20px 10px 0px;">
+                            No methods
+                        </p>
+                        <% } else { %>
+                        <% for(let i = 0; i < activeMethods.length; i++) {
+                        %>
+                        <p class="smallpara"
+                            style="width: 100%; text-align: end !important; padding: 0 20px <%= i === activeMethods.length - 1 ? '0px' : '10px' %> 0px;">
+                            <%= activeMethods[i] %>
+                        </p>
+                        <% } %>
+                        <% } %>
+                    </div> -->
 
-                        <!-- CENTER: Method Weights -->
-                        <div>
-                            <div class="circular-box">
-                                <p class="heading colorPurple">Method
-                                    Weights</p>
+                    <!-- LEFT: Horizontal Bars Chart -->
+                    <div class="chart-box horizontalChart"
+                        style="display: flex; justify-content:center; align-items:center;">
+                        <canvas id="methodBars"></canvas>
+                    </div>
+                    
+            
 
-                                <div class="circle-row">
-                                    <canvas id="w1"></canvas>
-                                    <span class="percentage"><%= dcfWeightPercentage %>%</span>
-                                </div>
-                                <div class="circle-row">
-                                    <canvas id="w2"></canvas>
-                                    <span class="percentage"><%=
-                                        formatNumber(weightPercentages[1]) %>%</span>
-                                </div>
-                                <div class="circle-row">
-                                    <canvas id="w3"></canvas>
-                                    <span class="percentage"><%=
-                                        formatNumber(weightPercentages[2]) %>%</span>
-                                </div>
-                                <div class="circle-row">
-                                    <canvas id="w4"></canvas>
-                                    <span class="percentage"><%=
-                                        formatNumber(weightPercentages[3]) %>%</span>
-                                </div>
+                    <!-- CENTER: Method Weights -->
+                    <div style=" position:relative;">
+                            <p class="heading colorPurple" style="font-weight: 600; position:absolute; top:30%">Method <br/>
+                                Weights</p>
+                        <div class="circular-box">
+                            
+
+                            <div class="circle-row">
+                                <canvas id="w1"></canvas>
+                                <span class="percentage"><%= dcfWeightPercentage %>%</span>
+                            </div>
+                            <div class="circle-row">
+                                <canvas id="w2"></canvas>
+                                <span class="percentage"><%=
+                                    formatNumber(weightPercentages[1]) %>%</span>
+                            </div>
+                            <div class="circle-row">
+                                <canvas id="w3"></canvas>
+                                <span class="percentage"><%=
+                                    formatNumber(weightPercentages[2]) %>%</span>
+                            </div>
+                            <div class="circle-row">
+                                <canvas id="w4"></canvas>
+                                <span class="percentage"><%=
+                                    formatNumber(weightPercentages[3]) %>%</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 15px;">
+                    <div class="stylus strip">
+                        <p>
+                            Valuation 
 
-                        <!-- RIGHT: Speedometers -->
+                            <span class="color">
+                                Scenario
+                            </span>
+                        </p>
+                    </div>
+                    </div>
+                    <!-- RIGHT: Speedometers -->
+                    <div  style=" position:relative;">
+                        <p class="heading colorPurple " style="font-weight: 600; position:absolute; top:50%">Equity <br/> Value</p>
+                        
                         <div class="speedometer">
-                            <p class="heading colorPurple">Equity Value</p>
+                            
 
-                            <div>
-                                <canvas id="gaugeLow" width="200"
-                                    height="90"></canvas>
+                            <div style="margin-top: 16px;">
+                                <canvas id="gaugeLow" style=" width:150px !important;height:70px !important;" 
+                                    ></canvas>
                                 <div class="base"></div>
-                                <div class="label" >Min Value<br><%=
+                                <div class="label" style="padding-left: 0px;  padding-top: 10px;" >Min Value<br><%=
                                     formatDCFValue(dcfTableData.equityValueMin) %> <%= companyDetails.unitOfNumber %></div>
                             </div>
 
                             <div style="margin-top: 16px;">
-                                <canvas id="gaugeBase" width="200"
-                                    height="90"></canvas>
+                                <canvas id="gaugeBase" style=" width:150px !important;height:70px !important;" ></canvas>
                                 <div class="base"></div>
-                                <div class="label">Average Value<br><%=
+                                <div class="label" style="padding-left: 0px; padding-top: 10px;">Average Value<br><%=
                                     formatDCFValue(dcfTableData.equityValue) %> <%= companyDetails.unitOfNumber %></div>
                             </div>
 
                             <div style="margin-top: 16px;">
-                                <canvas id="gaugeBest" width="200"
-                                    height="90"></canvas>
+                                <canvas id="gaugeBest" style=" width:150px !important;height:70px !important;" ></canvas>
                                 <div class="base"></div>
-                                <div class="label" >Max Value<br><%=
+                                <div class="label" style="padding-left: 0px;  padding-top: 10px;" >Max Value<br><%=
                                     formatDCFValue(dcfTableData.equityValueMax) %> <%= companyDetails.unitOfNumber %></div>
                             </div>
                         </div>
-
-                        <!-- Hidden data for JavaScript -->
-                        <div id="method-data"
-                            data-method-labels='<%= JSON.stringify(methodLabels) %>'
-                            data-equity-values='<%= JSON.stringify(equityValues) %>'
-                            data-equity-min-values='<%= JSON.stringify(equityMinValues) %>'
-                            data-equity-max-values='<%= JSON.stringify(equityMaxValues) %>'
-                            data-weight-percentages='<%= JSON.stringify(weightPercentages) %>'
-                            data-min-value="<%= minValue %>"
-                            data-base-value="<%= baseValue %>"
-                            data-max-value="<%= maxValue %>"
-                            data-equity-value-min="<%= dcfTableData.equityValueMin %>"
-                            data-equity-value-avg="<%= dcfTableData.equityValue %>"
-                            data-equity-value-max="<%= dcfTableData.equityValueMax %>"
-                            style="display: none;">
-                        </div>
                     </div>
+                    <p class="smallpara">The valuation presents three scenarios—Lower Case, Base Case, and Best Case—to reflect different assumptions applied to key valuation inputs, to capture a range of potential future outcomes for the company
+                    </p>
+                    <!-- Hidden data for JavaScript -->
+                    <div id="method-data"
+                        data-method-labels='<%= JSON.stringify(methodLabels) %>'
+                        data-equity-values='<%= JSON.stringify(equityValues) %>'
+                        data-equity-min-values='<%= JSON.stringify(equityMinValues) %>'
+                        data-equity-max-values='<%= JSON.stringify(equityMaxValues) %>'
+                        data-weight-percentages='<%= JSON.stringify(weightPercentages) %>'
+                        data-min-value="<%= minValue %>"
+                        data-base-value="<%= baseValue %>"
+                        data-max-value="<%= maxValue %>"
+                        data-equity-value-min="<%= dcfTableData.equityValueMin %>"
+                        data-equity-value-avg="<%= dcfTableData.equityValue %>"
+                        data-equity-value-max="<%= dcfTableData.equityValueMax %>"
+                        style="display: none;">
+                    </div>
+                </div>
+                
+                </div>
+        </div>
+            <!-- page 5 -->
+            <div class="page page-break  page2"  >
+                <div class="section" style="padding-top: 70px; display:flex; flex-direction: column; gap:40px;">
+             
                     <div class="featureSecion" style="margin-bottom: 15px;">
                         <div class="stylus strip">
                             <p>
@@ -1246,7 +1277,7 @@
                                 </span>
                             </p>
                         </div>
-                        <div class="table-box" style="padding-top: 50px;">
+                        <div class="table-box" style="padding-top: 60px;">
                             <table>
                                 <tr>
                                     <th class="left"
@@ -1318,10 +1349,10 @@
                                     <td class="left">Free Cash-Flow (FCFF)</td>
                                     <% for(let i = 0; i <
                                     dcfTableData.fcff.length; i++) { %>
-                                    <td><%= formatDCFValue(dcfTableData.fcff[i])
+                                    <td   style="text-align: center; font-weight:500;"><%= formatDCFValue(dcfTableData.fcff[i])
                                         %></td>
                                     <% } %>
-                                    <td>
+                                    <td   style="text-align: center; font-weight:500;">
                                         <%=
                                         formatDCFValue(dcfTableData.terminalValue)
                                         %>
@@ -1365,7 +1396,7 @@
                         </div>
 
                         <!-- ================= SUMMARY TABLE ================= -->
-                        <div class="table-box" style="margin-top: 15px;">
+                        <div class="table-box" style="margin-top: 25px;">
                             <table class="small-table">
                                 <tr>
                                     <th class="left">Particulars</th>
@@ -1409,7 +1440,7 @@
                             </p>
                         </div>
 
-                        <div style="padding-top: 45px;">
+                        <div style="padding-top: 60px;">
                             <div>
                                 <div class="companyInfo">
                                     <div class="child">
@@ -1478,12 +1509,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <!-- page 6 -->
-            <div class="page page-break page2">
-                <div class="section">
-                <div class="">
                     <div class="featureSecion" style="margin-bottom: 25px;">
                         <div class="stylus strip">
                             <p>
@@ -1492,7 +1517,7 @@
                             </p>
                         </div>
                         <!-- ========== TABLE 1: MULTIPLES (DYNAMIC) ========== -->
-                        <div style="padding-top: 45px;">
+                        <div style="padding-top: 60px;">
                             <table class="small-table">
                                 <tr>
                                     <th
@@ -1560,7 +1585,7 @@
                                         <%= checkedMultiples[i].name %>
                                     </td>
                                     <td
-                                        style="text-align: center; font-weight: bold;">
+                                        style="text-align: center; font-weight:500;">
                                         <%=
                                         formatMultiple(checkedMultiples[i].value)
                                         %>x
@@ -1570,9 +1595,14 @@
                                 <% } %>
                             </table>
                         </div>
+                   
                     </div>
                 </div>
-
+            </div>
+            <!-- page 6 -->
+            <div class="page page-break page2"  >
+                <div class="section">
+                
                 <div class="featureSecion" style="margin-bottom: 25px;">
                     <div class="stylus strip">
                         <p>
@@ -1581,7 +1611,7 @@
                         </p>
                     </div>
                     <!-- ========== TABLE 2: INCOME STATEMENT (DYNAMIC) ========== -->
-                    <div style="padding-top: 45px;">
+                    <div style="padding-top: 65px;">
                         <table>
                             <tr>
                                 <th
@@ -1691,7 +1721,7 @@
                         </p>
                     </div>
                     <!-- ========== TABLE 3: CASH FLOW STATEMENT (DYNAMIC) ========== -->
-                    <div style="padding-top: 45px;">
+                    <div style="padding-top: 65px;">
                         <table>
                             <tr>
                                 <th
@@ -1884,10 +1914,10 @@
                 </div>
             </div>
             <!-- page7 -->
-            <div class="page page-break  page2">
+            <div class="page page-break  page2" >
 
                 <div class="section"
-                    style=" height: -webkit-fill-available; justify-content: space-between; flex-direction: column; display: flex; position:relative; padding-bottom: 55px;">
+                    style=" height: -webkit-fill-available; justify-content: space-between; flex-direction: column; display: flex; position:relative; padding-bottom: 55px;padding-top: 60px;">
                     <div> 
                         <div class="featureSecion"
                             style="margin-bottom: 25px;">
@@ -1898,7 +1928,7 @@
                             </div>
                             <div style="padding: 55px 0px 40px 0px;">
                                 <p class="smallpara"
-                                    style="line-height: 18px;">
+                                    style="line-height: 16px;">
                                     Our Valuation Report (the "Report") does
                                     not
                                     intend to assist in any investment/sale
@@ -1909,7 +1939,7 @@
                                     future course of action
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     The Report and our services are strictly
                                     for
                                     the
@@ -1924,7 +1954,7 @@
                                     including any prospective buyer.
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     Our Report is based on the information
                                     provided
                                     by the Company, which we did not have
@@ -1932,7 +1962,7 @@
                                     access to.
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     In carrying out our work and preparing
                                     the
                                     Report, we have worked solely for the
@@ -1957,7 +1987,7 @@
                                     Report.
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     In preparing our report, our primary
                                     source
                                     has
@@ -1972,7 +2002,7 @@
                                     management.
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     The Report has been based on the data
                                     made
                                     available to us as of the date of the
@@ -1984,13 +2014,13 @@
                                     becomes available, after that date.
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     We appreciate the opportunity to service
                                     yo
                                 </p>
                                 <div class="smallpara"
                                     style="padding-top: 15px;">
-                                    <p style="line-height: 18px;">Yours
+                                    <p style="line-height: 16px;">Yours
                                         faithfully,</p>
                                     <p>Clybourne Consulting Pvt Ltd
                                     </p>
@@ -2009,9 +2039,9 @@
                                 </p>
                             </div>
                             <div
-                                style="padding: 55px 0px 40px 0px; max-width: 60%;">
+                                style="padding: 55px 0px 40px 0px; max-width: 70%;">
                                 <p class="smallpara"
-                                    style="line-height: 18px;">
+                                    style="line-height: 16px;">
                                     Clybourne Insights provides independent
                                     financial advisory services based on
                                     seasoned experience and strong research.
@@ -2024,7 +2054,7 @@
                                     understanding of their needs
                                 </p>
                                 <p class="smallpara"
-                                    style="line-height: 18px; padding-top: 15px;">
+                                    style="line-height: 16px; padding-top: 15px;">
                                     For more information about Clybourne
                                     Insights
                                     service offerings, please visit us at
@@ -2034,6 +2064,7 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div
                         style="display: flex; justify-content: space-between;">
                         <a href="#" class="smallpara colorPurple"
@@ -2050,586 +2081,724 @@
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- normalchart -->
         <script>
-document.addEventListener('DOMContentLoaded', function () {
+                document.addEventListener('DOMContentLoaded', function () {
 
-  // Get chart data from data attributes
-  const chartDataEl = document.getElementById('chart-data');
-  
-  if (!chartDataEl) {
-    console.warn('No chart data element found');
-    return;
-  }
-
-  // Parse chart data from data attributes
-  const chartData = {
-    revenue: JSON.parse(chartDataEl.dataset.revenue || '{"labels":[],"data":[]}'),
-    cogs: JSON.parse(chartDataEl.dataset.cogs || '{"labels":[],"data":[]}'),
-    ebitda: JSON.parse(chartDataEl.dataset.ebitda || '{"labels":[],"data":[],"margins":[]}'),
-    profit: JSON.parse(chartDataEl.dataset.profit || '{"labels":[],"data":[],"margins":[]}'),
-    cash: JSON.parse(chartDataEl.dataset.cash || '{"labels":[],"cashIn":[],"cashOut":[]}')
-  };
-
-  // Check if we have data
-  if (!chartData.revenue || chartData.revenue.data.length === 0) {
-    console.warn('No chart data available');
-    return;
-  }
-
-  // Canvas references
-  const revenueChart = document.getElementById('revenueChart');
-  const cogsChart = document.getElementById('cogsChart');
-  const ebitdaChart = document.getElementById('ebitdaChart');
-  const profitChart = document.getElementById('profitChart');
-  const cashChart = document.getElementById('cashChart');
-
-  // Helper function to format numbers in millions
-  function formatInMillions(value) {
-    if (value >= 1000000) {
-      return (value / 1000000).toFixed(1) + 'M';
-    }
-    if (value >= 1000) {
-      return (value / 1000).toFixed(1) + 'K';
-    }
-    return value.toFixed(1);
-  }
-
-  // ===== Revenue Chart =====
-  if (revenueChart && chartData.revenue.data.length > 0) {
-    new Chart(revenueChart, {
-      type: 'bar',
-      data: {
-        labels: chartData.revenue.labels,
-        datasets: [{
-          data: chartData.revenue.data,
-          backgroundColor: '#1e3a8a',
-          barThickness: 15
-        }]
-      },
-      options: {
-        animation: false,
-        plugins: {
-          legend: { display: true },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `${formatInMillions(context.raw)}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: { 
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return formatInMillions(value);
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  // ===== COGS Chart =====
-  if (cogsChart && chartData.cogs.data.length > 0) {
-    new Chart(cogsChart, {
-      type: 'bar',
-      data: {
-        labels: chartData.cogs.labels,
-        datasets: [{
-          data: chartData.cogs.data,
-          backgroundColor: '#233977',
-          barThickness: 15
-        }]
-      },
-      options: {
-        animation: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `${formatInMillions(context.raw)}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: { 
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return formatInMillions(value);
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  // ===== EBITDA Chart =====
-  if (ebitdaChart && chartData.ebitda.data.length > 0) {
-    new Chart(ebitdaChart, {
-      data: {
-        labels: chartData.ebitda.labels,
-        datasets: [
-          {
-            type: 'bar',
-            label: 'EBITDA',
-            data: chartData.ebitda.data,
-            backgroundColor: '#233977',
-            barThickness: 15,
-            yAxisID: 'y'
-          },
-          {
-            type: 'line',
-            label: 'Margin %',
-            data: chartData.ebitda.margins,
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.1)',
-            fill: true,
-            tension: 0.4,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom'
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                if (context.datasetIndex === 0) {
-                  return `EBITDA: ${formatInMillions(context.raw)}`;
-                } else {
-                  return `Margin: ${context.raw.toFixed(1)}%`;
+                // Get chart data from data attributes
+                const chartDataEl = document.getElementById('chart-data');
+                
+                if (!chartDataEl) {
+                    console.warn('No chart data element found');
+                    return;
                 }
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: {
-            type: 'linear',
-            display: true,
-            position: 'left',
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return formatInMillions(value);
-              }
-            }
-          },
-          y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return value + '%';
-              }
-            }
-          }
-        }
-      }
-    });
-  }
 
-  // ===== Net Profit Chart =====
-  if (profitChart && chartData.profit.data.length > 0) {
-    new Chart(profitChart, {
-      data: {
-        labels: chartData.profit.labels,
-        datasets: [
-          {
-            type: 'bar',
-            label: 'Net Profit',
-            data: chartData.profit.data,
-            backgroundColor: '#233977',
-            barThickness: 15,
-            yAxisID: 'y'
-          },
-          {
-            type: 'line',
-            label: 'Margin %',
-            data: chartData.profit.margins,
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.1)',
-            fill: true,
-            tension: 0.4,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom'
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                if (context.datasetIndex === 0) {
-                  return `Net Profit: ${formatInMillions(context.raw)}`;
-                } else {
-                  return `Margin: ${context.raw.toFixed(1)}%`;
+                // Parse chart data from data attributes
+                const chartData = {
+                    revenue: JSON.parse(chartDataEl.dataset.revenue || '{"labels":[],"data":[]}'),
+                    cogs: JSON.parse(chartDataEl.dataset.cogs || '{"labels":[],"data":[]}'),
+                    ebitda: JSON.parse(chartDataEl.dataset.ebitda || '{"labels":[],"data":[],"margins":[]}'),
+                    profit: JSON.parse(chartDataEl.dataset.profit || '{"labels":[],"data":[],"margins":[]}'),
+                    cash: JSON.parse(chartDataEl.dataset.cash || '{"labels":[],"cashIn":[],"cashOut":[]}')
+                };
+
+                // Check if we have data
+                if (!chartData.revenue || chartData.revenue.data.length === 0) {
+                    console.warn('No chart data available');
+                    return;
                 }
-              }
-            }
-          }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: {
-            type: 'linear',
-            display: true,
-            position: 'left',
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return formatInMillions(value);
-              }
-            }
-          },
-          y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return value + '%';
-              }
-            }
-          }
-        }
-      }
-    });
-  }
 
-  // ===== Cash Flow Chart =====
-  if (cashChart && chartData.cash.cashIn.length > 0) {
-    new Chart(cashChart, {
-      type: 'bar',
-      data: {
-        labels: chartData.cash.labels,
-        datasets: [
-          {
-            label: 'Cash In',
-            data: chartData.cash.cashIn,
-            backgroundColor: '#233977',
-            barThickness: 15
-          },
-          {
-            label: 'Cash Out',
-            data: chartData.cash.cashOut,
-            backgroundColor: '#1aa79c',
-            barThickness: 15
-          }
-        ]
-      },
-      options: {
-        animation: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `${context.dataset.label}: ${formatInMillions(context.raw)}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            categoryPercentage: 0.6,
-            barPercentage: 0.7,
-            grid: { display: false }
-          },
-          y: {
-            grid: { display: false },
-            ticks: {
-              callback: function(value) {
-                return formatInMillions(value);
-              }
-            }
-          }
-        }
-      }
-    });
-  }
+                // Canvas references
+                const revenueChart = document.getElementById('revenueChart');
+                const cogsChart = document.getElementById('cogsChart');
+                const ebitdaChart = document.getElementById('ebitdaChart');
+                const profitChart = document.getElementById('profitChart');
+                const cashChart = document.getElementById('cashChart');
 
-});
-</script>
-        <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+                // Helper function to format numbers in millions
+                function formatInMillions(value) {
+                    if (value >= 1000000) {
+                    return (value / 1000000).toFixed(1) + 'M';
+                    }
+                    if (value >= 1000) {
+                    return (value / 1000).toFixed(1) + 'K';
+                    }
+                    return value.toFixed(1);
+                }
 
-        <script>
-    // Chart data
-    // In your backend, before creating reportData, prepare chartData:
-
-// Prepare chart data
-
-// Then add chartData to your reportData object:
-
-    // const chartData = {
-    //     revenue: {
-    //         labels: ['2025', '2026', '2027', '2028', '2029'],
-    //         data: [6.5, 8.2, 10.5, 13.2, 16.8]
-    //     },
-    //     cogs: {
-    //         labels: ['2025', '2026', '2027', '2028', '2029'],
-    //         data: [3.5, 4.2, 5.1, 6.2, 7.5]
-    //     },
-    //     ebitda: {
-    //         labels: ['2025', '2026', '2027', '2028', '2029'],
-    //         data: [1.2, 2.5, 4.1, 6.0, 8.2],
-    //         margins: [18.5, 30.5, 39.0, 45.5, 48.8]
-    //     },
-    //     profit: {
-    //         labels: ['2025', '2026', '2027', '2028', '2029'],
-    //         data: [0.3, 1.2, 2.3, 3.7, 5.3],
-    //         margins: [4.6, 14.6, 21.9, 28.0, 31.5]
-    //     },
-    //     cash: {
-    //         labels: ['2025', '2026', '2027', '2028', '2029'],
-    //         cashIn: [25, 50, 70, 80, 100],
-    //         cashOut: [22, 45, 60, 70, 90]
-    //     }
-    // };
-
-//     document.addEventListener('DOMContentLoaded', function () {
-
-//         const labels = chartData.revenue.labels;
-
-//         // Canvas references
-//         const revenueChart = document.getElementById('revenueChart');
-//         const cogsChart = document.getElementById('cogsChart');
-//         const ebitdaChart = document.getElementById('ebitdaChart');
-//         const profitChart = document.getElementById('profitChart');
-//         const cashChart = document.getElementById('cashChart');
-
-//         // ===== Revenue =====
-//         new Chart(revenueChart, {
-//             type: 'bar',
-//             data: {
-//                 labels,
-//                 datasets: [{
-//                     data: chartData.revenue.data,
-//                     backgroundColor: '#1e3a8a',
-//                     barThickness: 15
-//                 }]
-//             },
-//             options: {
-//                 animation: false,
-//                 plugins: {
-//                     legend: {
-//                         display: false
-//                     }
-//                 },
-//                 scales: {
-//                     x: {
-//                         grid: {
-//                             display: false
-//                         }
-//                     },
-//                     y: {
-//                         grid: {
-//                             display: false
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-
-//         // ===== COGS =====
-//         new Chart(cogsChart, {
-//             type: 'bar',
-//             data: {
-//                 labels: chartData.cogs.labels,
-//                 datasets: [{
-//                     data: chartData.cogs.data,
-//                     backgroundColor: '#233977',
-//                     barThickness: 15
-//                 }]
-//             },
-//             options: {
-//                 animation: false, // PDF-safe
-//                 plugins: {
-//                     legend: {
-//                         display: false
-//                     }
-//                 },
-//                 scales: {
-//                     x: {
-//                         grid: {
-//                             display: false
-//                         }
-//                     },
-//                     y: {
-//                         grid: {
-//                             display: false
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-
-//         // ===== EBITDA =====
-//         new Chart(ebitdaChart, {
-//             data: {
-//                 labels: chartData.ebitda.labels,
-//                 datasets: [
-//                     {
-//                         type: 'bar',
-//                         label: 'EBITDA',
-//                         data: chartData.ebitda.data,
-//                         backgroundColor: '#233977',
-//                         barThickness: 15
-//                     },
-//                     {
-//                         type: 'line',
-//                         label: 'Margin %',
-//                         data: chartData.ebitda.margins,
-//                         borderColor: '#06b6d4',
-//                         yAxisID: 'y1'
-//                     }
-//                 ]
-//             },
-//             options: {
-//                 plugins: {
-//                     legend: {
-//                         display: true,
-//                         position: 'bottom'
-//                     }
-//                 },
-//                 scales: {
-//                     x: {
-//                         grid: {
-//                             display: false
-//                         }
-//                     },
-//                     y1: {
-//                         position: 'right',
-//                         ticks: { callback: v => v + '%' },
-//                         grid: { display: false },
-//                         border: { display: false },
+                // Plugin to show data labels on bars
+                const barLabelPlugin = {
+                    id: 'barLabel',
+                    afterDatasetsDraw(chart, args, options) {
+                        const { ctx, data } = chart;
                         
-//                     },
-//                     y: {                 // 👈 PRIMARY AXIS (IMPORTANT)
-//                         grid: { display: false },
-//                         // border: { display: false }
-//                     },
-//                 }
-//             }
-//         });
-
-//         // ===== Net Profit =====
-//         new Chart(profitChart, {
-//             data: {
-//                 labels: chartData.profit.labels,
-//                 datasets: [
-//                     {
-//                         type: 'bar',
-//                         label: 'Net Profit',
-//                         data: chartData.profit.data,
-//                         backgroundColor: '#233977',
-//                         barThickness: 15
-//                     },
-//                     {
-//                         type: 'line',
-//                         label: 'Margin %',
-//                         data: chartData.profit.margins,
-//                         borderColor: '#06b6d4',
-//                         yAxisID: 'y1'
-//                     }
-//                 ]
-//             },
-//             options: {
-//                 plugins: {
-//                     legend: {
-//                         display: true,
-//                         position: 'bottom'
-//                     }
-//                 },
-//                 scales: {
-//                     x: {
-//                         grid: {
-//                             display: false
-//                         }
-//                     },
-//                     y1: {
-//                         position: 'right',
-//                         ticks: { callback: v => v + '%' },
-//                         grid: { display: false },
-//                         border: { display: false },
+                        ctx.save();
+                        ctx.font = 'bold 11px Arial';
+                        ctx.textBaseline = 'bottom';
+                        ctx.textAlign = 'left';
+                        ctx.fillStyle = '#233977';
                         
-//                     },
-//                     y: {                 // 👈 PRIMARY AXIS (IMPORTANT)
-//                         grid: { display: false },
-//                         // border: { display: false }
-//                     },
-//                 }
-//             }
-//         });
+                        data.datasets.forEach((dataset, datasetIndex) => {
+                            const meta = chart.getDatasetMeta(datasetIndex);
+                            
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                if (value !== null && value !== undefined) {
+                                    // Position the label at the top of the bar
+                                    const x = bar.x;
+                                    const y = bar.y - 5; // 5px above the bar
+                                    
+                                    // Only show label if bar is tall enough
+                                    if (bar.height > 0) {
+                                        ctx.fillText(formatInMillions(value), x, y);
+                                    }
+                                }
+                            });
+                        });
+                        
+                        ctx.restore();
+                    }
+                };
 
-//         // ===== Cash =====
-//         new Chart(cashChart, {
-//             type: 'bar',
-//             data: {
-//                 labels: chartData.cash.labels,
-//                 datasets: [
-//                     {
-//                         label: 'Cash In',
-//                         data: chartData.cash.cashIn,
-//                         backgroundColor: '#233977',
-//                         barThickness:15
-//                     },
-//                     {
-//                         label: 'Cash Out',
-//                         data: chartData.cash.cashOut,
-//                         backgroundColor: '#1aa79c',
-//                         barThickness:15
-//                     }
-//                 ]
-//             },
-//             options: {
-//                 animation: false, // PDF-safe
-//                 plugins: {
-//                     legend: {
-//                         display: false
-//                     }
-//                 },
-//                 scales: {
-//                     x: {
-//                         categoryPercentage: 0.6, // 👈 gap between years
-//                         barPercentage: 0.7,      // 👈 gap between bars
-//                         grid: { display: false }
-//                     },
-//                     y: {
-//                         grid: { display: false }
-//                     }
-//                 }
-//             }
-//         });
+                // Plugin for line chart labels (for margins)
+                const lineLabelPlugin = {
+                    id: 'lineLabel',
+                    afterDatasetsDraw(chart, args, options) {
+                        const { ctx, data } = chart;
+                        
+                        ctx.save();
+                        ctx.font = 'bold 10px Arial';
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = 'right';
+                        ctx.fillStyle = '#1aa79c';
+                        
+                        // Only for line datasets (datasetIndex 1 in EBITDA and Profit charts)
+                        const meta = chart.getDatasetMeta(1);
+                        if (meta && meta.type === 'line') {
+                            meta.data.forEach((point, index) => {
+                                const value = data.datasets[1].data[index];
+                                if (value !== null && value !== undefined) {
+                                    // Position label above the point
+                                    const x = point.x;
+                                    const y = point.y - 15;
+                                    
+                                    ctx.fillText(value.toFixed(1) + '%', x, y);
+                                }
+                            });
+                        }
+                        
+                        ctx.restore();
+                    }
+                };
+                // ===== Revenue Chart =====
+                if (revenueChart && chartData.revenue.data.length > 0) {
+                    new Chart(revenueChart, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.revenue.labels,
+                        datasets: [{
+                        data: chartData.revenue.data,
+                        backgroundColor: '#1e3a8a',
+                        barThickness: 15
+                        }]
+                    },
+                    options: {
+                         layout: {
+                            padding: {
+                                top: 20  // 30px padding from top
+                            }
+                        },
+                        animation: false,
+                        plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                return `${formatInMillions(context.raw)}`;
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        }
+                        }
+                    },
+                     plugins: [barLabelPlugin] // Add label plugin
+                    });
+                }
 
-//     });
-// </script>
+                // ===== COGS Chart =====
+                if (cogsChart && chartData.cogs.data.length > 0) {
+                    new Chart(cogsChart, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.cogs.labels,
+                        datasets: [{
+                        data: chartData.cogs.data,
+                        backgroundColor: '#233977',
+                        barThickness: 15
+                        }]
+                    },
+                    options: {
+                         layout: {
+                            padding: {
+                                top: 20  // 30px padding from top
+                            }
+                        },
+                        animation: false,
+                        plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                return `${formatInMillions(context.raw)}`;
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        }
+                        }
+                    },
+                    plugins: [barLabelPlugin] // Add label plugin
+                    });
+                }
 
+                // ===== EBITDA Chart =====
+                if (ebitdaChart && chartData.ebitda.data.length > 0) {
+                    new Chart(ebitdaChart, {
+                    data: {
+                        labels: chartData.ebitda.labels,
+                        datasets: [
+                        {
+                            type: 'bar',
+                            label: 'EBITDA',
+                            data: chartData.ebitda.data,
+                            backgroundColor: '#233977',
+                            barThickness: 15,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Margin %',
+                            data: chartData.ebitda.margins,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                        ]
+                    },
+                    options: {
+                            // responsive: true,
+                        //  maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                top: 20  // 30px padding from top
+                            }
+                        },
+                        plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                return `EBITDA: ${formatInMillions(context.raw)}`;
+                                } else {
+                                return `Margin: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: {
+                                  display:false,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                            }
+                        }
+                        }
+                    },
+                   plugins: [barLabelPlugin, lineLabelPlugin] // Add label plugin
+                    });
+                }
+
+                // ===== Net Profit Chart =====
+                if (profitChart && chartData.profit.data.length > 0) {
+                    new Chart(profitChart, {
+                    data: {
+                        labels: chartData.profit.labels,
+                        datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Net Profit',
+                            data: chartData.profit.data,
+                            backgroundColor: '#233977',
+                            barThickness: 15,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Margin %',
+                            data: chartData.profit.margins,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                        ]
+                    },
+                    options: {
+                         layout: {
+                padding: {
+                    top: 30  // 30px padding from top
+                }
+            },
+                        plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                return `Net Profit: ${formatInMillions(context.raw)}`;
+                                } else {
+                                return `Margin: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: {
+                                display:false,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                            }
+                        }
+                        }
+                    },
+                     plugins: [barLabelPlugin, lineLabelPlugin] // Add both plugins
+                    });
+                }
+
+                // ===== Cash Flow Chart =====
+                if (cashChart && chartData.cash.cashIn.length > 0) {
+                    new Chart(cashChart, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.cash.labels,
+                        datasets: [
+                        {
+                            label: 'Cash In',
+                            data: chartData.cash.cashIn,
+                            backgroundColor: '#233977',
+                            barThickness: 15
+                        },
+                        {
+                            label: 'Cash Out',
+                            data: chartData.cash.cashOut,
+                            backgroundColor: '#1aa79c',
+                            barThickness: 15
+                        }
+                        ]
+                    },
+                    options: {
+                        animation: false,
+                        plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${formatInMillions(context.raw)}`;
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: {
+                            categoryPercentage: 0.6,
+                            barPercentage: 0.7,
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        }
+                        }
+                    },
+                     plugins: [barLabelPlugin] // Add label plugin
+                    });
+                }
+
+                });
+        </script>
+        <!-- unique chart -->
         <script>
-document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function () {
+            
+            // Get data from hidden element
+            const methodDataEl = document.getElementById('method-data');
+            if (!methodDataEl) return;
+            
+            const methodLabels = JSON.parse(methodDataEl.dataset.methodLabels || '[]');
+            const equityValues = JSON.parse(methodDataEl.dataset.equityValues || '[]');
+            const equityMinValues = JSON.parse(methodDataEl.dataset.equityMinValues || '[]');
+            const equityMaxValues = JSON.parse(methodDataEl.dataset.equityMaxValues || '[]');
+            const weightPercentages = JSON.parse(methodDataEl.dataset.weightPercentages || '[0,0,0,0]');
+            const minValue = parseFloat(methodDataEl.dataset.minValue) || 0;
+            const baseValue = parseFloat(methodDataEl.dataset.baseValue) || 0;
+            const maxValue = parseFloat(methodDataEl.dataset.maxValue) || 0;
+            
+            // // Get Equity Value data from the table (for speedometers)
+            const equityValueMin = parseFloat(methodDataEl.dataset.equityValueMin || '0');
+            const equityValueAvg = parseFloat(methodDataEl.dataset.equityValueAvg || '0');
+            const equityValueMax = parseFloat(methodDataEl.dataset.equityValueMax || '0');
+            
+            // // Helper function
+            function formatInMillions(value) {
+                if (value >= 1000000) {
+                    return '$' + (value / 1000000).toFixed(1) + 'M';
+                }
+                if (value >= 1000) {
+                    return '$' + (value / 1000).toFixed(1) + 'K';
+                }
+                return '$' + value.toFixed(1);
+            }
+            
+            // // ===== METHOD COMPARISON BARS (Min-Max Range Chart - All Methods Centered) =====
+            // if (equityValues.length > 0 && equityMinValues.length > 0 && equityMaxValues.length > 0) {
+            //     const methodBarsCanvas = document.getElementById('methodBars');
+            //     if (methodBarsCanvas) {
+            //         // Get DCF values from Equity Value of the Company table
+            //         const dcfMinFromTable = parseFloat(equityValueMin || 0);
+            //         const dcfAvgFromTable = parseFloat(equityValueAvg || 0);
+            //         const dcfMaxFromTable = parseFloat(equityValueMax || 0);
+                    
+            //         // Find DCF index in the methods array
+            //         const dcfIndex = methodLabels.findIndex(label => label === 'DCF' || label.includes('DCF'));
+                    
+            //         // Replace DCF values with table values if DCF exists
+            //         if (dcfIndex >= 0 && dcfMinFromTable > 0 && dcfMaxFromTable > 0) {
+            //             equityMinValues[dcfIndex] = dcfMinFromTable;
+            //             equityValues[dcfIndex] = dcfAvgFromTable;
+            //             equityMaxValues[dcfIndex] = dcfMaxFromTable;
+            //         }
+                    
+            //         // Find overall min and max across all methods for scaling
+            //         const allMinValues = equityMinValues.map(v => parseFloat(v) || 0);
+            //         const allMaxValues = equityMaxValues.map(v => parseFloat(v) || 0);
+            //         const overallMin = Math.min(...allMinValues, ...equityValues.map(v => parseFloat(v) || 0));
+            //         const overallMax = Math.max(...allMaxValues, ...equityValues.map(v => parseFloat(v) || 0));
+            //         const range = overallMax - overallMin || 1; // Avoid division by zero
+                    
+            //         // Create center division line plugin (vertical dashed line at center = 0)
+            //         // All methods are centered at 0, so the division line passes through the center
+            //         const centerLine = {
+            //             id: 'centerLine',
+            //             afterDraw(chart) {
+            //                 const { ctx, chartArea, scales: { x } } = chart;
+            //                 // Position center line exactly at 0 (center of chart)
+            //                 // The scale is -60 to +60, so 0 is the exact center
+            //                 const xCenter = x.getPixelForValue(0);
+            //                 ctx.save();
+            //                 ctx.setLineDash([5, 5]);
+            //                 ctx.strokeStyle = '#233977';
+            //                 ctx.lineWidth = 2;
+            //                 ctx.beginPath();
+            //                 // Draw line from top to bottom of chart area, passing through center
+            //                 ctx.moveTo(xCenter, chartArea.top);
+            //                 ctx.lineTo(xCenter, chartArea.bottom);
+            //                 ctx.stroke();
+            //                 ctx.restore();
+            //             }
+            //         };
+
+            //         // Prepare data: left segment (min to avg) and right segment (avg to max)
+            //         // All methods will be centered at their average positions (0)
+            //         const leftSegmentData = [];
+            //         const rightSegmentData = [];
+                    
+            //         equityValues.forEach((avgValue, index) => {
+            //             const minVal = parseFloat(equityMinValues[index] || avgValue);
+            //             const maxVal = parseFloat(equityMaxValues[index] || avgValue);
+            //             const avgVal = parseFloat(avgValue || 0);
+                        
+            //             // Calculate distances from average
+            //             const distanceFromAvgToMin = avgVal - minVal;
+            //             const distanceFromAvgToMax = maxVal - avgVal;
+                        
+            //             // Normalize distances to percentage of overall range
+            //             const leftDistancePercent = (distanceFromAvgToMin / range) * 100;
+            //             const rightDistancePercent = (distanceFromAvgToMax / range) * 100;
+                        
+            //             // Try explicit calculation:
+            //             const barStartPosition = -leftDistancePercent;
+            //             const leftSegmentLength = leftDistancePercent;
+            //             const rightSegmentLength = rightDistancePercent;
+                        
+        
+            //             // Calculate values for centered bar
+            //             const leftDist = leftDistancePercent;
+            //             const rightDist = rightDistancePercent;
+                        
+            //             // Result: bar from -(leftDist + rightDist)/2 to +(leftDist + rightDist)/2, centered at 0
+                        
+            //             const totalLength = leftDist + rightDist;
+            //             const barStart = -(leftDist + rightDist) / 2;
+                        
+            //             leftSegmentData.push(barStart);
+            //             rightSegmentData.push(totalLength);
+            //         });
+                    
+            //         // Use centered scale for all methods (-60 to +60, with 0 at center)
+            //         const scaleMin = -60;
+            //         const scaleMax = 60;
+                    
+            //         // Debug: Log the calculated values to verify
+            //         console.log('Chart Data:', {
+            //             leftSegmentData: leftSegmentData,
+            //             rightSegmentData: rightSegmentData,
+            //             scaleMin: scaleMin,
+            //             scaleMax: scaleMax
+            //         });
+                    
+            //         new Chart(methodBarsCanvas, {      
+            //             type: 'bar',
+            //             data: {
+            //                 labels: methodLabels,
+            //                 datasets: [
+            //                     {
+            //                         label: 'Min to Avg',
+            //                         data: leftSegmentData,
+            //                         backgroundColor: '#0ea5a5', // Teal for left segment
+            //                         barThickness: 5
+            //                     },
+            //                     {
+            //                         label: 'Avg to Max',
+            //                         data: rightSegmentData,
+            //                         backgroundColor: '#233977', // Dark blue for right segment
+            //                         barThickness: 5
+            //                     }
+            //                 ]
+            //             },
+            //             options: {
+            //                 indexAxis: 'y',
+            //                 animation: false,
+            //                 plugins: {
+            //                     legend: { display: false },
+            //                     tooltip: {
+            //                         callbacks: {
+            //                             label: function(context) {
+            //                                 const index = context.dataIndex;
+            //                                 const datasetIndex = context.datasetIndex;
+            //                                 if (datasetIndex === 0) {
+            //                                     // Left segment: show min to avg
+            //                                     return `Min: ${formatInMillions(equityMinValues[index])} → Avg: ${formatInMillions(equityValues[index])}`;
+            //                                 } else {
+            //                                     // Right segment: show avg to max
+            //                                     return `Avg: ${formatInMillions(equityValues[index])} → Max: ${formatInMillions(equityMaxValues[index])}`;
+            //                                 }
+            //                             }
+            //                         }
+            //                     }
+            //                 },
+            //                 scales: {
+            //                     x: {
+            //                         stacked: true,
+            //                         min: -60,
+            //                         max: 60,
+            //                         beginAtZero: false, // Don't force zero, use our min/max
+            //                         ticks: { display: false },
+            //                         grid: { drawTicks: false, display: false },
+            //                         display: false
+            //                     },
+            //                     y: {
+            //                         stacked: true,
+            //                         grid: { display: false },
+            //                         display: false,
+            //                         categoryPercentage: 0.4,
+            //                         barPercentage: 0.5,
+            //                         offset: true
+            //                     }
+            //                 }
+            //             },
+            //             plugins: [centerLine]
+            //         });
+            //     }
+            // }
+
+            // ===== CIRCULAR WEIGHTS =====
+            function createCircularChart(id, percentage) {
+                const canvas = document.getElementById(id);
+                if (canvas && percentage > 0) {
+                    const colors = ['#0ea5a5', '#0ea5a5', '#0ea5a5', '#0ea5a5'];
+                    const index = parseInt(id.replace('w', '')) - 1;
+                    const color = colors[index] || '#0ea5a5';
+                    
+                    new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [percentage, 100 - percentage],
+                                backgroundColor: [color, '#e5e7eb'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            cutout: '70%',
+                            animation: false,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+            
+            // Create weight charts
+            for (let i = 1; i <= 4; i++) {
+                createCircularChart(`w${i}`, weightPercentages[i-1] || 0);
+            }
+
+            // ===== SPEEDOMETERS =====
+            const gaugeNeedle = {
+                id: 'gaugeNeedle',
+                afterDraw(chart) {
+                    const { ctx, chartArea } = chart;
+                    const value = chart.options.plugins.gauge.value;
+                    const angle = Math.PI + (value / 100) * Math.PI;
+                    const cx = (chartArea.left + chartArea.right) / 2;
+                    const cy = chartArea.bottom;
+                    const radius = (chartArea.right - chartArea.left) / 2 - 10;
+
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(angle);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -3);
+                    ctx.lineTo(radius, 0);
+                    ctx.lineTo(0, 3);
+                    ctx.fillStyle = '#111827';
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#111827';
+                    ctx.fill();
+                }
+            };
+            
+            function createSpeedometer(canvasId, value, minVal, maxVal) {
+                const canvas = document.getElementById(canvasId);
+                if (canvas && maxVal > minVal) {
+                    const normalizedValue = ((value - minVal) / (maxVal - minVal)) * 100;
+                    
+                    new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
+                                backgroundColor: [
+                                    '#1aa79c', '#2EC4B6', '#F4D35E',
+                                    '#ff000050', '#e75252', '#ff1d1d'
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            rotation: -90,
+                            circumference: 180,
+                            cutout: '75%',
+                            animation: false,
+                            plugins: {
+                                legend: { display: false },
+                                gauge: { 
+                                    value: Math.min(100, Math.max(0, normalizedValue)) 
+                                }
+                            }
+                        },
+                        plugins: [gaugeNeedle]
+                    });
+                }
+            }
+            
+            // Create speedometers using Equity Value min, avg, max from the table
+            if (equityValueMax > equityValueMin) {
+                createSpeedometer('gaugeLow', equityValueMin, equityValueMin, equityValueMax);
+                createSpeedometer('gaugeBase', equityValueAvg, equityValueMin, equityValueMax);
+                createSpeedometer('gaugeBest', equityValueMax, equityValueMin, equityValueMax);
+            }
+        });
+        </script>
+     <script>
+    document.addEventListener('DOMContentLoaded', function () {
     
     // Get data from hidden element
     const methodDataEl = document.getElementById('method-data');
@@ -2660,7 +2829,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return '$' + value.toFixed(1);
     }
     
-    // ===== METHOD COMPARISON BARS (Min-Max Range Chart - All Methods Centered) =====
+    // ===== METHOD COMPARISON BARS (Min-Max Range Chart - Vertical Stacked) =====
     if (equityValues.length > 0 && equityMinValues.length > 0 && equityMaxValues.length > 0) {
         const methodBarsCanvas = document.getElementById('methodBars');
         if (methodBarsCanvas) {
@@ -2680,186 +2849,191 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             // Find overall min and max across all methods for scaling
-            const allMinValues = equityMinValues.map(v => parseFloat(v) || 0);
-            const allMaxValues = equityMaxValues.map(v => parseFloat(v) || 0);
-            const overallMin = Math.min(...allMinValues, ...equityValues.map(v => parseFloat(v) || 0));
-            const overallMax = Math.max(...allMaxValues, ...equityValues.map(v => parseFloat(v) || 0));
-            const range = overallMax - overallMin || 1; // Avoid division by zero
+            const allValues = [
+                ...equityMinValues.map(v => parseFloat(v) || 0),
+                ...equityValues.map(v => parseFloat(v) || 0),
+                ...equityMaxValues.map(v => parseFloat(v) || 0)
+            ];
+            const overallMin = Math.min(...allValues);
+            const overallMax = Math.max(...allValues);
+            const range = overallMax - overallMin || 1;
             
-            // Create center division line plugin (vertical dashed line at center = 0)
-            // All methods are centered at 0, so the division line passes through the center
-            const centerLine = {
-                id: 'centerLine',
-                afterDraw(chart) {
-                    const { ctx, chartArea, scales: { x } } = chart;
-                    // Position center line exactly at 0 (center of chart)
-                    // The scale is -60 to +60, so 0 is the exact center
-                    const xCenter = x.getPixelForValue(0);
-                    ctx.save();
-                    ctx.setLineDash([5, 5]);
-                    ctx.strokeStyle = '#233977';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    // Draw line from top to bottom of chart area, passing through center
-                    ctx.moveTo(xCenter, chartArea.top);
-                    ctx.lineTo(xCenter, chartArea.bottom);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-            };
-
-            // Prepare data: left segment (min to avg) and right segment (avg to max)
-            // All methods will be centered at their average positions (0)
-            const leftSegmentData = [];
-            const rightSegmentData = [];
+            // Prepare data for VERTICAL STACKED bars
+            // For vertical stacked bars centered at 0:
+            // First dataset: Goes from 0 down to -bottomDistance (min side)
+            // Second dataset: Goes from 0 up to +topDistance (max side)
+            const bottomSegmentData = [];  // Negative values (min to avg)
+            const topSegmentData = [];     // Positive values (avg to max)
             
             equityValues.forEach((avgValue, index) => {
-                const minVal = parseFloat(equityMinValues[index] || avgValue);
-                const maxVal = parseFloat(equityMaxValues[index] || avgValue);
-                const avgVal = parseFloat(avgValue || 0);
+                const minVal = parseFloat(equityMinValues[index]) || 0;
+                const avgVal = parseFloat(avgValue) || 0;
+                const maxVal = parseFloat(equityMaxValues[index]) || 0;
                 
                 // Calculate distances from average
                 const distanceFromAvgToMin = avgVal - minVal;
                 const distanceFromAvgToMax = maxVal - avgVal;
                 
-                // Normalize distances to percentage of overall range
-                const leftDistancePercent = (distanceFromAvgToMin / range) * 100;
-                const rightDistancePercent = (distanceFromAvgToMax / range) * 100;
+                // Normalize to fit in -100 to 100 range
+                const scaleFactor = 100/ range;
+                const bottomDistance = distanceFromAvgToMin * scaleFactor;
+                const topDistance = distanceFromAvgToMax * scaleFactor;
                 
-                // For stacked bars to be centered at 0 with two colors:
-                // The bar should go from -leftDistance to +rightDistance
-                // - First dataset (left, teal): starts at -leftDistance, length = leftDistance (ends at 0)
-                // - Second dataset (right, blue): starts at 0, length = rightDistance (ends at +rightDistance)
-                //
-                // In Chart.js stacked bars:
-                // - First dataset value = starting position
-                // - Second dataset value = additional length that stacks on first
-                //
-                // So: first = -leftDistance (bar starts here)
-                //     second = leftDistance + rightDistance (extends from -leftDistance to +rightDistance)
-                // But this makes second dataset one color for entire length
-                //
-                // To get two colors, we need the segments to be separate:
-                // Actually, with 2 datasets, we can't easily get two distinct colors with a division
-                // Let's use: first = -leftDistance (position), second = leftDistance (left segment length)
-                // Then we'd need a third for right, but we only have 2
-                //
-                // Alternative: Use the base property or calculate differently
-                // For now, let's ensure bars are centered by using proper start positions
-                
-                // For stacked bars to be centered at 0:
-                // Bar should extend from -leftDistance to +rightDistance
-                // In Chart.js stacked bars: first dataset = base position, second = extends from base
-                //
-                // To center: 
-                // - First dataset: -leftDistance (bar starts here, this is the left segment)
-                // - Second dataset: leftDistance + rightDistance (extends to +rightDistance)
-                // This creates a bar from -leftDistance to +rightDistance, centered at 0
-                
-                // For Chart.js stacked horizontal bars to center at 0:
-                // We need the bar to extend from -leftDistance to +rightDistance
-                // 
-                // The issue: Chart.js stacked bars might not handle negative starting positions correctly
-                // Solution: Calculate the offset needed to center the bar
-                //
-                // Bar should span: from (avg - min) to (avg + max - avg) = from -leftDist to +rightDist
-                // To center at 0, we need: barStart = -leftDist, barEnd = +rightDist
-                //
-                // In stacked format:
-                // - First dataset: barStart position = -leftDistancePercent
-                // - Second dataset: length to add = leftDistancePercent + rightDistancePercent
-                // Result: bar goes from -leftDist to (-leftDist + leftDist + rightDist) = +rightDist ✓
-                
-                // But wait - if first dataset is negative, Chart.js might interpret it differently
-                // Let me try: first = leftDistance (positive, but we'll position it), second = rightDistance
-                // Actually, for stacked bars, negative values in first dataset should work
-                
-                // Try explicit calculation:
-                const barStartPosition = -leftDistancePercent;
-                const leftSegmentLength = leftDistancePercent;
-                const rightSegmentLength = rightDistancePercent;
-                
-                // For stacked bars: first dataset is the base, second stacks on it
-                // If first = -leftDist and second = leftDist, bar goes from -leftDist to 0
-                // Then we need third for right, but we only have 2 datasets
-                //
-                // Alternative: Use first = -leftDist, second = totalLength
-                // This should work: bar from -leftDist to (-leftDist + totalLength) = +rightDist
-                
-                // Calculate values for centered bar
-                const leftDist = leftDistancePercent;
-                const rightDist = rightDistancePercent;
-                
-                // For Chart.js stacked bars to be perfectly centered at 0:
-                // If we use first = -leftDist and second = totalLength,
-                // the bar goes from -leftDist to (-leftDist + totalLength) = rightDist
-                // Center = (-leftDist + rightDist) / 2, which is only 0 if leftDist = rightDist
-                //
-                // To always center at 0, we need to shift the bar:
-                // Current center = (-leftDist + rightDist) / 2
-                // Shift needed = -center = (leftDist - rightDist) / 2
-                // New start = -leftDist + shift = -leftDist + (leftDist - rightDist) / 2 = -(leftDist + rightDist) / 2
-                // New end = rightDist + shift = rightDist + (leftDist - rightDist) / 2 = (leftDist + rightDist) / 2
-                // Total length = (leftDist + rightDist) / 2 - (-(leftDist + rightDist) / 2) = leftDist + rightDist
-                //
-                // So for stacked bars:
-                // First dataset: -(leftDist + rightDist) / 2 (bar starts here)
-                // Second dataset: leftDist + rightDist (extends to end)
-                // Result: bar from -(leftDist + rightDist)/2 to +(leftDist + rightDist)/2, centered at 0
-                
-                const totalLength = leftDist + rightDist;
-                const barStart = -(leftDist + rightDist) / 2;
-                
-                leftSegmentData.push(barStart);
-                rightSegmentData.push(totalLength);
+                // For VERTICAL stacked bars:
+                // Bottom segment: Goes from 0 down to -bottomDistance
+                // Top segment: Goes from 0 up to +topDistance
+                bottomSegmentData.push(-bottomDistance);  // Negative values (downwards)
+                topSegmentData.push(topDistance);         // Positive values (upwards)
             });
             
-            // Use centered scale for all methods (-60 to +60, with 0 at center)
-            const scaleMin = -60;
-            const scaleMax = 60;
+            // Create center line plugin (horizontal line at y=0)
+            const centerLine = {
+                id: 'centerLine',
+                afterDraw(chart) {
+                    const { ctx, chartArea, scales: { y } } = chart;
+                    const yCenter = y.getPixelForValue(0);
+                    ctx.save();
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = '#233977';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    // Draw horizontal line at center
+                    ctx.moveTo(chartArea.left, yCenter);
+                    ctx.lineTo(chartArea.right, yCenter);
+                    ctx.stroke();
+                    
+                    // Add "0" label at right
+                    ctx.fillStyle = '#233977';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('0', chartArea.right + 10, yCenter);
+                    ctx.restore();
+                }
+            };
             
-            // Debug: Log the calculated values to verify
-            console.log('Chart Data:', {
-                leftSegmentData: leftSegmentData,
-                rightSegmentData: rightSegmentData,
-                scaleMin: scaleMin,
-                scaleMax: scaleMax
+            // Clear existing chart if any
+            if (window.methodBarsChartInstance) {
+                window.methodBarsChartInstance.destroy();
+            }
+             const valueLabelsPlugin = {
+        id: 'valueLabels',
+        afterDatasetsDraw(chart, args, options) {
+            const { ctx, data, scales: { x, y } } = chart;
+            
+            ctx.save();
+            ctx.font = 'bold 12px Arial';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+            
+            data.datasets.forEach((dataset, datasetIndex) => {
+                const meta = chart.getDatasetMeta(datasetIndex);
+                
+                meta.data.forEach((bar, index) => {
+                    // Get the value for this bar
+                    const value = dataset.data[index];
+                    
+                    // Calculate position
+                    const xPos = bar.x;
+                    const yPos = bar.y;
+                    
+                    // Get the actual min, avg, max values
+                    const minVal = parseFloat(equityMinValues[index]) || 0;
+                    // const avgVal = parseFloat(equityValues[index]) || 0;
+                    const maxVal = parseFloat(equityMaxValues[index]) || 0;
+                    
+                    // Format the value
+                    let labelText = '';
+                    let labelColor = '#ffffff';
+                    
+                    if (datasetIndex === 0) { // Bottom segment (Min to Avg)
+                        // Position label at the bottom of this segment
+                        labelText = formatInMillions(minVal);
+                        labelColor = '#0ea5a5';
+                        ctx.textBaseline = 'top';
+                    } else { // Top segment (Avg to Max)
+                        // Position label at the top of this segment
+                        labelText = formatInMillions(maxVal);
+                        labelColor = '#233977';
+                        ctx.textBaseline = 'bottom';
+                    }
+                    
+                    // Draw the label
+                    ctx.fillStyle = labelColor;
+                    ctx.fillText(labelText, xPos, yPos);
+                });
             });
             
-            new Chart(methodBarsCanvas, {      
+            // Now draw average values at the center (y=0)
+            ctx.fillStyle = '#ffffff';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 13px Arial';
+         
+            ctx.restore();
+        }
+    };
+            // Create the VERTICAL STACKED bar chart
+            window.methodBarsChartInstance = new Chart(methodBarsCanvas, {      
                 type: 'bar',
                 data: {
                     labels: methodLabels,
                     datasets: [
                         {
                             label: 'Min to Avg',
-                            data: leftSegmentData,
-                            backgroundColor: '#0ea5a5', // Teal for left segment
-                            barThickness: 5
+                            data: bottomSegmentData,
+                            backgroundColor: '#0ea5a5',
+                            borderColor: '#0ea5a5',
+                            borderWidth: 1,
+                            barThickness: 40,
+                            borderRadius: { 
+                                topLeft: 0,
+                                topRight: 0,
+                                bottomLeft: 3,
+                                bottomRight: 3
+                            }
                         },
                         {
                             label: 'Avg to Max',
-                            data: rightSegmentData,
-                            backgroundColor: '#233977', // Dark blue for right segment
-                            barThickness: 5
+                            data: topSegmentData,
+                            backgroundColor: '#233977',
+                            borderColor: '#233977',
+                            borderWidth: 1,
+                            barThickness: 40,
+                            borderRadius: { 
+                                topLeft: 3,
+                                topRight: 3,
+                                bottomLeft: 0,
+                                bottomRight: 0
+                            }
                         }
                     ]
                 },
                 options: {
-                    indexAxis: 'y',
-                    animation: false,
+                    // Remove indexAxis or set to 'x' for vertical bars (default)
+                    // indexAxis: 'x', // Optional - 'x' is default for vertical bars
+                    
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
                     plugins: {
-                        legend: { display: false },
+                        legend: { 
+                            display: false 
+                        },
                         tooltip: {
+                            mode: 'index',
+                            intersect: false,
                             callbacks: {
+                                title: function(tooltipItems) {
+                                    return methodLabels[tooltipItems[0].dataIndex];
+                                },
                                 label: function(context) {
                                     const index = context.dataIndex;
-                                    const datasetIndex = context.datasetIndex;
-                                    if (datasetIndex === 0) {
-                                        // Left segment: show min to avg
+                                    if (context.datasetIndex === 0) {
                                         return `Min: ${formatInMillions(equityMinValues[index])} → Avg: ${formatInMillions(equityValues[index])}`;
                                     } else {
-                                        // Right segment: show avg to max
                                         return `Avg: ${formatInMillions(equityValues[index])} → Max: ${formatInMillions(equityMaxValues[index])}`;
                                     }
                                 }
@@ -2868,330 +3042,103 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     scales: {
                         x: {
-                            stacked: true,
-                            min: -60,
-                            max: 60,
-                            beginAtZero: false, // Don't force zero, use our min/max
-                            ticks: { display: false },
-                            grid: { drawTicks: false, display: false },
-                            display: false
+                            stacked: true, // Stack along X-axis
+                            grid: { 
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                color: '#111827'
+                            }
                         },
                         y: {
-                            stacked: true,
-                            grid: { display: false },
-                            display: false,
-                            categoryPercentage: 0.4,
-                            barPercentage: 0.5,
-                            offset: true
+                            stacked: true, // Stack along Y-axis
+                            min: -120,
+                            max: 120,
+                            grid: { 
+                                display: false,
+                                drawBorder: false,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: { 
+                                  position: 'left',
+                                display: false,
+                                callback: function(value) {
+                                    return value;
+                                }
+                            }
+                        },
+                          yRight: { // Add a second Y-axis on the right
+                            type: 'linear',
+                            min: -120,
+                            max: 120,
+                            position: 'right',
+                            grid: {
+                                display: false, // Don't show grid lines for right axis
+                                drawBorder: false
+                            },
+                            ticks: {
+                                display: true,
+                                callback: function(value) {
+                                    return value;
+                                }
+                            }
                         }
                     }
                 },
-                plugins: [centerLine]
+                plugins: [centerLine,valueLabelsPlugin]
             });
-        }
-    }
-
-    // ===== CIRCULAR WEIGHTS =====
-    function createCircularChart(id, percentage) {
-        const canvas = document.getElementById(id);
-        if (canvas && percentage > 0) {
-            const colors = ['#0ea5a5', '#233977', '#1aa79c', '#06b6d4'];
-            const index = parseInt(id.replace('w', '')) - 1;
-            const color = colors[index] || '#0ea5a5';
             
-            new Chart(canvas, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [percentage, 100 - percentage],
-                        backgroundColor: [color, '#e5e7eb'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    cutout: '70%',
-                    animation: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-    }
-    
-    // Create weight charts
-    for (let i = 1; i <= 4; i++) {
-        createCircularChart(`w${i}`, weightPercentages[i-1] || 0);
-    }
-
-    // ===== SPEEDOMETERS =====
-    const gaugeNeedle = {
-        id: 'gaugeNeedle',
-        afterDraw(chart) {
-            const { ctx, chartArea } = chart;
-            const value = chart.options.plugins.gauge.value;
-            const angle = Math.PI + (value / 100) * Math.PI;
-            const cx = (chartArea.left + chartArea.right) / 2;
-            const cy = chartArea.bottom;
-            const radius = (chartArea.right - chartArea.left) / 2 - 10;
-
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(angle);
-            ctx.beginPath();
-            ctx.moveTo(0, -3);
-            ctx.lineTo(radius, 0);
-            ctx.lineTo(0, 3);
-            ctx.fillStyle = '#111827';
-            ctx.fill();
-            ctx.restore();
+            // Add value labels after chart is drawn
+            // setTimeout(() => {
+            //     const ctx = methodBarsCanvas.getContext('2d');
+            //     const chart = window.methodBarsChartInstance;
+            //     const xScale = chart.scales.x;
+            //     const yScale = chart.scales.y;
+                
+            //     ctx.save();
+            //     ctx.textAlign = 'center';
+            //     ctx.textBaseline = 'middle';
+            //     ctx.font = 'bold 12px Arial';
+                
+            //     equityValues.forEach((avgValue, index) => {
+            //         const xPos = xScale.getPixelForValue(index);
+            //         const yCenter = yScale.getPixelForValue(0);
+            //         const yBottom = yScale.getPixelForValue(bottomSegmentData[index]);
+            //         const yTop = yScale.getPixelForValue(topSegmentData[index]);
+                    
+            //         const avgVal = parseFloat(avgValue) || 0;
+            //         const minVal = parseFloat(equityMinValues[index]) || 0;
+            //         const maxVal = parseFloat(equityMaxValues[index]) || 0;
+                    
+            //         // Draw average value at center (white)
+            //         ctx.fillStyle = '#ffffff';
+            //         ctx.fillText(formatInMillions(avgVal), xPos, yCenter);
+                    
+            //         // Draw min value at bottom end (teal)
+            //         ctx.fillStyle = '#0ea5a5';
+            //         ctx.textBaseline = 'top';
+            //         ctx.fillText(formatInMillions(minVal), xPos, yBottom + 5);
+                    
+            //         // Draw max value at top end (dark blue)
+            //         ctx.fillStyle = '#233977';
+            //         ctx.textBaseline = 'bottom';
+            //         ctx.fillText(formatInMillions(maxVal), xPos, yTop - 5);
+                    
+            //         ctx.textBaseline = 'middle';
+            //     });
+                
+            //     ctx.restore();
+            // }, 100);
             
-            ctx.beginPath();
-            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-            ctx.fillStyle = '#111827';
-            ctx.fill();
+            // Style the chart container for vertical bars
+            methodBarsCanvas.parentElement.style.height = '350px';
+            methodBarsCanvas.parentElement.style.minHeight = '300px';
         }
-    };
-    
-    function createSpeedometer(canvasId, value, minVal, maxVal) {
-        const canvas = document.getElementById(canvasId);
-        if (canvas && maxVal > minVal) {
-            const normalizedValue = ((value - minVal) / (maxVal - minVal)) * 100;
-            
-            new Chart(canvas, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
-                        backgroundColor: [
-                            '#1aa79c', '#2EC4B6', '#F4D35E',
-                            '#ff000050', '#e75252', '#ff1d1d'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: false,
-                    rotation: -90,
-                    circumference: 180,
-                    cutout: '75%',
-                    animation: false,
-                    plugins: {
-                        legend: { display: false },
-                        gauge: { 
-                            value: Math.min(100, Math.max(0, normalizedValue)) 
-                        }
-                    }
-                },
-                plugins: [gaugeNeedle]
-            });
-        }
-    }
-    
-    // Create speedometers using Equity Value min, avg, max from the table
-    if (equityValueMax > equityValueMin) {
-        createSpeedometer('gaugeLow', equityValueMin, equityValueMin, equityValueMax);
-        createSpeedometer('gaugeBase', equityValueAvg, equityValueMin, equityValueMax);
-        createSpeedometer('gaugeBest', equityValueMax, equityValueMin, equityValueMax);
     }
 });
 </script>
-        <!-- <script>
-
-            
-    // horizontal
-    // ===== DIVERGING HORIZONTAL BAR (METHOD COMPARISON) =====
-
-    const centerLine = {
-        id: 'centerLine',
-        afterDraw(chart) {
-            const { ctx, chartArea, scales: { x } } = chart;
-            const xZero = x.getPixelForValue(0);
-
-            ctx.save();
-            ctx.setLineDash([4, 4]);
-            ctx.strokeStyle = '#233977';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(xZero, chartArea.top);
-            ctx.lineTo(xZero, chartArea.bottom);
-            ctx.stroke();
-            ctx.restore();
-        }
-    };
-
-    new Chart(document.getElementById('methodBars'), {      
-        type: 'bar',
-        data: {
-            labels: [
-                'DCF',
-                'P/S', 
-                'P/S One Year Fwd',
-                'EV/Sales One Year Fwd'
-            ],
-            datasets: [
-                {
-                    // LEFT SIDE (Negative)
-                    data: [-40, -35, -45, -38],
-                    backgroundColor: '#0ea5a5',
-                    barThickness: 5
-                },
-                {
-                    // RIGHT SIDE (Positive)
-                    data: [60, 55, 45, 48],
-                    backgroundColor: '#233977',
-                    barThickness: 5
-                }
-            ]
-        },
-        options: {
-            indexAxis: 'y',
-            animation: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                x: {
-                    stacked: true,
-                    min: -70,
-                    max: 70,
-                    ticks: { display: false },
-                    grid: { drawTicks: false },
-                    display: false
-                },
-                y: {
-                    stacked: true,
-                    grid: { display: false },
-                    display: false,
-                    // Adjust these values for more spacing
-                    categoryPercentage: 0.4, // Increased from 0.1 (controls space between categories)
-                    barPercentage: 0.5,      // Controls bar thickness within category
-                    // You can also adjust the offset
-                    offset: true
-                }
-            }
-        },
-        plugins: [centerLine]
-    });
-    // circular
-    function circular(id, value) {
-        new Chart(id, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [value, 100 - value],
-                    backgroundColor: ['#0ea5a5', '#e5e7eb'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '70%',
-                animation: false,
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-
-    circular(w1, 50);
-    circular(w2, 20);
-    circular(w3, 10);
-    circular(w4, 35);
-    // speedometer
-    const gaugeNeedle = {
-        id: 'gaugeNeedle',
-        afterDraw(chart) {
-            const { ctx, chartArea } = chart;
-            const value = chart.options.plugins.gauge.value;
-
-            const angle = Math.PI + (value / 100) * Math.PI;
-            const cx = (chartArea.left + chartArea.right) / 2;
-            const cy = chartArea.bottom;
-            const radius = (chartArea.right - chartArea.left) / 2 - 10;
-
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(angle);
-
-            // needle
-            ctx.beginPath();
-            ctx.moveTo(0, -3);
-            ctx.lineTo(radius, 0);
-            ctx.lineTo(0, 3);
-            ctx.fillStyle = '#111827';
-            ctx.fill();
-            ctx.restore();
-
-            // center dot
-            ctx.beginPath();
-            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-            ctx.fillStyle = '#111827';
-            ctx.fill();
-        }
-    };
-    function createSpeedometer(canvasId, value) {
-        return new Chart(document.getElementById(canvasId), {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
-                    backgroundColor: [
-                        '#1aa79c',
-                        '#2EC4B6',
-                        '#F4D35E',
-                        '#ff000050',
-                        '#e75252',
-                        '#ff1d1d'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: false,
-                rotation: -90,
-                circumference: 180,
-                cutout: '75%',
-                animation: false,
-                plugins: {
-                    legend: { display: false },
-                    gauge: { value } // 👈 dynamic needle value
-                }
-            },
-            plugins: [gaugeNeedle]
-        });
-    }
-    createSpeedometer('gaugeLow', 35);   // Lower Case
-    createSpeedometer('gaugeBase', 55);  // Base Case
-    createSpeedometer('gaugeBest', 80);  // Best Case
-
-    new Chart(gaugeLow, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                   data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
-                backgroundColor: [
-                    '#1aa79c', // red
-                    '#2EC4B6', // orange
-                    // '#ffd500', // green
-                    '#F4D35E' ,
-                     "#ff000050",
-                    "#e75252", 
-                    "#ff1d1d",
-                    "#ff000050"// grey remainder
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: false,
-            rotation: -90,
-            circumference: 180,
-            cutout: '75%',
-            animation: false,
-            plugins: {
-                legend: { display: false },
-                gauge: {
-                    value: 45 // 👈 needle position (0–100)
-                }
-            }
-        },
-        plugins: [gaugeNeedle]
-    });
-</script> -->

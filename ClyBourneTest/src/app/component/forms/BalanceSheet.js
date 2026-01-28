@@ -48,13 +48,15 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
     const [chartUnit, setChartUnit] = useState(() => {
         if (typeof window === 'undefined') return 'Millions';
 
-        // Try to get the calculated unit from localStorage first
+        // Get calculatedChartUnit from localStorage
         const savedCalculatedUnit = localStorage.getItem('calculatedChartUnit');
+
+        // If found, use it
         if (savedCalculatedUnit) {
             return savedCalculatedUnit;
         }
 
-        // Fallback to financial data unit or Millions
+        // Fallback: use financial data unit or Millions
         return financialData.unitOfNumber || 'Millions';
     });
     // Get the current order ID

@@ -1,2170 +1,2697 @@
-const router = require('express').Router();
-var BackEndService = require('../../../../Calculations/back-end.service');
-var mongoose = require("mongoose");
-const Orders = require('../../../../models/orders.model');
-const Customers = require('../../../../models/customers.model');
-const Admins = require('../../../../models/user.model');
-const Country = require('../../../../models/Country.model');
-const Company = require('../../../../models/companies.model');
-const BusinessDataModel = require('../../../../models/businessdata.model');
-const HistoricalTrends = require('../../../../models/historicaltrends.model');
-const TurnoverFactor = require('../../../../models/turnoverfactor.model');
-const Plan = require('../../../../models/plan.model');
-const PlanRecord = require('../../../../models/plan-record.model');
-var BackEndService = require('../../../../Calculations/back-end.service');
-var DcfService = require("../../../../Calculations/dcf.service");
-var RelativeValuationService = require("../../../../Calculations/relative-valuation.service");
-var BackEndAvgService = require("../../../../Calculations/back-end-avg-service");
-const fs = require('fs');
-const path = require('path');
-const moment = require("moment");
-const EmailTemplate = require("../../../../email/sendMail");
-const { APIURL } = process.env;
-const EjsRenderer = require('../../../../utils/EjsRenderer');
-const ReportDataService = require('../../../../services/ReportDataService');
-const axios = require('axios'); // If you want to use axios
-const PDFDocument = require('pdfkit');
+<!-- backend/src/templates/valuation-report.html -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> Valuation Report</title>
+        <link rel="stylesheet" href="valuatin-report.css">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- 
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+             -->
+        <style>
 
-router.get('/:orderId/report-ejs', async (req, res) => {
-    // console.log('=== EJS REPORT ROUTE CALLED ===');
-    // console.log('Order ID:', req.params.orderId);
-    // console.log('Format:', req.query.format);
-
-    try {
-        const orderId = req.params.orderId;
-        const axios = require('axios'); // Make sure to add this at the top of your file
-
-        // 1. Fetch order with basic data
-        let order = await Orders.findById(orderId)
-            .populate({
-                path: 'matadata.customerId',
-                select: 'first_name last_name email phone activePlanType activeSeqId'
-            })
-            .populate({
-                path: 'assigned_to',
-                select: 'name'
-            })
-            .populate({
-                path: 'plan.planOrderId',
-                select: 'planSeqId planStatus'
-            })
-            .lean();
-
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        console.log('Order found:', order.business?.companyName);
-        // console.log('Order found:', order);
-
-         let valuationData = {};
-        try {
-            const valuationDataResponse = await axios.get(
-                `http://localhost:${process.env.PORT || 3000}/api/admin/orders/valuation-data/${orderId}`,
-                { timeout: 10000 }
-            );
-
-            if (valuationDataResponse.status === 200) {
-                console.log('✅ Successfully fetched pre-calculated valuation data');
-                valuationData = valuationDataResponse.data;
-            } else {
-                console.log('⚠️ Could not fetch pre-calculated data');
+            * {
+                /* background-color: #000; */
+                margin: 0;
+                padding: 0;
             }
-        } catch (apiError) {
-            console.error('❌ Error fetching from valuation-data API:', apiError.message);
-        }
-
-        // console.log("ValuationData:", valuationData);
-
-        // 3. Extract the valuation data into variables with proper defaults
-        const {
-            workDcfFCFF = [],
-            workIncStmt = [],
-            workCashFlowStmt = [],
-            workBackEndInputs = {},
-            companyEquityAvgValue = 0,
-            companyEquityMinValue = 0,
-            companyEquityMaxValue = 0,
-            terminalFCFF = 0,
-            terminalPresentFCFF = 0,
-            enterpriseValue = 0,
-            wacc = 0,
-            adjustedBeta = 0,
-            PE = {},
-            PE_1 = {},
-            PS = {},
-            PS_1 = {},
-            EV_SALES = {},
-            EV_SALES_1 = {},
-            EV_EBITDA = {},
-            EV_EBITDA_1 = {},
-            EnterpriseAvgValue = 0,
-            EnterpriseMinValue = 0,
-            EnterpriseMaxValue = 0,
-            weightAvgEquityValue = 0,
-            weightMinEquityValue = 0,
-            weightMaxEquityValue = 0,
-            ValuationCheckBox = {}, // This might be null
-            netDebt = 0,
-            years = []
-        } = valuationData;
-        // Add this after fetching valuation data (around line 63-70):
-
-        console.log('=== DEBUG: Valuation Data from API ===');
-        console.log('1. Company Equity Values:');
-        console.log('   - companyEquityMinValue:', companyEquityMinValue);
-        console.log('   - companyEquityAvgValue:', companyEquityAvgValue);
-        console.log('   - companyEquityMaxValue:', companyEquityMaxValue);
-        console.log('2. Enterprise Values:');
-        console.log('   - EnterpriseMinValue:', EnterpriseMinValue);
-        console.log('   - EnterpriseAvgValue:', EnterpriseAvgValue);
-        console.log('   - EnterpriseMaxValue:', EnterpriseMaxValue);
-        console.log('3. Weighted Values:');
-        console.log('   - weightMinEquityValue:', weightMinEquityValue);
-        console.log('   - weightAvgEquityValue:', weightAvgEquityValue);
-        console.log('   - weightMaxEquityValue:', weightMaxEquityValue);
-        console.log('4. Enterprise Value (DCF):', enterpriseValue);
-        console.log('5. Net Debt:', netDebt);
-        console.log('=== END DEBUG ===');
-
-
-        // 3.5. Fallback to order object if values are missing from API response
-        const finalWeightAvgEquityValue = weightAvgEquityValue || order.weightAvgEquityValue || 0;
-        const finalNetDebt = netDebt || order.netDebt || 0;
-        const finalEnterpriseAvgValue = (EnterpriseAvgValue && EnterpriseAvgValue !== 0)
-            ? EnterpriseAvgValue
-            : (order.EnterpriseAvgValue && order.EnterpriseAvgValue !== 0
-                ? order.EnterpriseAvgValue
-                : (finalWeightAvgEquityValue + finalNetDebt));
-
-        // 4. Create safe checkbox values object
-        // Check if ValuationCheckBox exists and is not null, otherwise use defaults
-        const safeValuationCheckBox = ValuationCheckBox || {
-            checkBoxPE: false,
-            checkBoxPE_1: false,
-            checkBoxPS: false,
-            checkBoxPS_1: false,
-            checkBoxEV_SALES: false,
-            checkBoxEV_SALES_1: false,
-            checkBoxEV_EBITDA: false,
-            checkBoxEV_EBITDA_1: false
-        };
-
-        // Also check order.checkBoxesValues as fallback
-        const orderCheckBoxes = order.checkBoxesValues || {};
-
-        // Merge checkbox values (order values take precedence)
-        const finalCheckBoxesValues = {
-            checkBoxPE: orderCheckBoxes.checkBoxPE || safeValuationCheckBox.checkBoxPE || false,
-            checkBoxPE_1: orderCheckBoxes.checkBoxPE_1 || safeValuationCheckBox.checkBoxPE_1 || false,
-            checkBoxPS: orderCheckBoxes.checkBoxPS || safeValuationCheckBox.checkBoxPS || false,
-            checkBoxPS_1: orderCheckBoxes.checkBoxPS_1 || safeValuationCheckBox.checkBoxPS_1 || false,
-            checkBoxEV_SALES: orderCheckBoxes.checkBoxEV_SALES || safeValuationCheckBox.checkBoxEV_SALES || false,
-            checkBoxEV_SALES_1: orderCheckBoxes.checkBoxEV_SALES_1 || safeValuationCheckBox.checkBoxEV_SALES_1 || false,
-            checkBoxEV_EBITDA: orderCheckBoxes.checkBoxEV_EBITDA || safeValuationCheckBox.checkBoxEV_EBITDA || false,
-            checkBoxEV_EBITDA_1: orderCheckBoxes.checkBoxEV_EBITDA_1 || safeValuationCheckBox.checkBoxEV_EBITDA_1 || false
-        };
-
-        // console.log('Using checkbox values:', finalCheckBoxesValues);
-        const correctWeightAvgEquityValue = order.weightAvgEquityValue || 0;
-        const correctWeightMinEquityValue = order.weightMinEquityValue || 0;
-        const correctWeightMaxEquityValue = order.weightMaxEquityValue || 0;
-
-        // For Equity Values (for speedometers), use order values
-        const correctEquityValues = {
-            avg: correctWeightAvgEquityValue, // This is 208,089,246.92
-            min: correctWeightMinEquityValue,
-            max: correctWeightMaxEquityValue
-        };
-        const  dcfEnterpriseValue = order.EnterpriseAvgValue || 0;
-        // 5. Prepare DCF table data with safe values
-        const dcfTableData = {
-            ebitda: workDcfFCFF.slice(0, 5).map(item => item?.ebitda || 0),
-            taxAdjustment: workDcfFCFF.slice(0, 5).map(item => item?.interestTaxImpactAdj || 0),
-            workingCapital: workDcfFCFF.slice(0, 5).map(item => item?.workCapChange || 0),
-            capex: workDcfFCFF.slice(0, 5).map(item => item?.capex || 0),
-            fcff: workDcfFCFF.slice(0, 5).map(item => item?.freeCashFlow || 0),
-            presentValue: workDcfFCFF.slice(0, 5).map(item => item?.presentFreeCashFlow || 0),
-            terminalValue: terminalFCFF,
-            terminalTax: 0,
-            wacc: wacc,
-            enterpriseValue: enterpriseValue,
-            // Enterprise Value Average = Weighted Average Equity Value + Net Debt (from Summary Valuation)
-            enterpriseAvgValue: dcfEnterpriseValue,
-            netDebt: finalNetDebt,
-            equityValue: correctEquityValues.avg,
-            equityValueMin: correctEquityValues.min,
-            equityValueMax: correctEquityValues.max,
-            // enterpriseValue: enterpriseValue,
-            // enterpriseAvgValue: finalEnterpriseAvgValue,
-            // weightAvgEquityValue: valuationData.weightAvgEquityValue,
-            enterpriseValueMin: EnterpriseMinValue || 0,
-            enterpriseValueMax: EnterpriseMaxValue || 0,
-            years: years.slice(1, 6).map(year => year?.toString() || '2024'),
-            wdcfWeight: workBackEndInputs?.dcfWeightPercentage || 12,
-            weights: {
-                dcf: workBackEndInputs?.dcfWeightPercentage || 12,
-                pe: finalCheckBoxesValues.checkBoxPE ? 20 : 0,
-                ps1: finalCheckBoxesValues.checkBoxPS_1 ? 10 : 0,
-                evSales1: finalCheckBoxesValues.checkBoxEV_SALES_1 ? 35 : 0
+            
+            @page {
+                size: A4;
+                margin: 0;
             }
-        };
-        // Also add debug for the DCF table data:
-        console.log('=== DCF Table Data Debug ===');
-        console.log('dcfTableData.equityValue:', dcfTableData.equityValue);
-        console.log('dcfTableData.equityValueMin:', dcfTableData.equityValueMin);
-        console.log('dcfTableData.equityValueMax:', dcfTableData.equityValueMax);
-        console.log('dcfTableData.enterpriseAvgValue:', dcfTableData.enterpriseAvgValue);
-        console.log('=== END DCF Debug ===');
-        // Add Terminal Value to years if needed
-        if (dcfTableData.years.length < 6) {
-            dcfTableData.years.push('Terminal');
-        }
-
-        // Add cost calculations for key assumptions
-        const workBackEndInputsWithCosts = {
-            ...workBackEndInputs,
-            costOfEquity: wacc * 0.7, // Rough estimate - you might have actual calculation
-            costOfDebt: wacc * 0.3,   // Rough estimate - you might have actual calculation
-            equityRiskPremium: workBackEndInputs?.equityRiskPremium || 12,
-            cmpnyDiscFactor: workBackEndInputs?.cmpnyDiscFactor || 10,
-            perpetualGrowthRate: workBackEndInputs?.perpetualGrowthRate || 12
-        };
-
-        // 6. Prepare chart data
-        const chartData = {
-            revenue: {
-                labels: (workIncStmt || []).map((item, index) => item?.year || (2026 + index)),
-                data: (workIncStmt || []).map(item => item?.sales || 0)
-            },
-
-            cogs: {
-                labels: (workIncStmt || []).map((item, index) => item?.year || (2026 + index)),
-                data: (workIncStmt || []).map(item => item?.cogs || 0)
-            },
-
-            ebitda: {
-                labels: (workIncStmt || []).map((item, index) => item?.year || (2026 + index)),
-                data: (workIncStmt || []).map(item => item?.ebitda || 0),
-                margins: (workIncStmt || []).map(item => {
-                    const sales = item?.sales || 0;
-                    const ebitda = item?.ebitda || 0;
-                    return sales !== 0 ? (ebitda / sales) * 100 : 0;
-                })
-            },
-
-            profit: {
-                labels: (workIncStmt || []).map((item, index) => item?.year || (2026 + index)),
-                data: (workIncStmt || []).map(item => item?.netProfit || 0),
-                margins: (workIncStmt || []).map(item => {
-                    const sales = item?.sales || 0;
-                    const netProfit = item?.netProfit || 0;
-                    return sales !== 0 ? (netProfit / sales) * 100 : 0;
-                })
-            },
-
-            cash: {
-                labels: (workCashFlowStmt || []).map((item, index) => 2026 + index),
-                cashIn: (workCashFlowStmt || []).map(item => {
-                    const netProfit = Math.max(0, item?.netProfit || 0);
-                    const depreciation = Math.max(0, item?.depreciation || 0);
-                    const payable = Math.max(0, item?.payable || 0);
-                    return netProfit + depreciation + payable;
-                }),
-                cashOut: (workCashFlowStmt || []).map(item => {
-                    const capex = Math.abs(item?.capExp || 0);
-                    const receivable = Math.abs(item?.receivable || 0);
-                    const inventory = Math.abs(item?.inventory || 0);
-                    const debtChange = Math.abs(item?.debtChange || 0);
-                    return capex + receivable + inventory + debtChange;
-                })
+           p {
+                margin: 0px;
             }
-        };
-        // 7. Prepare method comparison data
-        const activeMethods = [];
-        const equityValues = [];
-        const equityMinValues = []; // Min equity values for each method
-        const equityMaxValues = []; // Max equity values for each method
-        const methodLabels = [];
-
-        // DCF Method - Always include if value exists
-        if (companyEquityAvgValue !== undefined && !isNaN(companyEquityAvgValue)) {
-            activeMethods.push('DCF');
-            equityValues.push(Math.abs(companyEquityAvgValue));
-            equityMinValues.push(Math.abs(companyEquityMinValue || companyEquityAvgValue));
-            equityMaxValues.push(Math.abs(companyEquityMaxValue || companyEquityAvgValue));
-            methodLabels.push('DCF');
-            // console.log('Added DCF method with value:', companyEquityAvgValue);
-        }
-
-        // P/E Method - use finalCheckBoxesValues (regular, not forward)
-        if (finalCheckBoxesValues.checkBoxPE && PE && PE.equityValue !== undefined) {
-            activeMethods.push('P/E');
-            equityValues.push(Math.abs(PE.equityValue));
-            equityMinValues.push(Math.abs(PE.minEqValue || PE.equityValue));
-            equityMaxValues.push(Math.abs(PE.maxEqValue || PE.equityValue));
-            methodLabels.push('P/E');
-            // console.log('Added P/E method with value:', PE.equityValue);
-        }
-
-        // P/S Method - use finalCheckBoxesValues (regular, not forward)
-        if (finalCheckBoxesValues.checkBoxPS && PS && PS.equityValue !== undefined) {
-            activeMethods.push('P/S');
-            equityValues.push(Math.abs(PS.equityValue));
-            equityMinValues.push(Math.abs(PS.minEqValue || PS.equityValue));
-            equityMaxValues.push(Math.abs(PS.maxEqValue || PS.equityValue));
-            methodLabels.push('P/S');
-            // console.log('Added P/S method with value:', PS.equityValue);
-        }
-
-        // EV/Sales Method - use finalCheckBoxesValues (regular, not forward)
-        if (finalCheckBoxesValues.checkBoxEV_SALES && EV_SALES && EV_SALES.equityValue !== undefined) {
-            activeMethods.push('EV/Sales');
-            equityValues.push(Math.abs(EV_SALES.equityValue));
-            equityMinValues.push(Math.abs(EV_SALES.minEqValue || EV_SALES.equityValue));
-            equityMaxValues.push(Math.abs(EV_SALES.maxEqValue || EV_SALES.equityValue));
-            methodLabels.push('EV/Sales');
-            // console.log('Added EV/Sales method with value:', EV_SALES.equityValue);
-        }
-
-        // EV/EBITDA Method - use finalCheckBoxesValues (regular, not forward)
-        if (finalCheckBoxesValues.checkBoxEV_EBITDA && EV_EBITDA && EV_EBITDA.equityValue !== undefined) {
-            activeMethods.push('EV/EBITDA');
-            equityValues.push(Math.abs(EV_EBITDA.equityValue));
-            equityMinValues.push(Math.abs(EV_EBITDA.minEqValue || EV_EBITDA.equityValue));
-            equityMaxValues.push(Math.abs(EV_EBITDA.maxEqValue || EV_EBITDA.equityValue));
-            methodLabels.push('EV/EBITDA');
-            // console.log('Added EV/EBITDA method with value:', EV_EBITDA.equityValue);
-        }
-
-        // Also check the forward versions if needed
-        if (finalCheckBoxesValues.checkBoxPE_1 && PE_1 && PE_1.equityValue !== undefined && PE_1.equityValue !== 0) {
-            activeMethods.push('P/E One Year Fwd');
-            equityValues.push(Math.abs(PE_1.equityValue));
-            equityMinValues.push(Math.abs(PE_1.minEqValue || PE_1.equityValue));
-            equityMaxValues.push(Math.abs(PE_1.maxEqValue || PE_1.equityValue));
-            methodLabels.push('P/E 1YF');
-            // console.log('Added P/E One Year Forward method with value:', PE_1.equityValue);
-        }
-
-        if (finalCheckBoxesValues.checkBoxPS_1 && PS_1 && PS_1.equityValue !== undefined && PS_1.equityValue !== 0) {
-            activeMethods.push('P/S One Year Fwd');
-            equityValues.push(Math.abs(PS_1.equityValue));
-            equityMinValues.push(Math.abs(PS_1.minEqValue || PS_1.equityValue));
-            equityMaxValues.push(Math.abs(PS_1.maxEqValue || PS_1.equityValue));
-            methodLabels.push('P/S 1YF');
-            // console.log('Added P/S One Year Forward method with value:', PS_1.equityValue);
-        }
-
-        if (finalCheckBoxesValues.checkBoxEV_SALES_1 && EV_SALES_1 && EV_SALES_1.equityValue !== undefined && EV_SALES_1.equityValue !== 0) {
-            activeMethods.push('EV/Sales One Year Fwd');
-            equityValues.push(Math.abs(EV_SALES_1.equityValue));
-            equityMinValues.push(Math.abs(EV_SALES_1.minEqValue || EV_SALES_1.equityValue));
-            equityMaxValues.push(Math.abs(EV_SALES_1.maxEqValue || EV_SALES_1.equityValue));
-            methodLabels.push('EV/Sales 1YF');
-            // console.log('Added EV/Sales One Year Forward method with value:', EV_SALES_1.equityValue);
-        }
-
-        if (finalCheckBoxesValues.checkBoxEV_EBITDA_1 && EV_EBITDA_1 && EV_EBITDA_1.equityValue !== undefined && EV_EBITDA_1.equityValue !== 0) {
-            activeMethods.push('EV/EBITDA One Year Fwd');
-            equityValues.push(Math.abs(EV_EBITDA_1.equityValue));
-            equityMinValues.push(Math.abs(EV_EBITDA_1.minEqValue || EV_EBITDA_1.equityValue));
-            equityMaxValues.push(Math.abs(EV_EBITDA_1.maxEqValue || EV_EBITDA_1.equityValue));
-            methodLabels.push('EV/EBITDA 1YF');
-            // console.log('Added EV/EBITDA One Year Forward method with value:', EV_EBITDA_1.equityValue);
-        }
-
-        // console.log('Total methods found:', activeMethods.length);
-        // console.log('Active methods:', activeMethods);
-        // console.log('Equity values:', equityValues);
-
-        // If no methods were added (only DCF), check if we should include based on other criteria
-        if (activeMethods.length <= 1) {
-            // console.log('Warning: Only DCF method found or no methods found');
-            // console.log('Checkbox values:', finalCheckBoxesValues);
-            // console.log('PE equityValue:', PE?.equityValue);
-            // console.log('PS equityValue:', PS?.equityValue);
-            // console.log('EV_SALES equityValue:/', EV_SALES?.equityValue);
-            // console.log('EV_EBITDA equityValue:', EV_EBITDA?.equityValue);
-        }
-
-        // Calculate actual weight percentages based on DCF weight and number of checked methods
-        const dcfWeightPercentage = workBackEndInputs?.dcfWeightPercentage || 0;
-        const dcfWeight = dcfWeightPercentage / 100;
-
-        // Count checked relative valuation methods (excluding DCF)
-        const relativeMethodsCount = activeMethods.filter(m => m !== 'DCF').length;
-
-        // Calculate relative weight percentage: (1 - dcfWeight) / count
-        const relativeWeightPercent = relativeMethodsCount > 0
-            ? ((1 - dcfWeight) / relativeMethodsCount) * 100
-            : 0;
-
-        // Build weight percentages array and methodWeights object
-        const actualWeightPercentages = [];
-        const methodWeights = {};
-
-        activeMethods.forEach((method) => {
-            let weightPercent = 0;
-
-            if (method === 'DCF') {
-                // DCF weight comes from dcfWeightPercentage
-                weightPercent = dcfWeightPercentage;
-            } else {
-                // All other methods share the remaining weight equally
-                weightPercent = relativeWeightPercent;
+            .page {
+                /* border: 2px solid red; */
+                display: flex;
+                flex-direction: column;
+                margin: auto;
+                /* padding: 90px 0; */
+                background-color: #FFF;
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                width: 210mm ;
+                height: 297mm;
+                color: #000;
             }
 
-            // Ensure weightPercent is a number and handle null/undefined
-            weightPercent = typeof weightPercent === 'number' && !isNaN(weightPercent) ? weightPercent : 0;
-
-            actualWeightPercentages.push(weightPercent);
-            methodWeights[method] = weightPercent;
-        });
-
-        // Use actual weight percentages instead of calculated ones
-        const weightPercentages = actualWeightPercentages;
-
-        // Ensure we have at least 4 weights for the circular charts
-        while (weightPercentages.length < 4) {
-            weightPercentages.push(0);
-        }
-
-        // Calculate min, base, max values
-        let minValue = equityValues.length > 0 ? Math.min(...equityValues) : 0;
-        let maxValue = equityValues.length > 0 ? Math.max(...equityValues) : 0;
-        let baseValue = equityValues.length > 0 ?
-            equityValues.reduce((sum, val) => sum + val, 0) / equityValues.length : 0;
-
-        // If all values are 0, set reasonable defaults
-        if (maxValue === 0 && minValue === 0 && equityValues.length > 0) {
-            minValue = 0;
-            maxValue = Math.max(...equityValues.filter(val => val > 0)) || 100;
-            baseValue = maxValue / 2;
-        }
-
-        // Format values for display
-        const formatValueForDisplay = (val) => {
-            if (val >= 1000000) {
-                return '$' + (val / 1000000).toFixed(1) + 'M';
+            .page-break {
+                page-break-before: always;
             }
-            if (val >= 1000) {
-                return '$' + (val / 1000).toFixed(1) + 'K';
+
+            .page .section {
+                padding: 90px 70px;
             }
-            return '$' + val.toFixed(1);
-        };
-        // const baseUrl = process.env.NODE_ENV === 'production'
-        //     ? process.env.APIURL
-        //     : `http://localhost:${process.env.PORT || 3000}`;
-
-        // 8. Prepare report data with only API data
-        const reportData = {
-            // baseUrl: baseUrl,
-            // Store the raw API data
-            apiValuationData: valuationData,
-            workIncStmt: workIncStmt,
-            workCashFlowStmt: workCashFlowStmt,
-            years: years,
-            chartData: chartData,
-
-            // Company Info
-            companyName: order.business?.companyName || "Company Name",
-            // similarCompany: order.business?.similarCompany || "NA",
-            reportDate: new Date().toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            }),
-
-            // Special charts data
-            activeMethods: activeMethods,
-            methodLabels: methodLabels,
-            equityValues: equityValues,
-            equityMinValues: equityMinValues, // Min equity values for each checked method
-            equityMaxValues: equityMaxValues, // Max equity values for each checked method
-            weightPercentages: weightPercentages,
-            methodWeights: methodWeights, // Mapping of method names to weight percentages (only checked methods)
-            minValue: minValue,
-            baseValue: baseValue,
-            maxValue: maxValue,
-            formattedMinValue: formatValueForDisplay(minValue),
-            formattedBaseValue: formatValueForDisplay(baseValue),
-            formattedMaxValue: formatValueForDisplay(maxValue),
-
-            companyDetails: {
-                name: order.business?.companyName || "N/A",
-                country: order.business?.country || "N/A",
-                description: order.business?.description || "N/A",
-                currency: order.business?.currency || "USD",
-                similarCompany: order.business?.similarCompany || "N/A",
-                type: order.business?.companyType || "N/A",
-                yearsInBusiness: order.business?.companyAge || "N/A",
-                industry: order.business?.industryType || "N/A",
-                developmentStage: order.business?.developmentStage || "N/A",
-                scalable: order.business?.scalable || "N/A",
-                earningTrend: order.business?.earningTrend || "N/A",
-                financialYear: `Jan ${order.finance?.dataYear || 2024} – Dec ${order.finance?.dataYear || 2024}`,
-                financialYearEnd: order.business?.FinYrEnd || 2024,
-                isProfitable: (order.finance?.netProfit || 0) > 0,
-                hasEquity: (order.finance?.equity || 0) > 0,
-                hasDebt: (order.finance?.debtLoan || 0) > 0,
-                unitOfNumber: order.finance?.unitOfNumber || "N/A",
-                competitor2: order.back_end_table[0][0].trim(),
-
-            },
-
-            // Financial Data
-            financialData: {
-                revenue: order.finance?.sales || 0,
-                cogs: order.finance?.costOfSales || 0,
-                ebitda: order.finance?.ebitda || 0,
-                depreciation: order.finance?.depreciation || 0,
-                interestExpense: order.finance?.interestExpense || 0,
-                netProfit: order.finance?.netProfit || 0,
-                cashBalance: order.finance?.cashBalance || 0,
-                debt: order.finance?.debtLoan || 0,
-                equity: order.finance?.equity || 0,
-                receivables: order.finance?.receivables || 0,
-                inventories: order.finance?.inventories || 0,
-                payables: order.finance?.payables || 0,
-                netFixedAssets: order.finance?.netFixedAssets || 0,
-                netDebt: netDebt,
-                ebitdaMargin: order.finance?.ebitda && order.finance?.sales ?
-                    (order.finance.ebitda / order.finance.sales) * 100 : 0,
-                netProfitMargin: order.finance?.netProfit && order.finance?.sales ?
-                    (order.finance.netProfit / order.finance.sales) * 100 : 0
-            },
-
-            // DCF Table Data
-            dcfTableData: dcfTableData,
-
-            // DCF Weight Percentage (for easy access in EJS template)
-            dcfWeightPercentage: workBackEndInputs?.dcfWeightPercentage || 0,
-
-            // Work Back End Inputs for Key Assumptions
-            workBackEndInputs: workBackEndInputsWithCosts,
-
-            // Adjusted Beta
-            adjustedBeta: adjustedBeta,
-
-            // DCF Metrics
-            dcfData: {
-                equityValue: companyEquityAvgValue,
-                enterpriseValue: enterpriseValue,
-                wacc: wacc,
-                adjustedBeta: adjustedBeta,
-                terminalFCFF: terminalFCFF,
-                terminalPresentFCFF: terminalPresentFCFF || (terminalFCFF / Math.pow(1 + (wacc / 100), 5))
-            },
-
-            // Individual Multiples Data
-            PE: PE,
-            PE_1: PE_1,
-            PS: PS,
-            PS_1: PS_1,
-            EV_SALES: EV_SALES,
-            EV_SALES_1: EV_SALES_1,
-            EV_EBITDA: EV_EBITDA,
-            EV_EBITDA_1: EV_EBITDA_1,
-
-            // Valuation Summary
-            valuation: {
-                totalValue: Math.round(weightAvgEquityValue),
-                equityValue: Math.round(weightAvgEquityValue),
-                netDebt: netDebt,
-                currency: order.finance?.valueType || "USD",
-                dcfValue: Math.round(companyEquityAvgValue),
-                weightedAvgValue: Math.round(weightAvgEquityValue),
-                // Enterprise Value Average = Weighted Average Equity Value + Net Debt
-                enterpriseAvgValue: (EnterpriseAvgValue && EnterpriseAvgValue !== 0 && !isNaN(EnterpriseAvgValue))
-                    ? EnterpriseAvgValue
-                    : ((weightAvgEquityValue + netDebt) || 0)
-            },
-
-            // Enterprise Value Average (for easy access in EJS)
-            // Enterprise Value Average = Weighted Average Equity Value + Net Debt (from Summary Valuation table)
-            enterpriseAvgValue: finalEnterpriseAvgValue,
-
-            // Checkbox Values - use the safe version
-            checkBoxesValues: finalCheckBoxesValues,
-
-            // Helper functions for formatting
-            formatCurrency: function (num, currency = 'USD') {
-                if (typeof num !== 'number' || isNaN(num)) return `${currency} 0`;
-                if (num >= 1000000) {
-                    return `${currency} ${(num / 1000000).toFixed(2)}M`;
-                }
-                if (num >= 1000) {
-                    return `${currency} ${(num / 1000).toFixed(2)}K`;
-                }
-                return `${currency} ${num.toLocaleString()}`;
-            },
-            formatCurrencySymbol: function (num, currency = '$') {
-                if (typeof num !== 'number' || isNaN(num)) return `${currency} 0`;
-                if (num >= 1000000) {
-                    return `${currency}${(num / 1000000).toFixed(2)}M`;
-                }
-                if (num >= 1000) {
-                    return `${currency}${(num / 1000).toFixed(2)}K`;
-                }
-                return `${currency}${num.toLocaleString()}`;
-            },
-            formatNumber: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "0";
-
-                // If number is very large, format in millions
-                if (num >= 1000000) {
-                    const valueInMillions = num / 1000000;
-                    // Truncate to 2 decimals without rounding
-                    const truncated = Math.floor(valueInMillions * 100) / 100;
-                    return truncated.toFixed(2);
-                }
-
-                // Truncate to 2 decimals without rounding
-                const truncated = Math.floor(num * 100) / 100;
-                return truncated.toFixed(2);
-            },
-
-            formatDCFValue: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "-";
-                if (num === 0) return "-";
-
-                // Handle negative values with parentheses like formatParentheses
-                if (num < 0) {
-                    // For negatives, truncate toward zero (use Math.ceil for negative numbers)
-                    const absoluteValue = Math.abs(num);
-                    const truncated = Math.floor(absoluteValue * 100) / 100;
-                    return `(${truncated.toFixed(2)})`;
-                }
-
-                // Truncate to 2 decimals without rounding
-                const truncated = Math.floor(num * 100) / 100;
-                return truncated.toFixed(2);
-            },
-            formatPercentage: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "0%";
-                return `${num.toFixed(1)}%`;
-            },
-            formatParentheses: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "";
-                if (num < 0) {
-                    return `(${Math.abs(num).toFixed(0)})`;
-                }
-                return num.toFixed(0);
-            },
-            formatDecimal: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "0.0";
-                return num.toFixed(1);
-            },
-            formatMultiple: function (num) {
-                // Check if num is a valid number and not 0
-                if (typeof num !== 'number' || isNaN(num) || num === 0) {
-                    return "N/A";
-                }
-                // Format to 2 decimal places
-                return parseFloat(num).toFixed(2);
+            .stylus {
+                color: white;
+                font-size: 20px;
+                font-weight: 400;
             }
-        };
-
-        console.log("✅ Report data prepared from API");
-        console.log("🔍 Enterprise Value Debug:");
-        console.log("  - EnterpriseAvgValue from API:", EnterpriseAvgValue);
-        console.log("  - EnterpriseAvgValue from order:", order.EnterpriseAvgValue);
-        console.log("  - weightAvgEquityValue from API:", weightAvgEquityValue);
-        console.log("  - weightAvgEquityValue from order:", order.weightAvgEquityValue);
-        console.log("  - finalWeightAvgEquityValue:", finalWeightAvgEquityValue);
-        console.log("  - netDebt from API:", netDebt);
-        console.log("  - netDebt from order:", order.netDebt);
-        console.log("  - finalNetDebt:", finalNetDebt);
-        console.log("  - Calculated (finalWeightAvgEquityValue + finalNetDebt):", finalWeightAvgEquityValue + finalNetDebt);
-        console.log("  - finalEnterpriseAvgValue:", finalEnterpriseAvgValue);
-        console.log("  - enterpriseValue (DCF):", enterpriseValue);
-        console.log("  - valuation.enterpriseAvgValue:", reportData.valuation.enterpriseAvgValue);
-        console.log("  - dcfTableData.enterpriseAvgValue:", reportData.dcfTableData.enterpriseAvgValue);
-        console.log("  - Top-level enterpriseAvgValue:", reportData.enterpriseAvgValue);
-        // console.log("similarcompany", reportData.similarCompany);
-        // console.log("DCF Equity Value:", reportData.dcfData.equityValue);
-        // console.log("Enterprise Value:", reportData.dcfData.enterpriseValue);
-        // console.log("Checkbox values:", reportData.checkBoxesValues);
-        // console.log("activeMethods:", reportData.activeMethods);
-        // console.log("methodLabels:", reportData.methodLabels);
-        // console.log("equityValues:", reportData.equityValues);
-        // console.log("weightPercentages:", reportData.weightPercentages);
-        // console.log("minValue:", reportData.minValue);
-        // console.log("maxValue:", reportData.maxValue);
-        // console.log("baseValue:", reportData.baseValue);
-
-        // 9. Render EJS template
-        const ejs = require('ejs');
-        const fs = require('fs').promises;
-        const path = require('path');
-
-        const templatePath = path.join(__dirname, '../../../../views/valuation-report.ejs');
-
-        let template;
-        try {
-            template = await fs.readFile(templatePath, 'utf-8');
-            console.log('Template loaded successfully');
-        } catch (templateError) {
-            console.error('Template loading error:', templateError.message);
-            template = `<!DOCTYPE html><html><head><title>Valuation Report</title></head><body><h1>Report Template Not Found</h1></body></html>`;
-        }
-
-        const html = ejs.render(template, reportData);
-        // Replace the PDF generation part (around line 246-300) with this:
-
-        // 10. Return based on format
-        // req.query.format = 'html';
-        if (req.query.format === 'html') {
-            res.setHeader('Content-Type', 'text/html');
-            res.send(html);
-        } else {
-            // PDF generation
-            console.log('🔄 Starting PDF generation...');
-            try {
-                const puppeteer = require('puppeteer-core');
-
-                // Launch browser with proper settings for PDF
-                const browser = await puppeteer.launch({
-  executablePath: "/usr/bin/chromium-browser",   // <-- replace with your path
-  headless: "new",
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--no-zygote",
-    "--single-process"
-  ],
-  timeout: 60000
-});
-                const page = await browser.newPage();
-
-            console.log('🔄 Starting PDF generation page');
-                await page.setViewport({ width: 1280, height: 2000 });
-
-                await page.setContent(html, { waitUntil: "networkidle0" });
-
-                const pdfBuffer = await page.pdf({
-                    format: 'A4',
-                    printBackground: true,
-                    margin: { top: '40px', right: '20px', bottom: '40px', left: '20px' },
-                    displayHeaderFooter: true,
-                    headerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Valuation Report</div>',
-                    footerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
-                    preferCSSPageSize: true,
-                    timeout: 60000
-                });
-
-                await browser.close();
-
-                res.setHeader("Content-Type", "application/pdf");
-                res.setHeader(
-                    "Content-Disposition",
-                    "attachment; filename=report.pdf"
-                );
-                res.setHeader("Content-Length", pdfBuffer.length);
-
-                return res.end(pdfBuffer);
-
-            } catch (pdfError) {
-                console.error('❌ PDF Generation Error:', pdfError.message);
-                console.error('PDF Generation Stack:', pdfError.stack);
-
-                // Create a simple error PDF as fallback
-                const { PDFDocument, rgb } = require('pdf-lib');
-                const pdfDoc = await PDFDocument.create();
-                const page = pdfDoc.addPage([595, 842]); // A4 size
-
-                page.drawText('Error Generating PDF Report', {
-                    x: 50,
-                    y: 700,
-                    size: 20,
-                    color: rgb(1, 0, 0),
-                });
-
-                page.drawText(`Order ID: ${orderId}`, {
-                    x: 50,
-                    y: 650,
-                    size: 12,
-                    color: rgb(0, 0, 0),
-                });
-
-                page.drawText(`Error: ${pdfError.message}`, {
-                    x: 50,
-                    y: 620,
-                    size: 10,
-                    color: rgb(0, 0, 0),
-                });
-
-                page.drawText('Please try again or contact support.', {
-                    x: 50,
-                    y: 590,
-                    size: 12,
-                    color: rgb(0, 0, 0),
-                });
-
-                const pdfBytes = await pdfDoc.save();
-
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', `attachment; filename="Valuation-Report-${orderId}-error.pdf"`);
-                res.send(pdfBytes);
+.paragraph{
+      font-size: 14px;
+}
+.smallpara{
+    font-size: 12px;
+}
+            .color {
+                color: #1aa79c;
             }
-        }
+            .colorPurple {
+                color: #233977 !important;
+            }
+            .heading{
+                color: #1aa79c;
+                font-size: 16px;
+               margin-bottom: 4px;
+            }
+            .context{
+                color: #233977;
+                font-size: 14px;
+               margin-bottom: 4px;
+            }
+            
 
-        console.log('=== EJS REPORT ROUTE COMPLETED SUCCESSFULLY ===');
 
-    } catch (error) {
-        console.error('=== EJS REPORT ROUTE ERROR ===');
-        console.error('Error:', error.message);
-        console.error('Stack:', error.stack);
-        res.status(500).json({
-            message: 'Error generating report',
-            error: error.message,
-            stack: error.stack
-        });
+
+
+            /* psge-1 */
+
+            .page1 {
+                display: flex;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .report-title {
+                font-size: 24px;
+                opacity: 0.9;
+            }
+
+            .page2 {
+                /* border: 2px solid yellow; */
+                position: relative;
+                overflow: hidden;
+            }
+
+         .logo2 {
+    position: absolute;
+    top: -16%;
+    right: -3.7%;
+    width: 370px;
+}
+            
+
+            .icon {
+                width: 100%;
+                height: 100%;
+            }
+         
+            .container {
+                position: relative;
+                flex: 1;
+                /* padding: 0px 80px; */
+            }
+
+            .parentLogo {
+                padding-top: 110px;
+            }
+
+            .logo {
+                width: 70%;
+                height: fit-content;
+            }
+
+            .img {
+                width: 100%;
+                height: 100%;
+            }
+
+            .bussinessHead {
+                width: fit-content;
+                font-size: 65px;
+                padding: 10px 46px 10px 26px;
+                font-weight: 900;
+                background-color: #1aa79c;
+            }
+
+            .valuationHead {
+                background-color: #233977;
+            }
+
+            .headContent {
+                flex: 1;
+                background-color: #233977; 
+                /* padding: 0px 80px 90px 80px; */
+            }
+
+            .title {
+                font-weight: 350 !important;
+                letter-spacing: 0px;
+                font-size: 42px;
+                margin-bottom: 8px;
+            }
+
+            .bussinessValuation {
+                position: absolute;
+                bottom: 0%;
+            }
+
+            /* page2 */
+            .featureSecion {
+                position: relative;
+                margin-bottom: 30px;
+            }
+
+            .strip {
+                min-width: 30% !important;
+                position: absolute;
+                left: -12.2%;
+                padding: 6px 50px 6px 80px;
+                width: fit-content;
+                background-color: #233977;
+            }
+
+            .value{
+                font-size: 14px !important;
+                 position: absolute;
+                left: 43%;
+                top: 2%;
+            }
+
+            .strip::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: -13px;
+                width: 10px;
+                height: 100%;
+                background-color: #1aa79c;
+            }
+
+            .companyInfo {
+                display: flex;
+                justify-content: space-between;
+                margin: 15px 0px;
+            }
+
+            .child {
+                width: 35%;
+                padding: 0px 10px;
+                border-left: 2px solid #233977;
+            }
+
+            @media print {
+                body {
+                    padding: 0px;
+                }
+
+                .page1 {
+                    break-inside: avoid;
+                }
+
+                .section {
+                    break-inside: avoid;
+                }
+                
+            }
+            
+                .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
     }
-});
-// HELPER FUNCTION: Create actual report HTML
-function createActualReportHtml(reportData, order, valuationData) {
-    return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Valuation Report - ${reportData.companyName}</title>
-            <style>
-                /* Your actual CSS here */
-                body { font-family: Arial; padding: 30px; }
-                h1 { color: #2c3e50; }
-                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                th, td { border: 1px solid #ddd; padding: 12px; }
-                th { background: #3498db; color: white; }
-                .value { font-weight: bold; color: #27ae60; }
-            </style>
-        </head>
-        <body>
-            <h1>VALUATION REPORT</h1>
-            <h2>${reportData.companyName}</h2>
-            <p>Order: ${reportData.orderId} | Date: ${reportData.reportDate}</p>
-            <hr>
-            
-            <h2>Financial Summary</h2>
-            <table>
-                <tr><th>Metric</th><th>Value</th></tr>
-                <tr><td>Revenue</td><td class="value">${reportData.formatCurrency(reportData.financialData.revenue)}</td></tr>
-                <tr><td>EBITDA</td><td class="value">${reportData.formatCurrency(reportData.financialData.ebitda)}</td></tr>
-                <tr><td>Net Profit</td><td class="value">${reportData.formatCurrency(reportData.financialData.netProfit)}</td></tr>
-            </table>
-            
-            <h2>Valuation Results</h2>
-            <table>
-                <tr><th>Method</th><th>Value</th></tr>
-                <tr><td>DCF Value</td><td class="value">${reportData.formatCurrency(reportData.valuation.dcfValue)}</td></tr>
-                <tr><td>Weighted Average</td><td class="value">${reportData.formatCurrency(reportData.valuation.weightedAvgValue)}</td></tr>
-                <tr><td>Enterprise Value</td><td class="value">${reportData.formatCurrency(reportData.valuation.enterpriseValue)}</td></tr>
-                <tr><td>Net Debt</td><td>${reportData.formatCurrency(reportData.valuation.netDebt)}</td></tr>
-            </table>
-            
-            <h2>Company Details</h2>
-            <p><strong>Industry:</strong> ${reportData.companyDetails.industry}</p>
-            <p><strong>Country:</strong> ${reportData.companyDetails.country}</p>
-            <p><strong>Company Type:</strong> ${reportData.companyDetails.companyType}</p>
-            
-            <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
-                <p>Generated by Valuation System</p>
-                <p>Report ID: ${reportData.orderId}</p>
-                <p>Generated on: ${new Date().toLocaleString()}</p>
+
+    .chart-box {
+       
+        padding: 0px;
+    
+    }
+
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .sideStrip{
+       color: white;
+    position: absolute;
+    top: 37%;
+    right: -11%;
+    display: flex;
+    width: 58%;
+ 
+ 
+    }
+    .footIcon{
+         
+    position: absolute;
+    width: 480px;
+    bottom: -194px;
+    left: 156px;
+}
+    
+/* page-6 */
+  .section {
+        margin-bottom: 25px;
+    }
+
+    /* Section Header */
+    .section-header {
+        display: flex;
+        align-items: center;
+        background: #233977;
+        color: white;
+        font-weight: bold;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .section-header::after {
+        content: "";
+        width: 6px;
+        height: 100%;
+        background: #1aa79c;
+        margin-left: auto;
+    }
+
+    /* Tables */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        color: #233977;
+    }
+
+    th, td {
+        border: 1px solid #233977;
+        padding: 6px 8px;
+        text-align: center;
+    }
+
+    th {
+        background: #233977;
+        color: white;
+        font-weight: bold;
+    }
+
+    /* First column */
+    td:first-child, th:first-child {
+        text-align: left;
+        font-weight: bold;
+        background: #f5f7fb;
+    }
+
+    /* Year columns */
+    .year {
+        background: #1aa79c;
+        color: white;
+        font-weight: bold;
+    }
+
+    /* Small table */
+    .small-table {
+        width: 100%;
+    }
+
+    
+.containerwow {
+    
+    padding-bottom: 40px;
+
+    display: flex;
+    flex-direction: column;
+    /* grid-template-columns: 1fr 2fr 1fr 1fr; */
+    gap: 30px;
+    
+}
+
+.chart-box {
+    /* height: 300px; */
+      /* border-left: 2PX solid gray; */
+}
+
+.circular-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+      /* border-left: 2PX solid gray; */
+    flex-direction: row;
+    gap: 30px;
+}
+
+.circle-row {
+    width:fit-content;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.percentage {
+    position: absolute;
+    left: 31%;
+    font-size: 10px;
+}
+
+.circle-row canvas {
+    width: 100px !important;
+    height: 100px !important;
+}
+
+.speedometer {
+    height:100%;
+    display: flex;
+    /* border-left: 2PX solid gray; */
+    /* padding-left: 30px; */
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+ 
+.base{
+    /* position: absolute; */
+    color: black;
+    width: 150px;
+    background: black;
+    height: 1px;
+    right: 14.5%;
+}
+
+#gaugeLow,#gaugeBase,#gaugeBest {
+    width: 70px !important;
+    height: 35px !important;
+}
+.label {
+    font-size: 11px;
+    color: #233977;
+    text-align: center;
+}
+
+.subhead{
+    background:#f1f5f9;
+    font-weight:600;
+}
+
+.arrow-row{
+    position:relative;
+    text-align:center;
+    height:36px;
+}
+
+.arrow-line{
+    height:2px;
+    background:#243a7a;
+    width:15%;
+   
+    position: absolute;
+    left: 44%;
+    top: 27px;
+    height: 2px;
+    background: #243a7a;
+    width: 15%;
+   
+
+}
+
+.arrow-line::after{
+    content:"";
+    position:absolute;
+    right:-8px;
+    top:-4px;
+    border-left:8px solid #243a7a;
+    border-top:5px solid transparent;
+    border-bottom:5px solid transparent;
+}
+
+.circle{
+    position:absolute;
+    top:9px;
+    left:75%;
+    transform:translateX(-50%);
+    background:#fff;
+    border:2px solid #243a7a;
+    border-radius:50%;
+    width:38px;
+    height:38px;
+    line-height:34px;
+    font-weight:bold;
+    font-size:11px;
+}
+
+.small-table th{
+    background:#243a7a;
+}
+
+.small-table th.right{
+    background:#1aa79c;
+}
+
+.small-table td.left{
+    font-weight:600;
+}
+.horizontalChart canvas{
+    width: 100% !important;
+    height: 100% !important;
+}
+.horizontalChart{
+    /* border-left: 2px solid gray; */
+    /* border-right: 2px solid gray; */
+    /* height: 320px !important; */
+}
+        </style>
+    </head>
+    <body>
+
+        <div class="maintain" style="background-color: rgb(255, 255, 255);">
+            <!-- Hidden div to store chart data as JSON -->
+            <div id="chart-data"
+                data-revenue='<%= JSON.stringify(chartData.revenue) %>'
+                data-cogs='<%= JSON.stringify(chartData.cogs) %>'
+                data-ebitda='<%= JSON.stringify(chartData.ebitda) %>'
+                data-profit='<%= JSON.stringify(chartData.profit) %>'
+                data-cash='<%= JSON.stringify(chartData.cash) %>'
+                style="display: none;">
             </div>
-        </body>
-        </html>
-    `;
-}
+            <!-- page1 -->
+            <div class="page1 page">
+                <div class="container section"
+                    style="padding-top: 0px; margin-bottom: 0;">
+                    <div class="parentLogo">
+                        <div class="logo">
+                            <img class="img"
+                                src="<%= process.env.NODE_ENV === 'production' ? 'https://finval-server.technolite.in' : 'http://localhost:5050' %>/assets/logo.png"
+                                alt="Logo">
 
-// HELPER FUNCTION: Generate PDF directly
-async function generatePdfDirectly(html) {
-    const puppeteer = require('puppeteer');
-
-    const browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
-        ],
-        timeout: 60000
-    });
-
-    const page = await browser.newPage();
-
-    await page.setContent(html, {
-        waitUntil: 'networkidle0',
-        timeout: 30000
-    });
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
-    });
-
-    await browser.close();
-
-    return pdfBuffer;
-}
-
-// HELPER FUNCTION: Create error PDF
-async function createErrorPdf(error, orderId) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><title>Error Report</title></head>
-        <body>
-            <h1>PDF Generation Error</h1>
-            <p>Order: ${orderId}</p>
-            <p>Error: ${error.message}</p>
-            <p>Please contact support.</p>
-        </body>
-        </html>
-    `;
-
-    return await generatePdfDirectly(html);
-}
-
-router.get('/:orderId/test-actual-pdf', async (req, res) => {
-    console.log('🔫 TESTING ACTUAL PDF GENERATION');
-
-    try {
-        const orderId = req.params.orderId;
-
-        // 1. Get your ACTUAL data
-        const order = await Orders.findById(orderId)
-            .populate({
-                path: 'matadata.customerId',
-                select: 'first_name last_name'
-            })
-            .lean();
-
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        console.log(`Testing PDF for: ${order.business?.companyName}`);
-
-        // 2. Fetch valuation data
-        let valuationData = {};
-        try {
-            const axios = require('axios');
-            const response = await axios.get(
-                `http://localhost:${process.env.PORT || 3000}/api/admin/orders/valuation-data/${orderId}`,
-                { timeout: 5000 }
-            );
-            valuationData = response.data || {};
-        } catch (error) {
-            console.log('Using mock data for testing');
-            valuationData = {
-                companyEquityAvgValue: 1500000,
-                enterpriseValue: 1800000,
-                weightAvgEquityValue: 1450000,
-                netDebt: 350000,
-                wacc: 12.5
-            };
-        }
-
-        // 3. Create ACTUAL HTML with your data
-        const actualHtml = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>ACTUAL Valuation Report</title>
-                <style>
-                    body { 
-                        font-family: Arial, sans-serif; 
-                        margin: 0;
-                        padding: 40px;
-                        color: #333;
-                        line-height: 1.6;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 40px;
-                        padding-bottom: 20px;
-                        border-bottom: 3px solid #2c3e50;
-                    }
-                    h1 {
-                        color: #2c3e50;
-                        font-size: 32px;
-                        margin: 0 0 10px 0;
-                    }
-                    h2 {
-                        color: #3498db;
-                        margin: 30px 0 15px 0;
-                    }
-                    .company-info {
-                        background: #f8f9fa;
-                        padding: 25px;
-                        border-radius: 8px;
-                        margin: 20px 0;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 25px 0;
-                    }
-                    th {
-                        background: #3498db;
-                        color: white;
-                        padding: 15px;
-                        text-align: left;
-                    }
-                    td {
-                        padding: 12px 15px;
-                        border: 1px solid #ddd;
-                    }
-                    tr:nth-child(even) {
-                        background: #f9f9f9;
-                    }
-                    .highlight {
-                        background: #e8f4fc;
-                        padding: 20px;
-                        border-radius: 8px;
-                        margin: 25px 0;
-                        border-left: 5px solid #3498db;
-                    }
-                    .value {
-                        font-weight: bold;
-                        color: #27ae60;
-                    }
-                    .total {
-                        font-weight: bold;
-                        color: #e74c3c;
-                        font-size: 18px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>VALUATION REPORT</h1>
-                    <h2>${order.business?.companyName || 'Company'}</h2>
-                    <p>Order ID: ${orderId} | Date: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <div class="bussinessValuation">
+                        <div class="bussinessHead">
+                            <p
+                                style="line-height:55px; color: white;">BUSINESS
+                            </p>
+                        </div>
+                        <div class="bussinessHead valuationHead">
+                            <p
+                                style="line-height:55px; color: white;">VALUATION
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="company-info">
-                    <h2>Company Information</h2>
-                    <p><strong>Company:</strong> ${order.business?.companyName || 'N/A'}</p>
-                    <p><strong>Industry:</strong> ${order.business?.industryType || 'N/A'}</p>
-                    <p><strong>Country:</strong> ${order.business?.country || 'N/A'}</p>
-                    <p><strong>Customer:</strong> ${order.matadata?.customerId?.first_name || ''} ${order.matadata?.customerId?.last_name || ''}</p>
+                <div class="headContent section "
+                    style="color: white; padding-top: 0px;margin-bottom: 0px;">
+                    <div class="bussinessHead reportHead"
+                        style="margin-bottom: 110px;">
+                        <p style="line-height:55px;color: white;">
+                            REPORT
+
+                        </p>
+                    </div>
+                    <div class=" "
+                        style="width: 70%; padding: 0px 0px 0px 12px; text-align: start;">
+                        <p class="title" style="line-height:45px;">
+                            Fin Advisor Consulting
+                            Pvt. Ltd.
+                        </p>
+                        <p
+                            style="font-size: 20px ; font-weight: 500; color: #1aa79c;text-align: start; font-weight: 500; padding-bottom: 100px;">
+                            This Report was Generated on October 26, 2024
+                        </p>
+                    </div>
+                    <p class
+                        style="line-height:25px; font-weight: 300;text-align: start; padding: 0px 0px 0px 12px; font-size: 16px;">
+                        Valuation of Company is based on the information
+                        provided by the client and we have
+                        not conducted any audit on the accuracy of the
+                        numbers
+                    </p>
                 </div>
-                
-                <h2>Financial Summary</h2>
-                <table>
-                    <tr>
-                        <th>Metric</th>
-                        <th>Value</th>
-                    </tr>
-                    <tr>
-                        <td>Revenue</td>
-                        <td class="value">$${(order.finance?.sales || 0).toLocaleString()}</td>
-                    </tr>
-                    <tr>
-                        <td>EBITDA</td>
-                        <td class="value">$${(order.finance?.ebitda || 0).toLocaleString()}</td>
-                    </tr>
-                    <tr>
-                        <td>Net Profit</td>
-                        <td class="value">$${(order.finance?.netProfit || 0).toLocaleString()}</td>
-                    </tr>
-                </table>
-                
-                <div class="highlight">
-                    <h2>Valuation Results</h2>
-                    <p><strong>DCF Equity Value:</strong> <span class="value">$${(valuationData.companyEquityAvgValue || 0).toLocaleString()}</span></p>
-                    <p><strong>Weighted Average Value:</strong> <span class="value">$${(valuationData.weightAvgEquityValue || 0).toLocaleString()}</span></p>
-                    <p><strong>Enterprise Value:</strong> <span class="value">$${(valuationData.enterpriseValue || 0).toLocaleString()}</span></p>
-                    <p><strong>Net Debt:</strong> $${(valuationData.netDebt || 0).toLocaleString()}</p>
-                    <p><strong>WACC:</strong> ${(valuationData.wacc || 0).toFixed(2)}%</p>
+            </div>
+            <!-- page-2 -->
+            <div class="page page-break  page2">
+                <div class="section">
+                    <div class="logo2">
+                        <img class="icon"
+                            src="<%= process.env.NODE_ENV === 'production' ? 'https://finval-server.technolite.in' : 'http://localhost:5050' %>/assets/logo3.png"
+                            alt="icon">
+                    </div>
+                    <!-- company summary -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>Company
+                                <span class="color">
+                                    Summary
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 45px;">
+                            <p class=" colorPurple"
+                                style="font-size: 18px; margin-bottom: 4px;">Company
+                                Name</p>
+                            <p class="heading"
+                                style="font-weight: 500 !important; margin-bottom: 10px;font-size: 18px;">
+                                <span>
+                                    <%= companyDetails.name || "N/A" %> |
+                                </span>
+                                <span>
+                                    <%= companyDetails.country || "N/A" %>
+                                </span>
+                            </p>
+                            <p class="colorPurple"
+                                style="font-size: 14px !important; ">Currency:
+                                <span class="color" style="font-weight: 600 ">
+                                    <%= companyDetails.currency || "N/A" %>
+                                </span>
+                            </p>
+                            <div class="companyInfo">
+                                <div class="child">
+                                    <p class="context">Type
+                                        of Company
+                                    </p>
+                                    <p class=" heading "
+                                        style="font-weight: 500;">
+                                        <%= companyDetails.type || "N/A" %>
+                                    </p>
+                                </div>
+                                <div class="child">
+                                    <p class="context">Years
+                                        in Business:
+                                    </p>
+                                    <p class=" heading "
+                                        style="font-weight: 500;">
+                                        <%= companyDetails.yearsInBusiness ||
+                                        "5+" %> years
+                                    </p>
+                                </div>
+                                <div class="child">
+                                    <p class="context">Industry
+                                    </p>
+                                    <p class=" heading "
+                                        style="font-weight: 500;">
+                                        <%= companyDetails.industry || "N/A" %>
+                                    </p>
+                                </div>
+                            </div>
+                            <p class="paragraph" style="line-height: 22px;">
+  <%= companyDetails.description || "N/A" %>
+                            </p>
+                        </div>
+                    </div>
+                    <!-- current operation -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>Current
+                                <span class="color">
+                                    Operations
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 45px;">
+                            <div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Development
+                                            Phase
+                                        </p>
+                                        <p class=" heading " style="font-weight: 500;">
+                                            <% 
+                                            const age = companyDetails.yearsInBusiness;
+                                            let stage = "N//A";
+                                            
+                                            if (age === "0-1" || age === "2-5" || age === "0-2" || age === "1-5") {
+                                                stage = "Early Stage";
+                                            } else if ( age === "5+") {
+                                                stage = "Growing Stage";
+                                            }
+                                            %>
+                                            <%= stage %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Scalable
+                                            Product
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.scalable || "Yes"
+                                            %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Profitability
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                           <%= companyDetails.earningTrend === "increasing_non_sustainable" ? "No"
+                                            : "Yes" %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Current
+                                            Business Levels
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.earningTrend ===
+                                            "declining_no_turnaround" ?
+                                            "Declining (No Turnaround)" :
+                                            companyDetails.earningTrend ===
+                                            "increasing" ? "Increasing Profits"
+                                            :
+                                            "Stable" %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Equity
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.earningTrend === "increasing_non_sustainable" ? "No"
+                                            : "Yes" %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Debt
+                                        </p>
+                                       <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= companyDetails.earningTrend === "increasing_non_sustainable" ? "No"
+                                            : "Yes" %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- competitors -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>
+                                Competitors
+                            </p>
+                        </div>
+                        <div style="padding-top: 45px;">
+                            <div>
+                                <div class="companyInfo"
+                                    style="justify-content: left;">
+                                    <div class="child" style="width: 40%;">
+                                        <p class="context">
+                                            Competitor - 1
+                                        </p>
+                                             
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                           
+                                            <%= companyDetails.similarCompany %>
+                                       
+                                        </p>
+                                        <p class="context">
+                                            www.acuitykp.com
+                                        </p>
+                                    </div>
+                                    <div class="child" style="width: 40%;">
+                                        <p class="context">
+                                            Competitor - 2
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                             <%= companyDetails.competitor2 %>
+                                        </p>
+                                        <p class="context">
+                                            www.xsdacuitykp.com
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- operatin performance -->
+                    <div class="featureSecion">
+                        <div class="stylus strip">
+                            <p>Operating
+                                <span class="color">
+                                    Performance
+                                </span>
+                            </p>
+                        </div>
+                        <p class="context value" style="font-size: 18px; margin-left: ;">
+                            (All values in <%= companyDetails.currency || "INR"
+                            %>)
+                        </p>
+                        <div style="padding-top: 45px;">
+                            <p class=" heading "
+                                style="font-weight: 500;">
+                                <%= companyDetails.financialYear ||
+                                "Jan 2024 – Dec 2024" %>
+                            </p>
+                            <div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">
+                                            Revenue
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.revenue)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            EBITDA
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.ebitda)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            EBITDA Margin
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(financialData.ebitdaMargin)
+                                            %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">
+                                            Net Profit
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.netProfit)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            Net Profit Margin
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(financialData.netProfitMargin)
+                                            %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">
+                                            Cash in Hand
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatNumber(financialData.cashBalance)
+                                            %> <%= companyDetails.unitOfNumber %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="paragraph"
+                                style="    line-height: 20px; margin: 5px 0px 10px 0px ;">
+                                The Company operates in the <%=
+                                companyDetails.industry || "financial services"
+                                %>
+                                sector and reported revenue of <%=
+                                companyDetails.currency %> <%=
+                                formatNumber(financialData.revenue) %> <%= companyDetails.unitOfNumber %>
+                                in FY <%= companyDetails.financialYearEnd ||
+                                "2024" %>, achieving a Net Profit
+                                Margin of <%=
+                                formatPercentage(financialData.netProfitMargin)
+                                %>.
+                            </p>
+                            <p class="paragraph" style="    line-height: 20px;">
+                                As of December 2024, the Company held a cash
+                                balance
+                                of <%= companyDetails.currency %> <%=
+                                formatNumber(financialData.cashBalance) %>
+                                <%= companyDetails.unitOfNumber %> and had a net debt position
+                                of
+                                <%= companyDetails.currency %> <%=
+                                formatNumber(financialData.netDebt) %> <%= companyDetails.unitOfNumber %>.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                
-                <h2>Analysis Summary</h2>
-                <p>This is your ACTUAL valuation report with real data from the database.</p>
-                <p>The company valuation is based on DCF analysis and comparable company metrics.</p>
-                
-                <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #7f8c8d;">
-                    <p>Generated by Valuation System | ${new Date().toLocaleString()}</p>
-                    <p>This report is confidential and proprietary.</p>
+            </div>
+            <!-- page-3 -->
+            <div class="page page-break  page2">
+                <div class="section" >
+                    <div class="stylus strip"
+                        style="left: 0; min-width: 18% !important;">
+                        <p>Forecast
+                            <span class="color">
+                                Summary
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="grid " style="padding-top: 65px;">
+
+                        <!-- Revenue -->
+                        <div class="chart-box">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">Revenue
+                                Growth (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>
+                                )</p>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+
+                        <!-- COGS -->
+                        <div class="chart-box">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">
+                                COGS (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>)
+                            </p>
+
+                            <canvas id="cogsChart"></canvas>
+                        </div>
+
+                        <!-- EBITDA -->
+                        <div class="chart-box" style="margin:30px 0 0 0 ;">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">
+                                EBITDA (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>),
+                                EBITDA Margin (%)
+                            </p>
+
+                            <canvas id="ebitdaChart"></canvas>
+                        </div>
+
+                        <!-- Net Profit -->
+                        <div class="chart-box" style="margin:30px 0 0 0 ;">
+                            <p class=" colorPurple"
+                                style="font-size: 16px; margin-bottom: 18px;">
+                                Net Profit (<%= companyDetails.currency %>
+                                <%= companyDetails.unitOfNumber %>), NP Margin (%)
+                            </p>
+
+                            <canvas id="profitChart"></canvas>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-box" style="margin-top:60px">
+                        <p class=" colorPurple"
+                            style="font-size: 16px; margin-bottom: 18px;">
+                            Cash Forecast (<%= companyDetails.currency %>
+                            <%= companyDetails.unitOfNumber %>)
+                        </p>
+
+                        <canvas id="cashChart"></canvas>
+                    </div>
+
+                    <p class="heading "
+                        style="font-style: italic; margin-top: 30px;">
+                        // Full Income Statement and Cash Flow Statements on
+                        page no. 6
+                    </p>
+
                 </div>
-            </body>
-            </html>
-        `;
 
-        // 4. Generate PDF DIRECTLY (no service, no EJS)
-        const puppeteer = require('puppeteer');
+            </div>
+            <!-- page-4 -->
+            <div class="page page-break  page2">
+                <div class="section">
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Valuation
+                                <span class="color">
+                                    Methodology
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara" style="line-height: 18px;">
+                                Our approach combines both intrinsic and
+                                market-based valuation techniques to ensure a
+                                comprehensive and balanced perspective. We
+                                have utilized the Discounted Cash Flow (DCF)
+                                method to estimate the companyʼs intrinsic value
+                                based on its projected future cash flows,
+                                and complemented this with a Relative Valuation
+                                approach using comparable industry multiples.
+                                This blended methodology enables us to
+                                capture both the companyʼs fundamental earning
+                                potential and its position relative to its
+                                peers, resulting in a robust valuation estimate.
+                            </p>
+                            <p class="smallpara"
+                                style="line-height: 18px; padding-top: 15px;">
+                                The valuation performed using globally
+                                recognized valuation approaches, used key
+                                matrices of peers sourced from reliable data
+                                sources
+                                like S&P Capital IQ, Bloomberg, etc.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Discounted
+                                <span class="color">
+                                    Cash Flow
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara" style="line-height: 18px;">
+                                Discounted cash flow method is based on the
+                                premise that the value of a business is the
+                                equivalent of the future periodsʼ cash flows,
+                                discounted by an appropriate discount rate,
+                                reflecting the riskiness of the business.
+                            </p>
+                            <p class="smallpara"
+                                style="line-height: 18px; padding-top: 15px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;"> Purpose</span>:
+                                Captures the intrinsic
+                                value of the business based on its future cash
+                                flow potential
+                            </p>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Approach:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Forecast Free
+                                        Cash Flows to Firm (FCFF)
+                                        for 5 years</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Apply a
+                                        Terminal Value to account for
+                                        value beyond the explicit forecast
+                                        period</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Discount
+                                        these cash flows to present
+                                        value using the companyʼs Weighted
+                                        Average Cost of Capital (WACC)</li>
+                                </ul>
+                            </div>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Output:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Enterprise
+                                        Value (EV)</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Equity Value
+                                        = EV minus Net Debt</li>
 
-        console.log('🚀 Launching Puppeteer for ACTUAL PDF...');
-        const browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-		'--disable-features=HttpsFirstBalancedModeAutoEnable',
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--window-size=1920,1080'
-            ],
-            timeout: 60000
-        });
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Relative
+                                <span class="color">
+                                    Valuation
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara" style="line-height: 18px;">
+                                The Relative Valuation method assesses the
+                                companyʼs value by comparing it to similar
+                                businesses within the same industry. This
+                                approach relies on valuation multiples such as
+                                EV/EBITDA, EV/Sales, and Price-to-Earnings
+                                (P/E), derived from a selected group of
+                                comparable companies
+                            </p>
+                            <p class="smallpara"
+                                style="line-height: 18px; padding-top: 15px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;"> Purpose</span>:
+                                Benchmarks the companyʼs valuation against
+                                comparable companies in the industry
+                            </p>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Approach:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Identify a
+                                        peer group of companies in the sector in
+                                        which company is operating</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Use relevant
+                                        valuation multiples derived from the
+                                        peer group</li>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;">Apply these
+                                        multiples to the companyʼs forecasted
+                                        financial metrics</li>
+                                </ul>
+                            </div>
+                            <div style="padding-top: 10px;">
+                                <span class="heading colorPurple"
+                                    style="font-weight: 700;">
+                                    Output:
+                                </span>
+                                <ul>
+                                    <li class="smallpara"
+                                        style="line-height: 18px;"> Cross-check
+                                        valuation ranges derived from various
+                                        valuation multiples</li>
 
-        const page = await browser.newPage();
-
-        // Set viewport
-        await page.setViewport({ width: 1920, height: 1080 });
-
-        console.log('📄 Setting HTML content...');
-        await page.setContent(actualHtml, {
-            waitUntil: ['networkidle0', 'domcontentloaded'],
-            timeout: 30000
-        });
-
-        // Wait for everything to load
-        console.log('⏳ Waiting for page to render...');
-        await page.evaluate(() => document.fonts.ready);
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
-        console.log('🖨️  Generating PDF...');
-        const pdfBuffer = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-            margin: {
-                top: '20mm',
-                right: '15mm',
-                bottom: '20mm',
-                left: '15mm'
-            },
-            displayHeaderFooter: true,
-            headerTemplate: '<div style="font-size: 10px; color: #666; width: 100%; text-align: center;">Valuation Report</div>',
-            footerTemplate: `
-                <div style="font-size: 8px; text-align: center; width: 100%; padding: 10px;">
-                    Page <span class="pageNumber"></span> of <span class="totalPages"></span> | 
-                    ${order.business?.companyName || 'Company'} | ${new Date().toLocaleDateString()}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                   
                 </div>
-            `,
-            preferCSSPageSize: true
-        });
+            </div>
+              <!-- Edited-page -->
+                  <div class="page page-break  page2" style="border:2px solid red;">
+                <div class="section"> 
+                     <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Valuation
+                                <span class="color">
+                                    Summary
+                                </span>
+                            </p>
+                        </div>
+                        <div style="padding-top: 55px;">
+                            <p class="smallpara"
+                                style="line-height: 18px; max-width: 45%;">
+                                The valuation displayed below is the result of
+                                the
+                                weighted average of the DCF, and the relative
+                                valuation
+                                using various relevant multiples. The relative
+                                multiples
+                                were sourced from S&P Capital IQ.
+                            </p>
+                        </div>
+                        <div class="sideStrip">
+                            <div
+                                style="padding: 14px; background-color: #1aa79c; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                                <p
+                                    style="font-size: 20px; font-weight: 600; flex-wrap: nowrap !important;">
+                                    <%=
+                                    formatCurrencySymbol(valuation.enterpriseAvgValue || dcfTableData.enterpriseAvgValue || 0)
+                                    %>
+                                </p>
+                                <p
+                                    style="text-align: center; font-size: 10px;"><%= companyDetails.unitOfNumber %></p>
+                            </div>
+                            <div
+                                style="padding: 14px; background-color: #233977;">
+                                <p class="heading color"
+                                    style="font-weight: 700;">Valuation</p>
+                                <p class="smallpara">The total Enterprise Value of the   
+                                    <%= companyDetails.name %>
+                                    is estimated at  <%= companyDetails.unitOfNumber %></p>
+                            </div>
+                        </div>
+                    </div>
+                           <div class="containerwow">
+                        <!-- LEFT: Method Labels (Dynamic) -->
+                        
+                        <div  style="text-align: end; height: 100%;display: flex;flex-direction: row; justify-content:space-around; align-items:center;">
+                            <% if (activeMethods.length === 0) { %>
+                            <p class="smallpara"
+                                style="width: 100%; text-align: end !important; padding: 0 20px 10px 0px;">
+                                No methods
+                            </p>
+                            <% } else { %>
+                            <% for(let i = 0; i < activeMethods.length; i++) {
+                            %>
+                            <p class="smallpara"
+                                style="width: 100%; text-align: end !important; padding: 0 20px <%= i === activeMethods.length - 1 ? '0px' : '10px' %> 0px;">
+                                <%= activeMethods[i] %>
+                            </p>
+                            <% } %>
+                            <% } %>
+                        </div>
 
-        console.log(`✅ PDF Generated: ${pdfBuffer.length} bytes`);
+                        <!-- LEFT: Horizontal Bars Chart -->
+                        <div class="chart-box horizontalChart"
+                            style="display: flex; justify-content:center; align-items:center;">
+                            <canvas id="methodBars"></canvas>
+                        </div>
+                       
+               
 
-        // Close browser
-        await page.close();
-        await browser.close();
+                        <!-- CENTER: Method Weights -->
+                        <div style=" position:relative;">
+                              <p class="heading colorPurple" style="font-weight: 600; position:absolute; top:30%">Method <br/>
+                                    Weights</p>
+                            <div class="circular-box">
+                              
 
-        // Verify PDF
-        const pdfHeader = pdfBuffer.toString('utf8', 0, 4);
-        console.log(`PDF Header: "${pdfHeader}"`);
+                                <div class="circle-row">
+                                    <canvas id="w1"></canvas>
+                                    <span class="percentage"><%= dcfWeightPercentage %>%</span>
+                                </div>
+                                <div class="circle-row">
+                                    <canvas id="w2"></canvas>
+                                    <span class="percentage"><%=
+                                        formatNumber(weightPercentages[1]) %>%</span>
+                                </div>
+                                <div class="circle-row">
+                                    <canvas id="w3"></canvas>
+                                    <span class="percentage"><%=
+                                        formatNumber(weightPercentages[2]) %>%</span>
+                                </div>
+                                <div class="circle-row">
+                                    <canvas id="w4"></canvas>
+                                    <span class="percentage"><%=
+                                        formatNumber(weightPercentages[3]) %>%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="featureSecion" style="margin-bottom: 15px;">
+                        <div class="stylus strip">
+                            <p>
+                                Valuation 
 
-        if (pdfHeader !== '%PDF') {
-            throw new Error('Invalid PDF generated');
-        }
+                                <span class="color">
+                                    Scenario
+                                </span>
+                            </p>
+                        </div>
+                        </div>
+                        <!-- RIGHT: Speedometers -->
+                        <div  style=" position:relative;">
+                            <p class="heading colorPurple " style="font-weight: 600; position:absolute; top:50%">Equity <br/> Value</p>
+                            
+                            <div class="speedometer">
+                                
 
-        // 5. FORCE DOWNLOAD
-        console.log('📥 Sending PDF for download...');
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="ACTUAL-Valuation-Report-${orderId}.pdf"`);
-        res.setHeader('Content-Length', pdfBuffer.length);
+                                <div style="margin-top: 16px;">
+                                    <canvas id="gaugeLow" style=" width:150px !important;height:70px !important;" 
+                                        ></canvas>
+                                    <div class="base"></div>
+                                    <div class="label" style="padding-left: 0px;  padding-top: 10px;" >Min Value<br><%=
+                                        formatDCFValue(dcfTableData.equityValueMin) %> <%= companyDetails.unitOfNumber %></div>
+                                </div>
 
-        // Write file to disk for debugging
-        const fs = require('fs');
-        fs.writeFileSync(`ACTUAL-REPORT-${orderId}.pdf`, pdfBuffer);
-        console.log(`💾 Also saved to: ACTUAL-REPORT-${orderId}.pdf`);
+                                <div style="margin-top: 16px;">
+                                    <canvas id="gaugeBase" style=" width:150px !important;height:70px !important;" ></canvas>
+                                    <div class="base"></div>
+                                    <div class="label" style="padding-left: 0px; padding-top: 10px;">Average Value<br><%=
+                                        formatDCFValue(dcfTableData.equityValue) %> <%= companyDetails.unitOfNumber %></div>
+                                </div>
 
-        res.end(pdfBuffer);
+                                <div style="margin-top: 16px;">
+                                    <canvas id="gaugeBest" style=" width:150px !important;height:70px !important;" ></canvas>
+                                    <div class="base"></div>
+                                    <div class="label" style="padding-left: 0px;  padding-top: 10px;" >Max Value<br><%=
+                                        formatDCFValue(dcfTableData.equityValueMax) %> <%= companyDetails.unitOfNumber %></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="smallpara">The valuation presents three scenarios—Lower Case, Base Case, and Best Case—to reflect different assumptions applied to key valuation inputs, to capture a range of potential future outcomes for the company
+                        </p>
+                        <!-- Hidden data for JavaScript -->
+                        <div id="method-data"
+                            data-method-labels='<%= JSON.stringify(methodLabels) %>'
+                            data-equity-values='<%= JSON.stringify(equityValues) %>'
+                            data-equity-min-values='<%= JSON.stringify(equityMinValues) %>'
+                            data-equity-max-values='<%= JSON.stringify(equityMaxValues) %>'
+                            data-weight-percentages='<%= JSON.stringify(weightPercentages) %>'
+                            data-min-value="<%= minValue %>"
+                            data-base-value="<%= baseValue %>"
+                            data-max-value="<%= maxValue %>"
+                            data-equity-value-min="<%= dcfTableData.equityValueMin %>"
+                            data-equity-value-avg="<%= dcfTableData.equityValue %>"
+                            data-equity-value-max="<%= dcfTableData.equityValueMax %>"
+                            style="display: none;">
+                        </div>
+                    </div>
+                    
+                  </div>
+                </div>
+            <!-- page 5 -->
+            <div class="page page-break  page2">
+                <div class="section" style="padding-top: 70px;">
+             
+                    <div class="featureSecion" style="margin-bottom: 15px;">
+                        <div class="stylus strip">
+                            <p>
+                                DCF
+                                <span class="color">
+                                    Synopsis
+                                </span>
+                            </p>
+                        </div>
+                        <div class="table-box" style="padding-top: 50px;">
+                            <table>
+                                <tr>
+                                    <th class="left"
+                                        style="background-color: #233977;">For
+                                        DCF</th>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.years.length; i++) { %>
+                                    <th class="year"><%= dcfTableData.years[i]
+                                        %></th>
+                                    <% } %>
+                                </tr>
 
-    } catch (error) {
-        console.error('❌ TEST FAILED:', error.message);
-        console.error('Stack:', error.stack);
+                                <tr>
+                                    <td class="left">EBITDA</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.ebitda.length; i++) { %>
+                                    <td><%=
+                                        formatDCFValue(dcfTableData.ebitda[i])
+                                        %></td>
+                                    <% } %>
+                                    <% if(dcfTableData.ebitda.length <
+                                    dcfTableData.years.length) { %>
+                                    <td></td>
+                                    <% } %>
+                                </tr>
 
-        // Return detailed error
-        res.status(500).json({
-            success: false,
-            message: 'PDF Generation Test Failed',
-            error: error.message,
-            stack: error.stack,
-            fix: 'Check Puppeteer installation and memory'
-        });
-    }
-});
+                                <tr>
+                                    <td class="left">Adjustments for Impact of
+                                        Tax on Interest</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.taxAdjustment.length; i++) { %>
+                                    <td><%= dcfTableData.taxAdjustment[i] === 0
+                                        ? '-' :
+                                        formatDCFValue(dcfTableData.taxAdjustment[i])
+                                        %></td>
+                                    <% } %>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.terminalTax)
+                                        %>
+                                    </td>
+                                </tr>
 
+                                <tr>
+                                    <td class="left">Change in Working
+                                        Capital</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.workingCapital.length; i++) {
+                                    %>
+                                    <td><%=
+                                        formatParentheses(dcfTableData.workingCapital[i])
+                                        %></td>
+                                    <% } %>
+                                    <td></td>
+                                </tr>
 
-router.get('/', async (req, res) => {
-    try {
-        // Extract filter parameters from the request query
-        const {
-            orderId,
-            customerNames,
-            companyNames,
-            country,
-            orderStatus,
-            assignedTo,
-            custody,
-            role,
-            user_id
-        } = req.query;
+                                <tr>
+                                    <td class="left">CAPEX</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.capex.length; i++) { %>
+                                    <td><%=
+                                        formatParentheses(dcfTableData.capex[i])
+                                        %></td>
+                                    <% } %>
+                                    <td></td>
+                                </tr>
 
-        // Build the filter object
-        const filter = {};
+                                <tr class="subhead">
+                                    <td class="left">Free Cash-Flow (FCFF)</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.fcff.length; i++) { %>
+                                    <td><%= formatDCFValue(dcfTableData.fcff[i])
+                                        %></td>
+                                    <% } %>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.terminalValue)
+                                        %>
+                                    </td>
+                                </tr>
 
-        if (orderId) filter.orderId = orderId;
-        if (customerNames) filter['matadata.customerId'] = new mongoose.Types.ObjectId(customerNames);
-        if (companyNames) filter['business.companyName'] = companyNames;
-        if (country) filter['business.country'] = country;
-        if (orderStatus) filter['matadata.status'] = orderStatus;
-        if (assignedTo) filter.assigned_to = new mongoose.Types.ObjectId(assignedTo);
-        if (custody) filter.custody = custody;
+                                <!-- WACC ARROW ROW -->
+                                <tr>
+                                    <td
+                                        colspan="<%= dcfTableData.years.length + 1 %>"
+                                        class="left"
+                                        style="padding: 20px 8px; position:relative">
+                                        <div>Weighted Average Cost of Capital
+                                            (WACC)</div>
+                                        <div class="arrow-line"></div>
+                                        <div class="circle">
+                                            <p style="text-align: center;">
+                                                <%=
+                                                formatPercentage(dcfTableData.wacc)
+                                                %>
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
 
-        // Add role-based filtering
-        if (role === 'ReportAdmin') {
-            if (!user_id) {
-                return res.status(400).json({ message: 'User ID is required for ReportAdmin role' });
-            }
-            filter.assigned_to = new mongoose.Types.ObjectId(user_id);
-        } else if (role === 'SuperAdmin') {
-            // No additional filtering needed for SuperAdmin
-        } else {
-            return res.status(403).json({ message: 'Access denied' });
-        }
+                                <tr>
+                                    <td class="left">Present Value of FCFF</td>
+                                    <% for(let i = 0; i <
+                                    dcfTableData.presentValue.length; i++) { %>
+                                    <td><%=
+                                        formatDCFValue(dcfTableData.presentValue[i])
+                                        %></td>
+                                    <% } %>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfData.terminalPresentFCFF)
+                                        %>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
 
-        const orders = await Orders.aggregate([
-            {
-                $match: filter
-            },
-            {
-                $sort: { orderId: -1 } // Sort by orderId in descending order
-            },
-            {
-                $lookup: {
-                    from: 'users', // The name of the users collection
-                    localField: 'assigned_to',
-                    foreignField: '_id',
-                    as: 'assignedUser'
+                        <!-- ================= SUMMARY TABLE ================= -->
+                        <div class="table-box" style="margin-top: 15px;">
+                            <table class="small-table">
+                                <tr>
+                                    <th class="left">Particulars</th>
+                                    <th class="right">Values in <%=
+                                        companyDetails.currency %> <%= companyDetails.unitOfNumber %></th>
+                                </tr>
+                                <tr>
+                                    <td class="left">Enterprise Value</td>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.enterpriseValue || dcfTableData.enterpriseValue)
+                                        %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="left">Net Debt</td>
+                                    <td>
+                                        <%= dcfTableData.netDebt === 0 ? '-' :
+                                        formatDCFValue(dcfTableData.netDebt) %>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="left">Equity Value of the
+                                        Company</td>
+                                    <td>
+                                        <%=
+                                        formatDCFValue(dcfTableData.equityValue)
+                                        %>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="featureSecion" style="margin-bottom: 0px;">
+                        <div class="stylus strip">
+                            <p>
+                                Key
+                                <span class="color">
+                                    Assumptions
+                                </span>
+                            </p>
+                        </div>
+
+                        <div style="padding-top: 45px;">
+                            <div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Cost of Equity
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.costOfEquity
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Cost of Debt
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.costOfDebt
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Adjusted Beta
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%= adjustedBeta.toFixed(2) %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="companyInfo">
+                                    <div class="child">
+                                        <p class="context">Equity Market Risk
+                                            Premium
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.equityRiskPremium
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Company Discount
+                                            Factor
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.cmpnyDiscFactor
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                    <div class="child">
+                                        <p class="context">Perpetual Growth Rate
+                                        </p>
+                                        <p class=" heading "
+                                            style="font-weight: 500;">
+                                            <%=
+                                            formatPercentage(workBackEndInputs.perpetualGrowthRate
+                                            || 0) %>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- page 6 -->
+            <div class="page page-break page2">
+                <div class="section">
+                <div class="">
+                    <div class="featureSecion" style="margin-bottom: 25px;">
+                        <div class="stylus strip">
+                            <p>
+                                Relative Valuation
+                                <span class="color">Synopsis</span>
+                            </p>
+                        </div>
+                        <!-- ========== TABLE 1: MULTIPLES (DYNAMIC) ========== -->
+                        <div style="padding-top: 45px;">
+                            <table class="small-table">
+                                <tr>
+                                    <th
+                                        style="background-color: #233977;">Multiples</th>
+                                    <th class="year">Industry Average</th>
+                                </tr>
+
+                                <%
+                                // Function to check and add multiple if valid
+                                function addIfValid(multipleArray, checkbox,
+                                multipleData, name) {
+                                if (checkbox && multipleData &&
+                                multipleData.multipleFactor !== undefined) {
+                                multipleArray.push({
+                                name: name,
+                                value: multipleData.multipleFactor
+                                });
+                                }
+                                }
+
+                                const checkedMultiples = [];
+
+                                // Add checked multiples
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPE_1, PE_1,
+                                'P/E Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPS_1, PS_1,
+                                'P/S Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_SALES_1, EV_SALES_1,
+                                'EV/Sales Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_EBITDA_1,
+                                EV_EBITDA_1,
+                                'EV/EBITDA Multiple (1 yr forward)');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPE, PE,
+                                'P/E Multiple');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxPS, PS,
+                                'P/S Multiple');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_SALES, EV_SALES,
+                                'EV/Sales Multiple');
+                                addIfValid(checkedMultiples,
+                                checkBoxesValues.checkBoxEV_EBITDA, EV_EBITDA,
+                                'EV/EBITDA Multiple');
+                                %>
+
+                                <% if (checkedMultiples.length === 0) { %>
+                                <tr>
+                                    <td colspan="2"
+                                        style="text-align: center; font-size: 12px; padding: 20px;">
+                                        No selected valuation multiples
+                                        available
+                                    </td>
+                                </tr>
+                                <% } else { %>
+                                <% for(let i = 0; i < checkedMultiples.length;
+                                i++) { %>
+                                <tr>
+                                    <td class="context"
+                                        style="font-size: 12px;">
+                                        <%= checkedMultiples[i].name %>
+                                    </td>
+                                    <td
+                                        style="text-align: center; font-weight: bold;">
+                                        <%=
+                                        formatMultiple(checkedMultiples[i].value)
+                                        %>x
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% } %>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="featureSecion" style="margin-bottom: 25px;">
+                    <div class="stylus strip">
+                        <p>
+                            Income
+                            <span class="color">Statement</span>
+                        </p>
+                    </div>
+                    <!-- ========== TABLE 2: INCOME STATEMENT (DYNAMIC) ========== -->
+                    <div style="padding-top: 45px;">
+                        <table>
+                            <tr>
+                                <th
+                                    style="background-color: #233977;">Particulars</th>
+                                <% for(let i = 0; i < years.length; i++) { %>
+                                <th class="year"><%= years[i] %></th>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Revenue</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.sales || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">COGS</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.cogs || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">EBITDA</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.ebitda ||
+                                    0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr style="background-color: rgb(238, 238, 238);">
+                                <td class="context"
+                                    style="font-size: 12px; background-color: rgb(238, 238, 238);">EBITDA
+                                    Margin (%)</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                const margin = workIncStmt[i]?.sales ?
+                                ((workIncStmt[i]?.ebitda || 0) /
+                                workIncStmt[i]?.sales) * 100 : 0;
+                                %>
+                                <td><%= formatPercentage(margin) %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Depreciation</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%=
+                                    formatDecimal(workIncStmt[i]?.depreciation
+                                    || 0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Interest
+                                    Expenses</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatDecimal(workIncStmt[i]?.intExp ||
+                                    0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">EBIT</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.ebit || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                            <tr>
+                                <td class="context" style="font-size: 12px;">Net
+                                    Profit</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                %>
+                                <td><%= formatNumber(workIncStmt[i]?.netProfit
+                                    || 0) %></td>
+                                <% } %>
+                            </tr>
+                            <tr style="background-color: rgb(238, 238, 238);">
+                                <td class="context"
+                                    style="font-size: 12px; background-color: rgb(238, 238, 238);">Net
+                                    Profit Margin (%)</td>
+                                <% for(let i = 0; i < workIncStmt.length; i++) {
+                                const netMargin = workIncStmt[i]?.sales ?
+                                ((workIncStmt[i]?.netProfit || 0) /
+                                workIncStmt[i]?.sales) * 100 : 0;
+                                %>
+                                <td><%= formatPercentage(netMargin) %></td>
+                                <% } %>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="featureSecion" style="margin-bottom: 25px;">
+                    <div class="stylus strip">
+                        <p>
+                            Cash Flow
+                            <span class="color">Statement</span>
+                        </p>
+                    </div>
+                    <!-- ========== TABLE 3: CASH FLOW STATEMENT (DYNAMIC) ========== -->
+                    <div style="padding-top: 45px;">
+                        <table>
+                            <tr>
+                                <th
+                                    style="background-color: #233977;">Particulars</th>
+                                <%
+                                // Get years safely
+                                const cashYears = [];
+                                if (years && Array.isArray(years) &&
+                                years.length > 0) {
+                                // Cash flow starts from 2026 (skip first year)
+                                for (let j = 1; j < years.length; j++) {
+                                cashYears.push(years[j]);
+                                }
+                                } else {
+                                // Default years if not available
+                                cashYears.push(2026, 2027, 2028, 2029, 2030);
+                                }
+
+                                // Display column headers
+                                for (let col = 0; col < cashYears.length; col++)
+                                {
+                                %>
+                                <th class="year"><%= cashYears[col] %></th>
+                                <% } %>
+                            </tr>
+
+                            <!-- Net Profit -->
+                            <tr>
+                                <td class="context" style="font-size: 12px;">Net
+                                    Profit</td>
+                                <%
+                                const cashData = workCashFlowStmt || [];
+                                for (let col = 0; col < cashYears.length; col++)
+                                {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatNumber(item.netProfit || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Depreciation -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Depreciation</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDecimal(item.depreciation || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Change in Working Capital (empty row) -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Change in Working
+                                    Capital</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) { %>
+                                <td></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Receivables -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Receivables</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.receivable || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Inventories -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Inventories</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.inventory || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Payables -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Payables</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.payable || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Capital Expenditure -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Capital
+                                    Expenditure</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.capExp || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Change in Debt -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Change in Debt</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatParentheses(item.debtChange || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Equity Fund Raised -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Equity Fund
+                                    Raised</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                const equityFund = item.equityFund || 0;
+                                %>
+                                <td><%= equityFund === 0 ? '-' :
+                                    formatNumber(equityFund) %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Net Cash Movement -->
+                            <tr>
+                                <td class="context" style="font-size: 12px;">Net
+                                    Cash Movement</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDCFValue(item.netCashMovement || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Beginning Balance of Cash -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Beginning Balance
+                                    of Cash</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDCFValue(item.yearBegnCash || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+
+                            <!-- Year End Cash Balance -->
+                            <tr>
+                                <td class="context"
+                                    style="font-size: 12px;">Year End Cash
+                                    Balance</td>
+                                <% for (let col = 0; col < cashYears.length;
+                                col++) {
+                                const item = cashData[col] || {};
+                                %>
+                                <td><%= formatDCFValue(item.yearEndCash || 0)
+                                    %></td>
+                                <% } %>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!-- page7 -->
+            <div class="page page-break  page2">
+
+                <div class="section"
+                    style=" height: -webkit-fill-available; justify-content: space-between; flex-direction: column; display: flex; position:relative; padding-bottom: 55px;">
+                    <div> 
+                        <div class="featureSecion"
+                            style="margin-bottom: 25px;">
+                            <div class="stylus strip">
+                                <p>
+                                    Disclaimer
+                                </p>
+                            </div>
+                            <div style="padding: 55px 0px 40px 0px;">
+                                <p class="smallpara"
+                                    style="line-height: 18px;">
+                                    Our Valuation Report (the "Report") does
+                                    not
+                                    intend to assist in any investment/sale
+                                    advice
+                                    or a binding recommendation to the
+                                    Client on
+                                    its
+                                    future course of action
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    The Report and our services are strictly
+                                    for
+                                    the
+                                    benefit, and use of Client and
+                                    accordingly
+                                    should not be relied upon and used by
+                                    (or
+                                    for
+                                    the
+                                    benefit of) any third party ("Third
+                                    Party"),
+                                    including any prospective buyer.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    Our Report is based on the information
+                                    provided
+                                    by the Company, which we did not have
+                                    direct
+                                    access to.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    In carrying out our work and preparing
+                                    the
+                                    Report, we have worked solely for the
+                                    Clientʼs
+                                    interest. Our Report may not have
+                                    considered
+                                    issues relevant to the Third Party. Any
+                                    use
+                                    that
+                                    the Third Party may choose to make of
+                                    the
+                                    Report
+                                    is entirely at their own risk, and we
+                                    shall
+                                    have no responsibility whatsoever in
+                                    relation to
+                                    any such use. Accordingly, we do not owe
+                                    a
+                                    duty
+                                    of care to the Third Party reader of
+                                    this
+                                    Report.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    In preparing our report, our primary
+                                    source
+                                    has
+                                    been the Companyʼs internal management
+                                    information and representations made to
+                                    us
+                                    by
+                                    the Company management. We do not accept
+                                    responsibility for such information
+                                    which
+                                    remains the responsibility of the
+                                    management.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    The Report has been based on the data
+                                    made
+                                    available to us as of the date of the
+                                    Report. We
+                                    will not be updating this Report with
+                                    respect
+                                    to any circumstances, and information
+                                    that
+                                    becomes available, after that date.
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    We appreciate the opportunity to service
+                                    yo
+                                </p>
+                                <div class="smallpara"
+                                    style="padding-top: 15px;">
+                                    <p style="line-height: 18px;">Yours
+                                        faithfully,</p>
+                                    <p>Clybourne Consulting Pvt Ltd
+                                    </p>
+                                </div>
+                            </div>
+                            <hr />
+                        </div>
+                        <div class="featureSecion"
+                            style="margin-bottom: 25px;">
+                            <div class="stylus strip">
+                                <p>
+                                    About
+                                    <span class="color">
+                                        Clybourne
+                                    </span>
+                                </p>
+                            </div>
+                            <div
+                                style="padding: 55px 0px 40px 0px; max-width: 60%;">
+                                <p class="smallpara"
+                                    style="line-height: 18px;">
+                                    Clybourne Insights provides independent
+                                    financial advisory services based on
+                                    seasoned experience and strong research.
+                                    Our
+                                    services are designed to build,
+                                    manage, and conserve businesses across
+                                    the
+                                    globe
+                                    through effective
+                                    understanding of their needs
+                                </p>
+                                <p class="smallpara"
+                                    style="line-height: 18px; padding-top: 15px;">
+                                    For more information about Clybourne
+                                    Insights
+                                    service offerings, please visit us at
+                                    www.clybourneinsights.com
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between;">
+                        <a href="#" class="smallpara colorPurple"
+                            style="text-decoration: none;">www.clybourneinsight.com</a>
+                        <p class="smallpara colorPurple">Copyright®Clybourne
+                            insights</p>
+                    </div>
+                    <div class="footIcon">
+                        <img class="icon"
+                            src="<%= process.env.NODE_ENV === 'production' ? 'https://finval-server.technolite.in' : 'http://localhost:5050' %>/assets/logo3.png"
+                            alt="icon">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- normalchart -->
+        <script>
+                document.addEventListener('DOMContentLoaded', function () {
+
+                // Get chart data from data attributes
+                const chartDataEl = document.getElementById('chart-data');
+                
+                if (!chartDataEl) {
+                    console.warn('No chart data element found');
+                    return;
                 }
-            },
-            {
-                $unwind: {
-                    path: '$assignedUser',
-                    preserveNullAndEmptyArrays: true // Keeps the order even if no assignedUser
+
+                // Parse chart data from data attributes
+                const chartData = {
+                    revenue: JSON.parse(chartDataEl.dataset.revenue || '{"labels":[],"data":[]}'),
+                    cogs: JSON.parse(chartDataEl.dataset.cogs || '{"labels":[],"data":[]}'),
+                    ebitda: JSON.parse(chartDataEl.dataset.ebitda || '{"labels":[],"data":[],"margins":[]}'),
+                    profit: JSON.parse(chartDataEl.dataset.profit || '{"labels":[],"data":[],"margins":[]}'),
+                    cash: JSON.parse(chartDataEl.dataset.cash || '{"labels":[],"cashIn":[],"cashOut":[]}')
+                };
+
+                // Check if we have data
+                if (!chartData.revenue || chartData.revenue.data.length === 0) {
+                    console.warn('No chart data available');
+                    return;
                 }
-            },
-            // New $lookup to get the plan data
-            {
-                $lookup: {
-                    from: 'planrecords', // The name of the PlanRecord collection
-                    localField: 'plan.planOrderId', // Reference field in orders
-                    foreignField: '_id', // Field in PlanRecord
-                    as: 'planData' // Output array field for the joined data
-                }
-            },
-            {
-                $unwind: {
-                    path: '$planData',
-                    preserveNullAndEmptyArrays: true // If no planData, it will still return the order
-                }
-            },
-            {
-                $project: {
-                    'business.companyName': 1,
-                    'business.country': 1,
-                    'contact.name': 1,
-                    'contact.email': 1,
-                    'assigned_to': 1,
-                    'assignedUser.name': 1, // Assuming User has a name field
-                    'createdAt': 1,
-                    'submittedOn': 1,
-                    'due_date': 1,
-                    'custody': 1,
-                    'matadata.status': 1,
-                    'orderId': 1,
-                    'planData.planSeqId': 1, // Add fields from planData
-                    'planData.planName': 1
-                }
-            }
-        ]);
 
-        res.json(orders);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Get dropdown values
-router.get('/dropdowns', async (req, res) => {
-    try {
-        const customers = await Customers.find().select('id email').sort({ email: 1 });
-        const customerplans = await Customers.find().select('id first_name last_name email').sort({ first_name: 1 });
-        const companies = await Orders.aggregate([
-            {
-                $group: {
-                    _id: "$business.companyName", // Group by companyName
-                }
-            },
-            {
-                $sort: {
-                    _id: 1 // Sort alphabetically by companyName
-                }
-            },
-            {
-                $project: {
-                    companyName: "$_id", // Rename _id to companyName
-                    _id: 0  // Exclude the _id field from the final output
-                }
-            }
-        ]);
-        const countries = await Country.find().select('id, name').sort({ name: 1 });
-        const assignedTo = await Admins.find().select('id, name').sort({ name: 1 });
-
-        res.json({ customers, companies, countries, assignedTo, customerplans });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Get a specific plan
-router.get('/:orderId', async (req, res) => {
-    try {
-        // Fetch order details and populate customer data
-        let order = await Orders.findById(req.params.orderId).populate({
-            path: 'matadata.customerId',
-            select: 'first_name last_name email phone activePlanType activeSeqId'
-        }).populate({
-            path: 'assigned_to',
-            select: 'name'
-        })
-            .populate({
-                path: 'plan.planOrderId', // Populate plan data
-                select: 'planSeqId planStatus'
-            });
-
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-        let initialOrder = req.query.type;
-
-        if (order.initial_input) {
-            order = initialOrder === 'initials' ? order.initial_input : order;
-        }
-
-        const assignedTo = order.assigned_to;
-        const customer = order.matadata.customerId;
-        if (!customer) {
-            return res.status(404).json({ message: 'Customer not found' });
-        }
-
-        let submittedBy = null;
-        let submittedByName = "";
-
-        if (order.custody === 'Company') {
-            if (order.submittedByRole === 'Admin') {
-                const admin = await Admins.findById(order.submittedBy).select('name');
-                if (admin) {
-                    submittedBy = admin._id;
-                    submittedByName = admin.name;
-                }
-            } else {
-                const customerSubmitter = await Customers.findById(order.submittedBy).select('first_name last_name');
-                if (customerSubmitter) {
-                    submittedBy = customerSubmitter._id;
-                    submittedByName = `${customerSubmitter.first_name} ${customerSubmitter.last_name}`;
-                }
-            }
-        } else if (order.custody === 'Customer') {
-            if (order.submittedByRole === 'Admin') {
-                const admin = await Admins.findById(order.submittedBy).select('name');
-                if (admin) {
-                    submittedBy = admin._id;
-                    submittedByName = admin.name;
-                }
-            } else {
-                const customerSubmitter = await Customers.findById(order.submittedBy).select('first_name last_name');
-                if (customerSubmitter) {
-                    submittedBy = customerSubmitter._id;
-                    submittedByName = `${customerSubmitter.first_name} ${customerSubmitter.last_name}`;
-                }
-            }
-        }
-
-        let companyAgeDiscountFactor = 0;
-        let companyAgeAlphaFactor = 0;
-        let earningTrendDiscountFactor = 0;
-        let backEndService = null;
-        //Calculation Part of Order
-        if (order.business && order.finance && order.forcast_inc_stmt && order.forcast_bal_sheet) {
-            backEndService = new BackEndService.BackEndService(undefined, order);
-
-            // Get additional data from Businessdata collection for companyAge
-            const companyAgeData = await BusinessDataModel.findOne({ display_value: order.business.companyAge }).select('discount_factor alpha_factor');
-            companyAgeDiscountFactor = companyAgeData ? companyAgeData.discount_factor : 0;
-            companyAgeAlphaFactor = companyAgeData ? companyAgeData.alpha_factor : 0;
-
-            // Get additional data from Historicaltrends collection for earningTrend
-            const earningTrendData = await HistoricalTrends.findOne({ display_value: order.business.earningTrend }).select('discount_factor');
-            earningTrendDiscountFactor = earningTrendData ? earningTrendData.discount_factor : 0;
-        }
-
-        let finData = {};
-        let forecastData = {};
-        //Create Graph Data 
-        if (order.finance) {
-            finData = {
-                sales: [order.finance.sales],
-                costOfSales: [order.finance.costOfSales],
-                ebitda: [order.finance.ebitda],
-                netProfit: [order.finance.netProfit],
-                cashBalance: [order.finance.cashBalance],
-                year: [order.finance.dataYear, order.finance.dataYear + 1, order.finance.dataYear + 2, order.finance.dataYear + 3, order.finance.dataYear + 4, order.finance.dataYear + 5],
-                valueType: [order.finance.valueType]
-            }
-        }
-
-        if (order.forcast_inc_stmt) {
-            let values1 = [order.forcast_inc_stmt[0].salesGrowthRate, order.forcast_inc_stmt[1].salesGrowthRate, order.forcast_inc_stmt[2].salesGrowthRate, order.forcast_inc_stmt[3].salesGrowthRate, order.forcast_inc_stmt[4].salesGrowthRate];
-            let values2 = [order.forcast_inc_stmt[0].cogs, order.forcast_inc_stmt[1].cogs, order.forcast_inc_stmt[2].cogs, order.forcast_inc_stmt[3].cogs, order.forcast_inc_stmt[4].cogs];
-            let values3 = [order.forcast_inc_stmt[0].ebitdaMargin, order.forcast_inc_stmt[1].ebitdaMargin, order.forcast_inc_stmt[2].ebitdaMargin, order.forcast_inc_stmt[3].ebitdaMargin, order.forcast_inc_stmt[4].ebitdaMargin];
-            let values4 = [order.forcast_inc_stmt[0].netProfitMargin, order.forcast_inc_stmt[1].netProfitMargin, order.forcast_inc_stmt[2].netProfitMargin, order.forcast_inc_stmt[3].netProfitMargin, order.forcast_inc_stmt[4].netProfitMargin];
-
-            forecastData = [
-                { label: "Forecasted Sales Growth Rate (Y-o-Y) (%)", values: values1 },
-                { label: "Forecasted COGS (as % of revenue) (%)", values: values2 },
-                { label: "Forecasted EBITDA Margin (%)", values: values3 },
-                { label: "Forecasted Net Profit Margin (%)", values: values4 }
-            ]
-        }
-
-        let documents = await buildDocumentUrls(order);
-
-        //Get Turn Over Factors Data for Order
-        const turnoverfactors = await TurnoverFactor.find();
-        // Construct response object with both order and customer data
-        const responseData = {
-            orderId: order._id,
-            customer: {
-                customerId: customer._id,
-                customerName: `${customer.first_name} ${customer.last_name}`,
-                customerEmail: customer.email,
-                customerContact: customer.phone,
-                planType: customer.activePlanType,
-                planSeq: customer.activePlanSeqId,
-                // Add other relevant customer fields as needed
-            },
-            order: {
-                systemOrderId: order.orderId,
-                status: order.matadata.status,
-                createdOn: order.createdAt,
-                customerSequence: order.customerOrderSequence,
-                submittedBy: submittedBy ? { userId: submittedBy, userName: submittedByName } : null,
-                submittedOn: order.submittedOn,
-                companyName: order.business.companyName,
-                reportDueDate: order.due_date,
-                checkBoxesValues: order.checkBoxesValues || {},  // Add this line
-                completedOn: order.completedOn,
-                country: order.business.country,
-                assignedTo: assignedTo ? assignedTo.name : null,
-                resubmittedOn: order.last_submitted_date,
-                custody: order.custody,
-                revisedCompletedOn: order.revisedCompletedOn,
-                valuationStatus: order.valuationStatus,
-                assignedId: order.assigned_to,
-                documents: documents,
-                planData: order.plan,
-                business: {
-                    business: order.business,
-                    companyAgeDiscountFactor: companyAgeDiscountFactor,
-                    companyAgeAlphaFactor: companyAgeAlphaFactor,
-                    earningTrendDiscountFactor: earningTrendDiscountFactor,
-                    turnoverFactor: turnoverfactors
-                },
-                // Add other relevant order fields as needed
-            },
-            calculations: {
-                finance: order.finance,
-                forecast_inc_stmt: order.forcast_inc_stmt,
-                forecast_bal_sheet: order.forcast_bal_sheet,
-                forecast_rip_days: order.forcast_rip_days,
-                back_end_inputs: order.back_end_inputs,
-                back_end_table: order.back_end_table,
-                workIncStmt: backEndService ? backEndService.workIncStmt : null,
-                workBalSheet: backEndService ? backEndService.workBalSheet : null,
-                workCashFlowStmt: backEndService ? backEndService.workCashFlowStmt : null,
-                years: backEndService ? backEndService.years : null,
-                backend_inputs: order.back_end_inputs,
-                business: order.business,
-                graphData: {
-                    finData: finData,
-                    forecastData: forecastData
-                },
-            }
-        };
-
-        res.json(responseData);
-    } catch (err) {
-        console.error('Error fetching order and customer data:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Get a specific plan
-router.get('/customer-plan/:userId', async (req, res) => {
-    const { userId } = req.params;
-
-    // Validate userId format (if using MongoDB ObjectId)
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: 'Invalid user ID format' });
-    }
-
-    try {
-        const plans = await PlanRecord.find({
-            userId: userId
-        })
-            .populate('planId')
-            .sort({ createdAt: -1 });
-
-        return res.status(200).json({ message: 'Plan Fetched', data: plans });
-    } catch (err) {
-        console.error('Error fetching order and customer data:', err);
-        return res.status(500).json({ message: 'Internal server error', error: err.message }); // Consider removing error message in production
-    }
-});
-
-// UPDATE route: this will update the details valuation Parameters  
-router.put("/valuation-parameters/:_id", async (req, res) => {
-    const { back_end_inputs } = req.body;
-    console.log("valuation-parameters", back_end_inputs)
-    // Find the query by ID
-    const query = await Orders.findById(req.params._id);
-
-    if (query) {
-        // Update the query with new back_end_inputs and back_end_table
-        // Update only the fields that are provided in the request
-        if (back_end_inputs) {
-            query.back_end_inputs = back_end_inputs;
-        }
-
-        // Save the updated query
-        const updatedQuery = await query.save();
-
-        if (updatedQuery) {
-            return res.status(202).json({
-                message: 'Parameter Saved',
-            });
-        }
-
-    } else {
-        return res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-//Update the excel  
-router.put("/:_id", async (req, res) => {
-    const { _id } = req.params;
-    const { back_end_table } = req.body;
-
-    if (!_id || !back_end_table) {
-        return res.status(400).json({ message: 'Invalid request parameters' });
-    }
-
-    try {
-        // Find the order by ID
-        const query = await Orders.findById(_id);
-
-        if (!query) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        // Update the order with new back_end_table
-        query.back_end_table = back_end_table;
-
-        // Proceed with calculations
-        const backEndAvgService = new BackEndAvgService.BackEndAvgService(back_end_table);
-        const backEndService = new BackEndService.BackEndService(backEndAvgService, query);
-        const dcfService = new DcfService.DcfService(backEndService, query);
-
-        // 🔧 FIX: Preserve existing checkbox values when updating back_end_table
-        // Don't overwrite user's saved preferences with auto-checked values
-        const existingCheckBoxes = query.checkBoxesValues || {};
-        const relValService = new RelativeValuationService.RelativeValuationService(dcfService, backEndService, existingCheckBoxes);
-
-        // Store CheckBox Values - preserve user preferences, don't overwrite with auto-checked values
-        // Only update if ValuationCheckBox has valid structure, otherwise keep existing
-        if (relValService.ValuationCheckBox && Object.keys(relValService.ValuationCheckBox).length > 0) {
-            // Merge: use existing values as base, only update if service provides valid values
-            query.checkBoxesValues = {
-                ...existingCheckBoxes,
-                ...relValService.ValuationCheckBox
-            };
-        }
-        // If ValuationCheckBox is null/empty, keep existing checkBoxesValues unchanged
-
-        // Save the updated order
-        const updatedQuery = await query.save();
-
-        // Return the response with calculated values
-        return res.status(200).json({
-            message: 'Query Detail',
-            query: updatedQuery,
-            workIncStmt: backEndService.workIncStmt,
-            workBalSheet: backEndService.workBalSheet,
-            workCashFlowStmt: backEndService.workCashFlowStmt,
-            workBackEndInputs: backEndService.workBackEndInputs,
-            workBackEndTableAvg: backEndService.workBackEndTableAvg,
-            workDcfFCFF: dcfService.workDcfFCFF,
-            companyEquityAvgValue: dcfService.companyEquityAvgValue,
-            companyEquityMinValue: dcfService.companyEquityMinValue,
-            companyEquityMaxValue: dcfService.companyEquityMaxValue,
-            terminalFCFF: dcfService.terminalFCFF,
-            terminalPresentFCFF: dcfService.terminalPresentFCFF,
-            wacc: dcfService.wacc,
-            PE: relValService.PE,
-            PE_1: relValService.PE_1,
-            PS: relValService.PS,
-            PS_1: relValService.PS_1,
-            EV_SALES: relValService.EV_SALES,
-            EV_SALES_1: relValService.EV_SALES_1,
-            EV_EBITDA: relValService.EV_EBITDA,
-            EV_EBITDA_1: relValService.EV_EBITDA_1,
-            EnterpriseAvgValue: relValService.EnterpriseAvgValue,
-            EnterpriseMinValue: relValService.EnterpriseMinValue,
-            EnterpriseMaxValue: relValService.EnterpriseMaxValue,
-            ValuationCheckBox: relValService.ValuationCheckBox,
-            RelativeWeightPercent: relValService.RelativeWeightPercent,
-            netDebt: relValService.netDebt
-        });
-    } catch (error) {
-        console.error("Error processing the request", error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
-    }
-});
-
-router.put('/store-valuation-data/:_id', async (req, res) => {
-    // Find the query by ID
-    const query = await Orders.findById(req.params._id);
-
-    if (query) {
-        query.valuationStatus = 1;
-
-        // Update the order with new back_end_table
-        let back_end_table = query.back_end_table;
-
-        // Proceed with calculations
-        const backEndAvgService = new BackEndAvgService.BackEndAvgService(back_end_table);
-        const backEndService = new BackEndService.BackEndService(backEndAvgService, query);
-        const dcfService = new DcfService.DcfService(backEndService, query);
-        const relValService = new RelativeValuationService.RelativeValuationService(dcfService, backEndService, undefined);
-
-        // Store CheckBox Values
-        query.checkBoxesValues = relValService.ValuationCheckBox;
-
-        // Save the updated order
-        const updatedQuery = await query.save();
-        console.log("updated wuery", updatedQuery);
-        if (updatedQuery) {
-            return res.status(200).json({
-                message: 'Valuation Generated Successfully',
-            });
-        }
-    }
-});
-
-router.get('/valuation-data/:_id', async function (req, res) {
-    // Fetch order fresh from database (no caching)
-    const query = await Orders.findById(req.params._id);
-
-    if (query) {
-        // console.log('=== VALUATION DATA REQUEST ===');
-       // console.log('Order ID:', req.params._id);
-        // console.log('CheckBoxesValues from DB:', JSON.stringify(query.checkBoxesValues));
-
-        // Proceed with calculations if either back_end_inputs or back_end_table is missing
-        const backEndAvgService = new BackEndAvgService.BackEndAvgService(query.back_end_table);
-        const backEndService = new BackEndService.BackEndService(backEndAvgService, query);
-        const dcfService = new DcfService.DcfService(backEndService, query);
-
-        // Use checkbox values directly from the order (fresh from DB)
-        const checkBoxesValues = query.checkBoxesValues || {};
-        console.log('Using checkBoxesValues for calculations:', JSON.stringify(checkBoxesValues));
-
-        const relValService = new RelativeValuationService.RelativeValuationService(dcfService, backEndService, checkBoxesValues);
-
-        // Convert Mongoose document to plain object for JSON response
-        const queryObject = query.toObject ? query.toObject() : query;
-
-        // Return the response with calculated values
-        return res.status(200).json({
-            message: 'Query Detail',
-            query: queryObject,
-            checkBoxesValues: checkBoxesValues, // Explicitly include checkbox values at root level
-            workIncStmt: backEndService.workIncStmt,
-            workBalSheet: backEndService.workBalSheet,
-            workCashFlowStmt: backEndService.workCashFlowStmt,
-            workBackEndInputs: backEndService.workBackEndInputs,
-            workBackEndTableAvg: backEndService.workBackEndTableAvg,
-            workDcfFCFF: dcfService.workDcfFCFF,
-            companyEquityAvgValue: dcfService.companyEquityAvgValue,
-            companyEquityMinValue: dcfService.companyEquityMinValue,
-            companyEquityMaxValue: dcfService.companyEquityMaxValue,
-            terminalFCFF: dcfService.terminalFCFF,
-            terminalPresentFCFF: dcfService.terminalPresentFCFF,
-            terminalDiscountFactor: dcfService.terminalDiscountFactor,
-            enterpriseValue: dcfService.enterpriseValue,
-            wacc: dcfService.wacc,
-            adjustedBeta: dcfService.adjustedBeta,
-            PE: relValService.PE,
-            PE_1: relValService.PE_1,
-            PS: relValService.PS,
-            PS_1: relValService.PS_1,
-            EV_SALES: relValService.EV_SALES,
-            EV_SALES_1: relValService.EV_SALES_1,
-            EV_EBITDA: relValService.EV_EBITDA,
-            EV_EBITDA_1: relValService.EV_EBITDA_1,
-            EnterpriseAvgValue: relValService.EnterpriseAvgValue,
-            EnterpriseMinValue: relValService.EnterpriseMinValue,
-            EnterpriseMaxValue: relValService.EnterpriseMaxValue,
-            weightAvgEquityValue: relValService.weightAvgEquityValue,
-            weightMinEquityValue: relValService.weightMinEquityValue,
-            weightMaxEquityValue: relValService.weightMaxEquityValue,
-            ValuationCheckBox: relValService.ValuationCheckBox,
-            RelativeWeightPercent: relValService.RelativeWeightPercent,
-            netDebt: relValService.netDebt,
-            years: backEndService.years,
-        });
-    } else {
-        return res.status(500).json({ message: 'Internal server error' });
-    }
-})
-
-router.delete('/reset-data/:_id', async function (req, res) {
-    const query = await Orders.findById(req.params._id);
-
-    if (query) {
-
-        // Update the order to remove back_end_table
-        query.back_end_table = null; // or remove it completely based on your schema
-        await query.save();
-
-        res.status(200).json({ message: 'Back_end_table deleted successfully' });
-
-    } else {
-        return res.status(500).json({ message: 'Internal server error' });
-    }
-})
-
-//Calculate The Values Based on the Checkboxes
-
-router.put('/checkbox-calculations/:_id', async (req, res) => {
-    try {
-        const orderId = req.params._id;
-        const checkBoxValues = req.body.checkBoxValues;
-
-        // console.log('=== CHECKBOX SAVE REQUEST ===');
-        // console.log('Order ID:', orderId);
-        //  console.log('Received checkBoxValues:', JSON.stringify(checkBoxValues));
-
-        if (!checkBoxValues || checkBoxValues === null || checkBoxValues === undefined) {
-            return res.status(400).json({ message: 'checkBoxValues is required' });
-        }
-
-        // Prepare checkbox values with explicit boolean conversion
-        const updatedCheckBoxesValues = {
-            checkBoxPE: Boolean(checkBoxValues.checkBoxPE),
-            checkBoxPE_1: Boolean(checkBoxValues.checkBoxPE_1),
-            checkBoxPS: Boolean(checkBoxValues.checkBoxPS),
-            checkBoxPS_1: Boolean(checkBoxValues.checkBoxPS_1),
-            checkBoxEV_SALES: Boolean(checkBoxValues.checkBoxEV_SALES),
-            checkBoxEV_SALES_1: Boolean(checkBoxValues.checkBoxEV_SALES_1),
-            checkBoxEV_EBITDA: Boolean(checkBoxValues.checkBoxEV_EBITDA),
-            checkBoxEV_EBITDA_1: Boolean(checkBoxValues.checkBoxEV_EBITDA_1),
-            // Include the includeCheckBox fields if they exist
-            includeCheckBoxPE: checkBoxValues.includeCheckBoxPE !== undefined ? Boolean(checkBoxValues.includeCheckBoxPE) : false,
-            includeCheckBoxPE_1: checkBoxValues.includeCheckBoxPE_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxPE_1) : false,
-            includeCheckBoxPS: checkBoxValues.includeCheckBoxPS !== undefined ? Boolean(checkBoxValues.includeCheckBoxPS) : false,
-            includeCheckBoxPS_1: checkBoxValues.includeCheckBoxPS_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxPS_1) : false,
-            includeCheckBoxEV_SALES: checkBoxValues.includeCheckBoxEV_SALES !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_SALES) : false,
-            includeCheckBoxEV_SALES_1: checkBoxValues.includeCheckBoxEV_SALES_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_SALES_1) : false,
-            includeCheckBoxEV_EBITDA: checkBoxValues.includeCheckBoxEV_EBITDA !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_EBITDA) : false,
-            includeCheckBoxEV_EBITDA_1: checkBoxValues.includeCheckBoxEV_EBITDA_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_EBITDA_1) : false,
-        };
-
-        console.log('Prepared checkBoxesValues for save:', JSON.stringify(updatedCheckBoxesValues));
-
-        // Fetch the order for calculations
-        const order = await Orders.findById(orderId);
-
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        // Perform calculations with the updated checkbox values
-        const backEndAvgService = new BackEndAvgService.BackEndAvgService(order.back_end_table);
-        const backEndService = new BackEndService.BackEndService(backEndAvgService, order);
-        const dcfService = new DcfService.DcfService(backEndService, order);
-        const relValService = new RelativeValuationService.RelativeValuationService(dcfService, backEndService, updatedCheckBoxesValues);
-
-        // Prepare all data to save
-        if (relValService.PE_1) {
-            console.log('Saving PE_1:', relValService.PE_1);
-            order.PE_1 = relValService.PE_1;
-        }
-
-        if (relValService.PS_1) {
-            console.log('Saving PS_1:', relValService.PS_1);
-            order.PS_1 = relValService.PS_1;
-        }
-
-        if (relValService.EV_SALES_1) {
-            console.log('Saving EV_SALES_1:', relValService.EV_SALES_1);
-            order.EV_SALES_1 = relValService.EV_SALES_1;
-        }
-
-        if (relValService.EV_EBITDA_1) {
-            console.log('Saving EV_EBITDA_1:', relValService.EV_EBITDA_1);
-            order.EV_EBITDA_1 = relValService.EV_EBITDA_1;
-        }
-
-        // 3. Save summary values (new fields)
-        order.netDebt = relValService.netDebt || 0;
-        order.weightAvgEquityValue = relValService.weightAvgEquityValue || 0;
-        order.weightMinEquityValue = relValService.weightMinEquityValue || 0;
-        order.weightMaxEquityValue = relValService.weightMaxEquityValue || 0;
-        order.EnterpriseAvgValue = relValService.EnterpriseAvgValue || 0;
-        order.EnterpriseMinValue = relValService.EnterpriseMinValue || 0;
-        order.EnterpriseMaxValue = relValService.EnterpriseMaxValue || 0;
-
-        // Also save original multiples if needed
-        if (relValService.PE) {
-            order.PE = relValService.PE;
-        }
-        if (relValService.PS) {
-            order.PS = relValService.PS;
-        }
-        if (relValService.EV_SALES) {
-            order.EV_SALES = relValService.EV_SALES;
-        }
-        if (relValService.EV_EBITDA) {
-            order.EV_EBITDA = relValService.EV_EBITDA;
-        }
-
-        // Save workBackEndInputs if available
-        if (relValService.workBackEndInputs) {
-            order.workBackEndInputs = relValService.workBackEndInputs;
-        }
-
-        // 4. Save all data to database using findByIdAndUpdate with $set
-        // This ensures all fields including checkbox values are saved correctly
-        console.log('Saving all data to database...');
-
-        // CRITICAL FIX: Get current values from database FIRST to preserve unchanged fields
-        // The frontend might not send all fields, so we need to merge with existing values
-        const currentOrder = await Orders.findById(orderId).lean();
-        const currentCheckBoxes = currentOrder?.checkBoxesValues || {};
-
-        console.log('Current checkbox values from DB:', JSON.stringify(currentCheckBoxes));
-        console.log('Incoming checkbox values from frontend:', JSON.stringify(checkBoxValues));
-
-        // Merge: Use incoming value if provided, otherwise use current value, otherwise default to false
-        // This ensures we never lose existing true values when only one checkbox is changed
-        const completeCheckBoxesValues = {
-            checkBoxPE: checkBoxValues.checkBoxPE !== undefined ? Boolean(checkBoxValues.checkBoxPE) : Boolean(currentCheckBoxes.checkBoxPE || false),
-            checkBoxPE_1: checkBoxValues.checkBoxPE_1 !== undefined ? Boolean(checkBoxValues.checkBoxPE_1) : Boolean(currentCheckBoxes.checkBoxPE_1 || false),
-            checkBoxPS: checkBoxValues.checkBoxPS !== undefined ? Boolean(checkBoxValues.checkBoxPS) : Boolean(currentCheckBoxes.checkBoxPS || false),
-            checkBoxPS_1: checkBoxValues.checkBoxPS_1 !== undefined ? Boolean(checkBoxValues.checkBoxPS_1) : Boolean(currentCheckBoxes.checkBoxPS_1 || false),
-            checkBoxEV_SALES: checkBoxValues.checkBoxEV_SALES !== undefined ? Boolean(checkBoxValues.checkBoxEV_SALES) : Boolean(currentCheckBoxes.checkBoxEV_SALES || false),
-            checkBoxEV_SALES_1: checkBoxValues.checkBoxEV_SALES_1 !== undefined ? Boolean(checkBoxValues.checkBoxEV_SALES_1) : Boolean(currentCheckBoxes.checkBoxEV_SALES_1 || false),
-            checkBoxEV_EBITDA: checkBoxValues.checkBoxEV_EBITDA !== undefined ? Boolean(checkBoxValues.checkBoxEV_EBITDA) : Boolean(currentCheckBoxes.checkBoxEV_EBITDA || false),
-            checkBoxEV_EBITDA_1: checkBoxValues.checkBoxEV_EBITDA_1 !== undefined ? Boolean(checkBoxValues.checkBoxEV_EBITDA_1) : Boolean(currentCheckBoxes.checkBoxEV_EBITDA_1 || false),
-            includeCheckBoxPE: checkBoxValues.includeCheckBoxPE !== undefined ? Boolean(checkBoxValues.includeCheckBoxPE) : Boolean(currentCheckBoxes.includeCheckBoxPE || false),
-            includeCheckBoxPE_1: checkBoxValues.includeCheckBoxPE_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxPE_1) : Boolean(currentCheckBoxes.includeCheckBoxPE_1 || false),
-            includeCheckBoxPS: checkBoxValues.includeCheckBoxPS !== undefined ? Boolean(checkBoxValues.includeCheckBoxPS) : Boolean(currentCheckBoxes.includeCheckBoxPS || false),
-            includeCheckBoxPS_1: checkBoxValues.includeCheckBoxPS_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxPS_1) : Boolean(currentCheckBoxes.includeCheckBoxPS_1 || false),
-            includeCheckBoxEV_SALES: checkBoxValues.includeCheckBoxEV_SALES !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_SALES) : Boolean(currentCheckBoxes.includeCheckBoxEV_SALES || false),
-            includeCheckBoxEV_SALES_1: checkBoxValues.includeCheckBoxEV_SALES_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_SALES_1) : Boolean(currentCheckBoxes.includeCheckBoxEV_SALES_1 || false),
-            includeCheckBoxEV_EBITDA: checkBoxValues.includeCheckBoxEV_EBITDA !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_EBITDA) : Boolean(currentCheckBoxes.includeCheckBoxEV_EBITDA || false),
-            includeCheckBoxEV_EBITDA_1: checkBoxValues.includeCheckBoxEV_EBITDA_1 !== undefined ? Boolean(checkBoxValues.includeCheckBoxEV_EBITDA_1) : Boolean(currentCheckBoxes.includeCheckBoxEV_EBITDA_1 || false),
-        };
-
-        console.log('✅ Merged complete checkbox values to save:', JSON.stringify(completeCheckBoxesValues));
-
-        // Prepare update object - replace the ENTIRE nested object (not using dot notation)
-        // This is more reliable than dot notation for nested objects
-        const updateData = {
-            checkBoxesValues: completeCheckBoxesValues, // Replace entire nested object
-            netDebt: relValService.netDebt || 0,
-            weightAvgEquityValue: relValService.weightAvgEquityValue || 0,
-            weightMinEquityValue: relValService.weightMinEquityValue || 0,
-            weightMaxEquityValue: relValService.weightMaxEquityValue || 0,
-            EnterpriseAvgValue: relValService.EnterpriseAvgValue || 0,
-            EnterpriseMinValue: relValService.EnterpriseMinValue || 0,
-            EnterpriseMaxValue: relValService.EnterpriseMaxValue || 0,
-        };
-
-        // Add multiples data if they exist
-        if (relValService.PE) updateData.PE = relValService.PE;
-        if (relValService.PE_1) updateData.PE_1 = relValService.PE_1;
-        if (relValService.PS) updateData.PS = relValService.PS;
-        if (relValService.PS_1) updateData.PS_1 = relValService.PS_1;
-        if (relValService.EV_SALES) updateData.EV_SALES = relValService.EV_SALES;
-        if (relValService.EV_SALES_1) updateData.EV_SALES_1 = relValService.EV_SALES_1;
-        if (relValService.EV_EBITDA) updateData.EV_EBITDA = relValService.EV_EBITDA;
-        if (relValService.EV_EBITDA_1) updateData.EV_EBITDA_1 = relValService.EV_EBITDA_1;
-        if (relValService.workBackEndInputs) updateData.workBackEndInputs = relValService.workBackEndInputs;
-
-        console.log('Update data:', JSON.stringify(updateData, null, 2));
-        console.log('Order ID type:', typeof orderId, 'Value:', orderId);
-
-        // Convert orderId to ObjectId if it's a string
-        const mongoose = require('mongoose');
-        let orderObjectId;
-        try {
-            orderObjectId = mongoose.Types.ObjectId.isValid(orderId) ? new mongoose.Types.ObjectId(orderId) : orderId;
-        } catch (e) {
-            orderObjectId = orderId;
-        }
-
-        // METHOD 1: Try using updateOne with $set for direct MongoDB update
-        // This directly updates MongoDB, bypassing all Mongoose middleware and change detection
-        const updateResult = await Orders.updateOne(
-            { _id: orderObjectId },
-            { $set: updateData },
-            { upsert: false }
-        );
-
-        console.log('Update result:', {
-            matchedCount: updateResult.matchedCount,
-            modifiedCount: updateResult.modifiedCount,
-            acknowledged: updateResult.acknowledged
-        });
-
-        if (updateResult.matchedCount === 0) {
-            return res.status(404).json({
-                message: 'Order not found',
-                orderId: orderId,
-                orderObjectId: orderObjectId.toString()
-            });
-        }
-
-        if (updateResult.modifiedCount === 0) {
-            console.warn('⚠️ WARNING: No documents were modified. This might mean:');
-            console.warn('  1. The values are exactly the same as what\'s in the database');
-            console.warn('  2. There was an issue with the update');
-            console.warn('  3. MongoDB validation failed silently');
-
-            // Still proceed to verify what's in the database
-        } else {
-            console.log('✅ Document was modified successfully');
-        }
-
-        // Wait a moment for MongoDB to commit the write
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Reload the order from database to verify the save - use lean(false) to get Mongoose document
-        const savedOrder = await Orders.findById(orderObjectId).lean(false);
-
-        if (!savedOrder) {
-            return res.status(404).json({ message: 'Order not found after update' });
-        }
-
-        console.log('✅ Saved successfully!');
-        console.log('CheckBoxesValues after save (from DB):', JSON.stringify(savedOrder.checkBoxesValues));
-
-        // Verify the checkbox values were actually saved
-        const savedCheckBoxes = savedOrder.checkBoxesValues || {};
-        const valuesMatch = JSON.stringify(savedCheckBoxes) === JSON.stringify(completeCheckBoxesValues);
-
-        if (!valuesMatch) {
-            console.error('❌ MISMATCH: Saved values do not match what we tried to save!');
-            console.error('Expected:', JSON.stringify(completeCheckBoxesValues));
-            console.error('Got:', JSON.stringify(savedCheckBoxes));
-            console.error('This indicates the database update may have failed or been partially applied.');
-        } else {
-            console.log('✅ Verified: Checkbox values match what was saved');
-        }
-
-        // Use the saved order's values (from the database) - this is the source of truth
-        const savedCheckBoxesValues = savedOrder.checkBoxesValues || completeCheckBoxesValues;
-
-        console.log('Returning checkBoxesValues in response:', JSON.stringify(savedCheckBoxesValues));
-
-        // Return the saved data - using values from savedOrder (fresh from DB)
-        return res.status(200).json({
-            message: 'Data saved successfully',
-            query: {
-                _id: savedOrder._id,
-                checkBoxesValues: savedCheckBoxesValues
-            },
-            PE: savedOrder.PE,
-            PE_1: savedOrder.PE_1,
-            PS: savedOrder.PS,
-            PS_1: savedOrder.PS_1,
-            EV_SALES: savedOrder.EV_SALES,
-            EV_SALES_1: savedOrder.EV_SALES_1,
-            EV_EBITDA: savedOrder.EV_EBITDA,
-            EV_EBITDA_1: savedOrder.EV_EBITDA_1,
-            workBackEndInputs: savedOrder.workBackEndInputs,
-            netDebt: savedOrder.netDebt,
-            weightAvgEquityValue: savedOrder.weightAvgEquityValue,
-            weightMinEquityValue: savedOrder.weightMinEquityValue,
-            weightMaxEquityValue: savedOrder.weightMaxEquityValue,
-            EnterpriseAvgValue: savedOrder.EnterpriseAvgValue,
-            EnterpriseMinValue: savedOrder.EnterpriseMinValue,
-            EnterpriseMaxValue: savedOrder.EnterpriseMaxValue
-        });
-
-    } catch (error) {
-        console.error('Error saving data:', error);
-        return res.status(500).json({
-            message: 'Internal server error',
-            error: error.message,
-            stack: error.stack
-        });
-    }
-});
-// Assignee the Admin User
-router.put('/:id/assign', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { assigned_to } = req.body;
-
-        if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(assigned_to)) {
-            return res.status(400).json({ message: "Invalid order or user ID" });
-        }
-
-        const updatedOrder = await Orders.findByIdAndUpdate(
-            id,
-            { assigned_to: new mongoose.Types.ObjectId(assigned_to) }
-        );
-
-        if (!updatedOrder) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        res.status(200).json(updatedOrder);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Change the Order Custody
-router.put('/:id/custody', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { custody } = req.body;
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid order or user ID" });
-        }
-
-        const updatedOrder = await Orders.findByIdAndUpdate(
-            id,
-            { custody: custody }
-        );
-
-        if (!updatedOrder) {
-            return res.status(404).json({ message: "Order not found" });
-        }
-
-        res.status(200).json(updatedOrder);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Change the Order Custody
-router.post('/complete-order', async (req, res) => {
-    try {
-        const order = await Orders.findById(req.body.orderId);
-        if (!order) {
-            return res.status(400).json({ status: false, message: "Invalid Order.", data: [] });
-        }
-
-        const customer = await Customers.findById(order.matadata.customerId);
-        if (!customer) {
-            return res.status(400).json({ status: false, message: "Customer Not Found.", data: [] });
-        }
-
-        const orderId = req.body.orderId;
-        const userUploadDir = path.join(__dirname, '../../../../uploads/orders/', orderId);
-
-        // Check if the directory exists; if not, create it
-        if (!fs.existsSync(userUploadDir)) {
-            fs.mkdirSync(userUploadDir, { recursive: true });
-        }
-
-        if (req.files && req.files.pdf) {
-            let document = req.files.pdf;
-            let fileName = (order.matadata.status === "Re-Submitted") ? 'revised_report.pdf' : document.name;
-            const uploadPath = path.join(userUploadDir, fileName);
-            await new Promise((resolve, reject) => {
-                document.mv(uploadPath, function (error) {
-                    if (error) {
-                        return reject(error);
+                // Canvas references
+                const revenueChart = document.getElementById('revenueChart');
+                const cogsChart = document.getElementById('cogsChart');
+                const ebitdaChart = document.getElementById('ebitdaChart');
+                const profitChart = document.getElementById('profitChart');
+                const cashChart = document.getElementById('cashChart');
+
+                // Helper function to format numbers in millions
+                function formatInMillions(value) {
+                    if (value >= 1000000) {
+                    return (value / 1000000).toFixed(1) + 'M';
                     }
-                    resolve(true);
-                });
-            });
+                    if (value >= 1000) {
+                    return (value / 1000).toFixed(1) + 'K';
+                    }
+                    return value.toFixed(1);
+                }
 
-            //Send initital order submit report
-            let html = (order.matadata.status === "Re-Submitted") ? await EmailTemplate.revisedReportSent(customer.first_name, order.business.companyName) : await EmailTemplate.inititalReportSubmit(customer.first_name, order.business.companyName);
-            let result = await EmailTemplate.sendMail({
-                email: customer.email,
-                subject: (order.matadata.status === "Re-Submitted") ? await EmailTemplate.fetchSubjectTemplate(12) : await EmailTemplate.fetchSubjectTemplate(11),
-                application_name: "FinVal",
-                text: "",
-                html: html,
-                attachments: [
-                    {
-                        filename: fileName,
-                        path: uploadPath, // Path to the uploaded file
+                // ===== Revenue Chart =====
+                if (revenueChart && chartData.revenue.data.length > 0) {
+                    new Chart(revenueChart, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.revenue.labels,
+                        datasets: [{
+                        data: chartData.revenue.data,
+                        backgroundColor: '#1e3a8a',
+                        barThickness: 15
+                        }]
                     },
-                ],
-            });
-
-            if (result) {
-                // Update the order to set it as completed
-                await Orders.updateOne({ _id: orderId }, {
-                    $set: {
-                        completedOn: moment().format(),
-                        revisedCompletedOn: (order.matadata.status === "Re-Submitted") ? moment().format() : null,
-                        reportDocName: fileName,
-                        "matadata.status": (order.matadata.status === "Re-Submitted") ? "Completed (Revised)" : "Completed"
+                    options: {
+                        animation: false,
+                        plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                return `${formatInMillions(context.raw)}`;
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        }
+                        }
                     }
+                    });
+                }
+
+                // ===== COGS Chart =====
+                if (cogsChart && chartData.cogs.data.length > 0) {
+                    new Chart(cogsChart, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.cogs.labels,
+                        datasets: [{
+                        data: chartData.cogs.data,
+                        backgroundColor: '#233977',
+                        barThickness: 15
+                        }]
+                    },
+                    options: {
+                        animation: false,
+                        plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                return `${formatInMillions(context.raw)}`;
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: { 
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        }
+                        }
+                    }
+                    });
+                }
+
+                // ===== EBITDA Chart =====
+                if (ebitdaChart && chartData.ebitda.data.length > 0) {
+                    new Chart(ebitdaChart, {
+                    data: {
+                        labels: chartData.ebitda.labels,
+                        datasets: [
+                        {
+                            type: 'bar',
+                            label: 'EBITDA',
+                            data: chartData.ebitda.data,
+                            backgroundColor: '#233977',
+                            barThickness: 15,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Margin %',
+                            data: chartData.ebitda.margins,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                        ]
+                    },
+                    options: {
+                        plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                return `EBITDA: ${formatInMillions(context.raw)}`;
+                                } else {
+                                return `Margin: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                            }
+                        }
+                        }
+                    }
+                    });
+                }
+
+                // ===== Net Profit Chart =====
+                if (profitChart && chartData.profit.data.length > 0) {
+                    new Chart(profitChart, {
+                    data: {
+                        labels: chartData.profit.labels,
+                        datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Net Profit',
+                            data: chartData.profit.data,
+                            backgroundColor: '#233977',
+                            barThickness: 15,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Margin %',
+                            data: chartData.profit.margins,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                        ]
+                    },
+                    options: {
+                        plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                if (context.datasetIndex === 0) {
+                                return `Net Profit: ${formatInMillions(context.raw)}`;
+                                } else {
+                                return `Margin: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                            }
+                        }
+                        }
+                    }
+                    });
+                }
+
+                // ===== Cash Flow Chart =====
+                if (cashChart && chartData.cash.cashIn.length > 0) {
+                    new Chart(cashChart, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.cash.labels,
+                        datasets: [
+                        {
+                            label: 'Cash In',
+                            data: chartData.cash.cashIn,
+                            backgroundColor: '#233977',
+                            barThickness: 15
+                        },
+                        {
+                            label: 'Cash Out',
+                            data: chartData.cash.cashOut,
+                            backgroundColor: '#1aa79c',
+                            barThickness: 15
+                        }
+                        ]
+                    },
+                    options: {
+                        animation: false,
+                        plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${formatInMillions(context.raw)}`;
+                            }
+                            }
+                        }
+                        },
+                        scales: {
+                        x: {
+                            categoryPercentage: 0.6,
+                            barPercentage: 0.7,
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                            callback: function(value) {
+                                return formatInMillions(value);
+                            }
+                            }
+                        }
+                        }
+                    }
+                    });
+                }
+
                 });
-                return res.status(200).json({ 'status': true, 'message': "Report Sent Sucessfully.", 'data': [] });
+        </script>
+        <!-- unique chart -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+            
+            // Get data from hidden element
+            const methodDataEl = document.getElementById('method-data');
+            if (!methodDataEl) return;
+            
+            const methodLabels = JSON.parse(methodDataEl.dataset.methodLabels || '[]');
+            const equityValues = JSON.parse(methodDataEl.dataset.equityValues || '[]');
+            const equityMinValues = JSON.parse(methodDataEl.dataset.equityMinValues || '[]');
+            const equityMaxValues = JSON.parse(methodDataEl.dataset.equityMaxValues || '[]');
+            const weightPercentages = JSON.parse(methodDataEl.dataset.weightPercentages || '[0,0,0,0]');
+            const minValue = parseFloat(methodDataEl.dataset.minValue) || 0;
+            const baseValue = parseFloat(methodDataEl.dataset.baseValue) || 0;
+            const maxValue = parseFloat(methodDataEl.dataset.maxValue) || 0;
+            
+            // Get Equity Value data from the table (for speedometers)
+            const equityValueMin = parseFloat(methodDataEl.dataset.equityValueMin || '0');
+            const equityValueAvg = parseFloat(methodDataEl.dataset.equityValueAvg || '0');
+            const equityValueMax = parseFloat(methodDataEl.dataset.equityValueMax || '0');
+            
+            // Helper function
+            function formatInMillions(value) {
+                if (value >= 1000000) {
+                    return '$' + (value / 1000000).toFixed(1) + 'M';
+                }
+                if (value >= 1000) {
+                    return '$' + (value / 1000).toFixed(1) + 'K';
+                }
+                return '$' + value.toFixed(1);
+            }
+            
+            // ===== METHOD COMPARISON BARS (Min-Max Range Chart - All Methods Centered) =====
+            if (equityValues.length > 0 && equityMinValues.length > 0 && equityMaxValues.length > 0) {
+                const methodBarsCanvas = document.getElementById('methodBars');
+                if (methodBarsCanvas) {
+                    // Get DCF values from Equity Value of the Company table
+                    const dcfMinFromTable = parseFloat(equityValueMin || 0);
+                    const dcfAvgFromTable = parseFloat(equityValueAvg || 0);
+                    const dcfMaxFromTable = parseFloat(equityValueMax || 0);
+                    
+                    // Find DCF index in the methods array
+                    const dcfIndex = methodLabels.findIndex(label => label === 'DCF' || label.includes('DCF'));
+                    
+                    // Replace DCF values with table values if DCF exists
+                    if (dcfIndex >= 0 && dcfMinFromTable > 0 && dcfMaxFromTable > 0) {
+                        equityMinValues[dcfIndex] = dcfMinFromTable;
+                        equityValues[dcfIndex] = dcfAvgFromTable;
+                        equityMaxValues[dcfIndex] = dcfMaxFromTable;
+                    }
+                    
+                    // Find overall min and max across all methods for scaling
+                    const allMinValues = equityMinValues.map(v => parseFloat(v) || 0);
+                    const allMaxValues = equityMaxValues.map(v => parseFloat(v) || 0);
+                    const overallMin = Math.min(...allMinValues, ...equityValues.map(v => parseFloat(v) || 0));
+                    const overallMax = Math.max(...allMaxValues, ...equityValues.map(v => parseFloat(v) || 0));
+                    const range = overallMax - overallMin || 1; // Avoid division by zero
+                    
+                    // Create center division line plugin (vertical dashed line at center = 0)
+                    // All methods are centered at 0, so the division line passes through the center
+                    const centerLine = {
+                        id: 'centerLine',
+                        afterDraw(chart) {
+                            const { ctx, chartArea, scales: { x } } = chart;
+                            // Position center line exactly at 0 (center of chart)
+                            // The scale is -60 to +60, so 0 is the exact center
+                            const xCenter = x.getPixelForValue(0);
+                            ctx.save();
+                            ctx.setLineDash([5, 5]);
+                            ctx.strokeStyle = '#233977';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            // Draw line from top to bottom of chart area, passing through center
+                            ctx.moveTo(xCenter, chartArea.top);
+                            ctx.lineTo(xCenter, chartArea.bottom);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    };
+
+                    // Prepare data: left segment (min to avg) and right segment (avg to max)
+                    // All methods will be centered at their average positions (0)
+                    const leftSegmentData = [];
+                    const rightSegmentData = [];
+                    
+                    equityValues.forEach((avgValue, index) => {
+                        const minVal = parseFloat(equityMinValues[index] || avgValue);
+                        const maxVal = parseFloat(equityMaxValues[index] || avgValue);
+                        const avgVal = parseFloat(avgValue || 0);
+                        
+                        // Calculate distances from average
+                        const distanceFromAvgToMin = avgVal - minVal;
+                        const distanceFromAvgToMax = maxVal - avgVal;
+                        
+                        // Normalize distances to percentage of overall range
+                        const leftDistancePercent = (distanceFromAvgToMin / range) * 100;
+                        const rightDistancePercent = (distanceFromAvgToMax / range) * 100;
+                        
+                        // Try explicit calculation:
+                        const barStartPosition = -leftDistancePercent;
+                        const leftSegmentLength = leftDistancePercent;
+                        const rightSegmentLength = rightDistancePercent;
+                        
+        
+                        // Calculate values for centered bar
+                        const leftDist = leftDistancePercent;
+                        const rightDist = rightDistancePercent;
+                        
+                        // Result: bar from -(leftDist + rightDist)/2 to +(leftDist + rightDist)/2, centered at 0
+                        
+                        const totalLength = leftDist + rightDist;
+                        const barStart = -(leftDist + rightDist) / 2;
+                        
+                        leftSegmentData.push(barStart);
+                        rightSegmentData.push(totalLength);
+                    });
+                    
+                    // Use centered scale for all methods (-60 to +60, with 0 at center)
+                    const scaleMin = -60;
+                    const scaleMax = 60;
+                    
+                    // Debug: Log the calculated values to verify
+                    console.log('Chart Data:', {
+                        leftSegmentData: leftSegmentData,
+                        rightSegmentData: rightSegmentData,
+                        scaleMin: scaleMin,
+                        scaleMax: scaleMax
+                    });
+                    
+                    new Chart(methodBarsCanvas, {      
+                        type: 'bar',
+                        data: {
+                            labels: methodLabels,
+                            datasets: [
+                                {
+                                    label: 'Min to Avg',
+                                    data: leftSegmentData,
+                                    backgroundColor: '#0ea5a5', // Teal for left segment
+                                    barThickness: 5
+                                },
+                                {
+                                    label: 'Avg to Max',
+                                    data: rightSegmentData,
+                                    backgroundColor: '#233977', // Dark blue for right segment
+                                    barThickness: 5
+                                }
+                            ]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            animation: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const index = context.dataIndex;
+                                            const datasetIndex = context.datasetIndex;
+                                            if (datasetIndex === 0) {
+                                                // Left segment: show min to avg
+                                                return `Min: ${formatInMillions(equityMinValues[index])} → Avg: ${formatInMillions(equityValues[index])}`;
+                                            } else {
+                                                // Right segment: show avg to max
+                                                return `Avg: ${formatInMillions(equityValues[index])} → Max: ${formatInMillions(equityMaxValues[index])}`;
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    min: -60,
+                                    max: 60,
+                                    beginAtZero: false, // Don't force zero, use our min/max
+                                    ticks: { display: false },
+                                    grid: { drawTicks: false, display: false },
+                                    display: false
+                                },
+                                y: {
+                                    stacked: true,
+                                    grid: { display: false },
+                                    display: false,
+                                    categoryPercentage: 0.4,
+                                    barPercentage: 0.5,
+                                    offset: true
+                                }
+                            }
+                        },
+                        plugins: [centerLine]
+                    });
+                }
             }
 
-            return res.status(500).json({ status: false, message: "Something went wrong. Please try again" });
-        }
-        else {
-            return res.status(400).json({ status: false, message: "No documents found, please try again later", data: [] });
-        }
-    } catch (err) {
-        console.error('Error in /complete-order:', err.message); // Log the error
-        res.status(500).json({ message: err.message });
-    }
-});
+            // ===== CIRCULAR WEIGHTS =====
+            function createCircularChart(id, percentage) {
+                const canvas = document.getElementById(id);
+                if (canvas && percentage > 0) {
+                    const colors = ['#0ea5a5', '#0ea5a5', '#0ea5a5', '#0ea5a5'];
+                    const index = parseInt(id.replace('w', '')) - 1;
+                    const color = colors[index] || '#0ea5a5';
+                    
+                    new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [percentage, 100 - percentage],
+                                backgroundColor: [color, '#e5e7eb'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            cutout: '70%',
+                            animation: false,
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+            
+            // Create weight charts
+            for (let i = 1; i <= 4; i++) {
+                createCircularChart(`w${i}`, weightPercentages[i-1] || 0);
+            }
 
+            // ===== SPEEDOMETERS =====
+            const gaugeNeedle = {
+                id: 'gaugeNeedle',
+                afterDraw(chart) {
+                    const { ctx, chartArea } = chart;
+                    const value = chart.options.plugins.gauge.value;
+                    const angle = Math.PI + (value / 100) * Math.PI;
+                    const cx = (chartArea.left + chartArea.right) / 2;
+                    const cy = chartArea.bottom;
+                    const radius = (chartArea.right - chartArea.left) / 2 - 10;
 
-
-
-async function buildDocumentUrls(order) {
-    if (order.documents && order.documents.length > 0) {
-        return order.documents.map(doc => {
-            const documentUrl = `${APIURL}uploads/customer/${order.orderId}/${doc.name}`;
-            return {
-                name: doc.name, // Assuming the document object contains a name
-                url: documentUrl,
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(angle);
+                    ctx.beginPath();
+                    ctx.moveTo(0, -3);
+                    ctx.lineTo(radius, 0);
+                    ctx.lineTo(0, 3);
+                    ctx.fillStyle = '#111827';
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#111827';
+                    ctx.fill();
+                }
             };
+            
+            function createSpeedometer(canvasId, value, minVal, maxVal) {
+                const canvas = document.getElementById(canvasId);
+                if (canvas && maxVal > minVal) {
+                    const normalizedValue = ((value - minVal) / (maxVal - minVal)) * 100;
+                    
+                    new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                data: [16.7, 16.7, 16.7, 16.7, 16.7, 16.7],
+                                backgroundColor: [
+                                    '#1aa79c', '#2EC4B6', '#F4D35E',
+                                    '#ff000050', '#e75252', '#ff1d1d'
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            rotation: -90,
+                            circumference: 180,
+                            cutout: '75%',
+                            animation: false,
+                            plugins: {
+                                legend: { display: false },
+                                gauge: { 
+                                    value: Math.min(100, Math.max(0, normalizedValue)) 
+                                }
+                            }
+                        },
+                        plugins: [gaugeNeedle]
+                    });
+                }
+            }
+            
+            // Create speedometers using Equity Value min, avg, max from the table
+            if (equityValueMax > equityValueMin) {
+                createSpeedometer('gaugeLow', equityValueMin, equityValueMin, equityValueMax);
+                createSpeedometer('gaugeBase', equityValueAvg, equityValueMin, equityValueMax);
+                createSpeedometer('gaugeBest', equityValueMax, equityValueMin, equityValueMax);
+            }
         });
-    }
-    return [];
-};
-
-module.exports = router;    
+        </script>
+       
