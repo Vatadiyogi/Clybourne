@@ -52,7 +52,7 @@ const OrderDetails = () => {
         const financialData = data.calculations.finance;
         const forecastData = data.calculations.forecast_inc_stmt;
 
-        // Get financial year from business data or use current year
+        // Get financial year
         const finYearEnd = data?.order?.business?.FinYrEnd ? parseInt(data.order.business.FinYrEnd) : new Date().getFullYear();
 
         // Helper function to format numbers to 2 decimal places
@@ -60,7 +60,37 @@ const OrderDetails = () => {
             return Math.round((num + Number.EPSILON) * 100) / 100;
         };
 
-        // Start with current year data from financial data
+        // Get units
+        const unitOfNumber = financialData.unitOfNumber || 'Millions';
+        const valueType = financialData.valueType || unitOfNumber; // Use valueType if exists, otherwise unitOfNumber
+
+        console.log("Unit of Number:", unitOfNumber);
+        console.log("Value Type:", valueType);
+
+        // Function to scale numbers based on unit difference
+        const scaleByUnitDifference = (numbers, fromUnit, toUnit) => {
+            if (fromUnit === toUnit) return numbers;
+
+            // Unit hierarchy
+            const unitHierarchy = ['Thousands', 'Millions', 'Billions', 'Trillions'];
+            const fromIndex = unitHierarchy.indexOf(fromUnit);
+            const toIndex = unitHierarchy.indexOf(toUnit);
+
+            if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+                return numbers;
+            }
+
+            // Calculate scaling factor: each step is ÷1000
+            const steps = toIndex - fromIndex;
+            const scalingFactor = Math.pow(1000, steps);
+
+            return numbers.map(num => {
+                if (num === null || num === undefined) return 0;
+                return formatToTwoDecimals(num / scalingFactor);
+            });
+        };
+
+        // Start with current year data
         const baseData = [
             {
                 year: `${finYearEnd}`,
@@ -75,7 +105,7 @@ const OrderDetails = () => {
             }
         ];
 
-        // Calculate forecast years with cumulative growth
+        // Calculate forecast years
         let currentSales = baseData[0].salesMain;
         let currentCogs = baseData[0].cogsMain;
         let currentEbitda = baseData[0].ebitda;
@@ -87,13 +117,13 @@ const OrderDetails = () => {
         forecastYears.forEach((year, index) => {
             const forecast = forecastData[index] || {};
 
-            // Calculate sales using CalculateGraphData function
+            // Calculate sales
             if (forecast.salesGrowthRate) {
                 const growthRate = parseFloat(forecast.salesGrowthRate) || 0;
                 currentSales = formatToTwoDecimals(CalculateGraphData(currentSales, growthRate));
             }
 
-            // Calculate COGS based on percentage of sales
+            // Calculate COGS
             let cogsMain = 0;
             if (forecast.cogs) {
                 const cogsPercent = parseFloat(forecast.cogs) || 0;
@@ -101,7 +131,7 @@ const OrderDetails = () => {
                 currentCogs = cogsMain;
             }
 
-            // Calculate EBITDA based on margin
+            // Calculate EBITDA
             let ebitda = 0;
             if (forecast.ebitdaMargin) {
                 const margin = parseFloat(forecast.ebitdaMargin) || 0;
@@ -109,7 +139,7 @@ const OrderDetails = () => {
                 currentEbitda = ebitda;
             }
 
-            // Calculate Net Profit based on margin
+            // Calculate Net Profit
             let netProfit = 0;
             let netMargin = 0;
             if (forecast.netProfitMargin) {
@@ -131,39 +161,41 @@ const OrderDetails = () => {
             });
         });
 
-        // Apply rounding based on the unit of number
+        // Extract data for scaling
         const salesData = baseData.map(item => item.salesMain);
         const cogsData = baseData.map(item => item.cogsMain);
         const ebitdaData = baseData.map(item => item.ebitda);
         const netProfitData = baseData.map(item => item.netProfit);
 
-        const roundedSales = roundOffNumber(salesData, { valueType: [financialData.unitOfNumber || 'Millions'] });
-        const roundedCogs = roundOffNumber(cogsData, { valueType: [financialData.unitOfNumber || 'Millions'] });
-        const roundedEbitda = roundOffNumber(ebitdaData, { valueType: [financialData.unitOfNumber || 'Millions'] });
-        const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [financialData.unitOfNumber || 'Millions'] });
+        // Apply scaling based on unit difference
+        const scaledSales = scaleByUnitDifference(salesData, unitOfNumber, valueType);
+        const scaledCogs = scaleByUnitDifference(cogsData, unitOfNumber, valueType);
+        const scaledEbitda = scaleByUnitDifference(ebitdaData, unitOfNumber, valueType);
+        const scaledNetProfit = scaleByUnitDifference(netProfitData, unitOfNumber, valueType);
 
-        // Update baseData with rounded values
+        // Update baseData with scaled values
         const finalData = baseData.map((item, index) => ({
             ...item,
-            salesMain: formatToTwoDecimals(roundedSales.roundedNumbers[index]),
-            salesExtra: formatToTwoDecimals(roundedSales.roundedNumbers[index] * 0.95),
-            cogsMain: formatToTwoDecimals(roundedCogs.roundedNumbers[index]),
-            cogsExtra: formatToTwoDecimals(roundedCogs.roundedNumbers[index] * 0.95),
-            ebitda: formatToTwoDecimals(roundedEbitda.roundedNumbers[index]),
-            netProfit: formatToTwoDecimals(roundedNetProfit.roundedNumbers[index]),
-            netMargin: formatToTwoDecimals(item.netMargin)
+            salesMain: scaledSales[index],
+            salesExtra: formatToTwoDecimals(scaledSales[index] * 0.95),
+            cogsMain: scaledCogs[index],
+            cogsExtra: formatToTwoDecimals(scaledCogs[index] * 0.95),
+            ebitda: scaledEbitda[index],
+            netProfit: scaledNetProfit[index],
+            netMargin: formatToTwoDecimals(item.netMargin),
+            valueType: valueType // Add valueType to each data point
         }));
 
+        console.log("Generated Chart Data:", finalData);
         return finalData;
     };
-
     // Update chart data when data changes
     useEffect(() => {
         if (data) {
             console.log("Country data:", businessData.business.country);
-        console.log("Full business data:", businessData.business);
-        const chartData = generateChartData();
-        setChartData(chartData);
+            console.log("Full business data:", businessData.business);
+            const chartData = generateChartData();
+            setChartData(chartData);
         }
     }, [data]);
 
@@ -383,7 +415,7 @@ const OrderDetails = () => {
                     <fieldset className="w-100 px-3 md:px-6 pb-6 pt-4 border border-gray-200 rounded">
                         <legend className="md:m-auto">
                             <button className="bg-themeblue cursor-default text-white px-4 py-1 rounded">
-                               Financial Projection
+                                Financial Projection
                             </button>
                         </legend>
                         <div className=''>
@@ -459,12 +491,12 @@ const OrderDetails = () => {
 
                 {/* Financial Charts */}
                 <div className="py-6 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                    <SalesChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />
-                    <CogsChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />
-                    <EbitdaChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />
-                    <NetProfitChart yearly={chartData} unit={financialData.unitOfNumber || "Millions"} />
+                    <SalesChart yearly={chartData} unit={financialData.valueType || "Millions"} />
+                    <CogsChart yearly={chartData} unit={financialData.valueType || "Millions"} />
+                    <EbitdaChart yearly={chartData} unit={financialData.valueType || "Millions"} />
+                    <NetProfitChart yearly={chartData} unit={financialData.valueType || "Millions"} />
                     <NetMarginChart yearly={chartData} />
-                    <GeoMap selectedCountry={getCountryCode(businessData.business.country)}   height={190} classes={"w-[100%] h-[100%]"} />
+                    <GeoMap selectedCountry={getCountryCode(businessData.business.country)} height={190} classes={"w-[100%] h-[100%]"} />
                 </div>
 
                 {/* Balance Sheet Assumptions */}
@@ -648,7 +680,7 @@ const OrderDetails = () => {
                 >
                     Back to Orders
                 </button>
-            </div>  
+            </div>
         </div>
     );
 };

@@ -97,6 +97,7 @@ const InputPreview = () => {
                     planData : order.planData,
                     
                 });
+                console.log("OOOOO",order)
                 setLoading(false);
             } catch (error) {
                 setError(error.message || 'Error fetching order and customer data');
@@ -219,10 +220,12 @@ const InputPreview = () => {
                                                         </div>
                                                         <hr/>
                                                         {/* Current Financial Information */}
+                                                         {console.log("order.calculations",order )}
                                                         {order.calculations?.finance ?
+                                                       
                                                         <div>
                                                             <h4>Current Financial Information</h4>
-                                                            <p>All financial number specified in (Millions)</p>
+                                                            <p>All financial number specified in ({order.calculations.finance.unitOfNumber})</p>
                                                             <p>Historical Number for the Year {order.calculations.years[0]}</p>
                                                             
                                                             {FinancialDetails.map((statement, rowIndex) => (

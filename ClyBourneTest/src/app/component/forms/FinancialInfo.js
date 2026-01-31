@@ -41,7 +41,7 @@ export function roundOffNumber(numbers, finData) {
 
     // Get current unit
     const currentUnit = finData?.valueType?.[0] || 'Millions';
-    
+
     // Find the maximum absolute value
     const validNumbers = numbers.filter(num => !isNaN(num));
     if (validNumbers.length === 0) {
@@ -50,9 +50,9 @@ export function roundOffNumber(numbers, finData) {
             valueType: currentUnit
         };
     }
-    
+
     const maxAbsValue = Math.max(...validNumbers.map(num => Math.abs(num)));
-    
+
     // Define unit hierarchy
     const unitHierarchy = {
         'Thousands': { next: 'Millions', divisor: 1000 },
@@ -60,15 +60,15 @@ export function roundOffNumber(numbers, finData) {
         'Billions': { next: 'Trillions', divisor: 1000000000 },
         'Trillions': { next: 'Trillions', divisor: 1 }
     };
-    
+
     let targetUnit = currentUnit;
     let divisor = 1;
-    
+
     // Check if we need to scale up
     if (maxAbsValue > 0) {
         const digitCount = Math.floor(Math.log10(maxAbsValue)) + 1;
         const unitInfo = unitHierarchy[currentUnit];
-        
+
         if (unitInfo) {
             // Check threshold: 4 digits means we need to scale (e.g., 1000 in millions = 1 billion)
             if (digitCount >= 4) {
@@ -77,14 +77,14 @@ export function roundOffNumber(numbers, finData) {
             }
         }
     }
-    
+
     // Apply division and round
     const roundedNumbers = numbers.map(num => {
         const validNum = isNaN(num) ? 0 : num;
         const result = divisor === 1 ? validNum : validNum / divisor;
         return parseFloat(result.toFixed(2));
     });
-    
+
     return {
         roundedNumbers,
         valueType: targetUnit
@@ -101,12 +101,12 @@ const DropdownIndicator = (props) => {
 const getScaledUnit = (values, currentUnit) => {
     // Find the largest absolute value
     const maxAbsValue = Math.max(...values.map(v => Math.abs(v)));
-    
+
     // Handle zero or very small values
     if (maxAbsValue === 0) return currentUnit;
-    
+
     const digitCount = Math.floor(Math.log10(maxAbsValue)) + 1;
-    
+
     // Define scaling rules based on digit count
     const scalingRules = {
         'Thousands': { threshold: 4, next: 'Millions' },
@@ -114,14 +114,14 @@ const getScaledUnit = (values, currentUnit) => {
         'Billions': { threshold: 4, next: 'Trillions' },
         'Trillions': { threshold: 4, next: 'Trillions' }
     };
-    
+
     const rule = scalingRules[currentUnit] || scalingRules['Millions'];
-    
+
     // If number of digits exceeds threshold, move to next unit
     if (digitCount >= rule.threshold) {
         return rule.next;
     }
-    
+
     return currentUnit;
 };
 const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => {
@@ -174,79 +174,81 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
             padding: "4px",
         }),
     };
- const generateChartData = useMemo(() => {
-    const finYearEnd = companyData.yearEndYear ? parseInt(companyData.yearEndYear) : new Date().getFullYear();
-    const forecastYears = Array.from({ length: 6 }, (_, index) => finYearEnd + index);
-    
-    // Create base data
-    const baseData = forecastYears.map((year, index) => ({
-        year: `${year}`,
-        salesMain: index === 0 ? (parseFloat(formData.sales) || 0) : 0,
-        cogsMain: index === 0 ? (parseFloat(formData.costOfSales) || 0) : 0,
-        ebitda: index === 0 ? (parseFloat(formData.ebitda) || 0) : 0,
-        netProfit: index === 0 ? (parseFloat(formData.netProfit) || 0) : 0,
-        netMargin: index === 0 ? (calculateNetProfitMargin(
-            parseFloat(formData.sales) || 0,
-            parseFloat(formData.netProfit) || 0
-        )) : 0
-    }));
-    
-    // Collect all values to determine scaling
-    const allValues = [];
-    baseData.forEach(item => {
-        allValues.push(item.salesMain, item.cogsMain, item.ebitda, item.netProfit);
-    });
-    
-    // Apply scaling based on current unit
-    const currentUnit = formData.unitOfNumber || 'Millions';
-    
-    // First, determine if we need to scale
-    const maxValue = Math.max(...allValues.map(v => Math.abs(v)));
-    const digitCount = maxValue > 0 ? Math.floor(Math.log10(maxValue)) + 1 : 0;
-    
-    // Define thresholds for each unit
-    const unitThresholds = {
-        'Thousands': 4, // 1000 = 4 digits
-        'Millions': 7,  // 1,000,000 = 7 digits  
-        'Billions': 10, // 1,000,000,000 = 10 digits
-        'Trillions': 13 // 1,000,000,000,000 = 13 digits
-    };
-    
-    let targetUnit = currentUnit;
-    let divisor = 1;
-    
-    // Check if we exceed the threshold for current unit
-    const threshold = unitThresholds[currentUnit] || 7;
-    if (digitCount >= threshold) {
-        // Move to next unit
-        const unitMap = {
-            'Thousands': { next: 'Millions', div: 1000 },
-            'Millions': { next: 'Billions', div: 1000000 },
-            'Billions': { next: 'Trillions', div: 1000000000 },
-            'Trillions': { next: 'Trillions', div: 1 }
+    const generateChartData = useMemo(() => {
+        const finYearEnd = companyData.yearEndYear ? parseInt(companyData.yearEndYear) : new Date().getFullYear();
+        const forecastYears = Array.from({ length: 6 }, (_, index) => finYearEnd + index);
+
+        // Create base data
+        const baseData = forecastYears.map((year, index) => ({
+            year: `${year}`,
+            salesMain: index === 0 ? (parseFloat(formData.sales) || 0) : 0,
+            cogsMain: index === 0 ? (parseFloat(formData.costOfSales) || 0) : 0,
+            ebitda: index === 0 ? (parseFloat(formData.ebitda) || 0) : 0,
+            netProfit: index === 0 ? (parseFloat(formData.netProfit) || 0) : 0,
+            netMargin: index === 0 ? (calculateNetProfitMargin(
+                parseFloat(formData.sales) || 0,
+                parseFloat(formData.netProfit) || 0
+            )) : 0
+        }));
+
+        // Collect all values to determine scaling
+        const allValues = [];
+        baseData.forEach(item => {
+            allValues.push(item.salesMain, item.cogsMain, item.ebitda, item.netProfit);
+        });
+
+        // Apply scaling based on current unit
+        const currentUnit = formData.unitOfNumber || 'Millions';
+
+        // First, determine if we need to scale
+        const maxValue = Math.max(...allValues.map(v => Math.abs(v)));
+        const digitCount = maxValue > 0 ? Math.floor(Math.log10(maxValue)) + 1 : 0;
+
+        // Define thresholds for each unit
+        const unitThresholds = {
+            'Thousands': 4, // 1000 = 4 digits
+            'Millions': 7,  // 1,000,000 = 7 digits  
+            'Billions': 10, // 1,000,000,000 = 10 digits
+            'Trillions': 13 // 1,000,000,000,000 = 13 digits
         };
-        const nextInfo = unitMap[currentUnit];
-        if (nextInfo) {
-            targetUnit = nextInfo.next;
-            divisor = nextInfo.div;
+
+        let targetUnit = currentUnit;
+        let divisor = 1;
+
+        // Check if we exceed the threshold for current unit
+        const threshold = unitThresholds[currentUnit] || 7;
+        if (digitCount >= threshold) {
+            // Move to next unit
+            const unitMap = {
+                'Thousands': { next: 'Millions', div: 1000 },
+                'Millions': { next: 'Billions', div: 1000000 },
+                'Billions': { next: 'Trillions', div: 1000000000 },
+                'Trillions': { next: 'Trillions', div: 1 }
+            };
+            const nextInfo = unitMap[currentUnit];
+            if (nextInfo) {
+                targetUnit = nextInfo.next;
+                divisor = nextInfo.div;
+            }
         }
-    }
-    
-    // Apply scaling
-    const scaledData = baseData.map(item => ({
-        ...item,
-        salesMain: divisor === 1 ? item.salesMain : parseFloat((item.salesMain / divisor).toFixed(2)),
-        cogsMain: divisor === 1 ? item.cogsMain : parseFloat((item.cogsMain / divisor).toFixed(2)),
-        ebitda: divisor === 1 ? item.ebitda : parseFloat((item.ebitda / divisor).toFixed(2)),
-        netProfit: divisor === 1 ? item.netProfit : parseFloat((item.netProfit / divisor).toFixed(2)),
-        netMargin: parseFloat(item.netMargin.toFixed(2))
-    }));
-    
-    return {
-        chartData: scaledData,
-        chartUnit: targetUnit
-    };
-}, [formData, companyData]);
+
+        // Apply scaling
+        const scaledData = baseData.map(item => ({
+            ...item,
+            salesMain: divisor === 1 ? item.salesMain : parseFloat((item.salesMain / divisor).toFixed(2)),
+            cogsMain: divisor === 1 ? item.cogsMain : parseFloat((item.cogsMain / divisor).toFixed(2)),
+            ebitda: divisor === 1 ? item.ebitda : parseFloat((item.ebitda / divisor).toFixed(2)),
+            netProfit: divisor === 1 ? item.netProfit : parseFloat((item.netProfit / divisor).toFixed(2)),
+            netMargin: parseFloat(item.netMargin.toFixed(2)),
+              valueType: [targetUnit]
+        }));
+
+        return {
+            chartData: scaledData,
+            chartUnit: targetUnit,
+             valueType: [targetUnit]
+        };
+    }, [formData, companyData]);
     // Update chart data when form data changes
     // Update chart data when dependencies change
     useEffect(() => {
@@ -449,7 +451,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
             }
 
             const payload = {
-                valueType: formData.valueType,
+                valueType: chartUnit,
                 dataYear: formData.dataYear,
                 unitOfNumber: formData.unitOfNumber,
                 sales: parseFloat(formData.sales) || 0,
@@ -478,7 +480,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
             });
 
             if (response.data.status) {
-                localStorage.setItem('financialFormData', JSON.stringify(formData));
+                 const updatedFormData = {
+                ...formData,
+                valueType: chartUnit // Keep as string
+            };
+            localStorage.setItem('financialFormData', JSON.stringify(updatedFormData));
+                // localStorage.setItem('financialFormData', JSON.stringify(formData));
 
                 Swal.fire({
                     icon: "success",
@@ -550,7 +557,7 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
     const shouldShowEbitdaChart = formData.ebitda;
     const shouldShowNetProfitChart = formData.netProfit;
     const shouldShowNetMarginChart = formData.netProfit && formData.sales;
-
+    console.log("chartUnitchartUnitchartUnit:", chartUnit)
     return (
         <div className='lg:ps-8 bg-gray-50 p-3 lg:pe-14 xl:pe-24 lg:pt-3'>
             <div className='flex flex-col justify-between gap-2 md:gap-0'>

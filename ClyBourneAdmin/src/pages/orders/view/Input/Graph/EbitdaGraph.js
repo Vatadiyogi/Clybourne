@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { CalculateGraphData, roundOffNumber } from './Calculation';
 import GraphHeading from './GraphHeading';
 
-const Ebidta = ({data, finData, forecastData}) => {
+const Ebidta = ({data, finData, forecastData,unitOfNumber}) => {
     if (!finData || !finData.ebitda) {
        return null;
     }
@@ -58,7 +58,7 @@ const Ebidta = ({data, finData, forecastData}) => {
   }  
 
     // Round off the values which is too large
-    let roundedValues = roundOffNumber(updatedEbitda, finData);
+    let roundedValues = roundOffNumber(updatedEbitda, unitOfNumber);
     let valueTypes = roundedValues.valueType;
 
     // Prepare the data for the chart

@@ -9,56 +9,87 @@ export function calculateNetProfitMargin(salesNumber, netProfit) {
   number = ( parseFloat(salesNumber) / parseFloat(netProfit) ) * 100;
   return number;
 }
-
-export function roundOffNumber(numbers, finData) {
+export function roundOffNumber(numbers, unitOfNumber) {
+  console.log(" funcyion unit number",unitOfNumber)
   if (!Array.isArray(numbers) || numbers.length === 0) {
     console.error("Input is not a valid array of numbers");
-    return;
+    return {
+      roundedNumbers: numbers.map(() => 0),
+      valueType: unitOfNumber || 'Millions'
+    };
   }
 
-  // Find the largest number in the array
+  // Find the largest number
   const largestNumber = Math.max(...numbers);
-  const digitCount = Math.floor(Math.log10(Math.abs(largestNumber))) + 1;
-
-  let currencyValues = finData.valueType[0];
-
-  // Determine the divisor based on the digit count
-  let divisor;
-  if (digitCount >= 4 && digitCount <= 6) {
-    divisor = 1000;
-    currencyValues = currencyValues === 'Absolute' 
-        ? 'Thousands' 
-        : (currencyValues === 'Thousands' 
-          ? 'Millions' 
-          : (currencyValues === 'Millions' 
-            ? 'Billions' 
-            : 'Trillions'));
-  } else if (digitCount >= 7 && digitCount <= 9) {
-    divisor = 1000000;
-    currencyValues = currencyValues === 'Absolute' 
-        ? 'Millions' 
-        : (currencyValues === 'Thousands' 
-          ? 'Billions' 
-          : (currencyValues === 'Millions' 
-            ? 'Trillions' 
-            : 'Trillions'));
-  } else if (digitCount >= 10) {
-    divisor = 1000000000;
-    currencyValues = currencyValues === 'Absolute' 
-    ? 'Billions' 
-    : (currencyValues === 'Thousands' 
-      ? 'Trillions' 
-      : 'Trillions');
-  } else {
-    divisor = 1; // No division if digit count is less than 4
+  
+  // Start with user's selected unit
+  let displayUnit = unitOfNumber || 'Millions';
+  let divisor = 1;
+  
+  // Define unit thresholds (when to move to next unit)
+  // When number is 1000 or more in current unit, move up
+  if (largestNumber >= 1000) {
+    if (unitOfNumber === 'Thousands') {
+      displayUnit = 'Millions';
+      divisor = 1000; // 1000 Thousands = 1 Million
+    } else if (unitOfNumber === 'Millions') {
+      displayUnit = 'Billions';
+      divisor = 1000; // 1000 Millions = 1 Billion
+    } else if (unitOfNumber === 'Billions') {
+      displayUnit = 'Trillions';
+      divisor = 1000; // 1000 Billions = 1 Trillion
+    }
+    // Trillions stays as Trillions (no higher unit)
   }
-
+  
   // Divide all numbers by the divisor
-  const roundedNumbers = numbers.map(num => Math.round((num / divisor) * 100) / 100);
+  const roundedNumbers = numbers.map(num => 
+    Math.round((num / divisor) * 100) / 100
+  );
 
-  // Return multiple values in an object
   return {
     roundedNumbers,
-    valueType : currencyValues
+    valueType: displayUnit
+  };
+}
+// NEW FUNCTION: Convert numbers based on unitOfNumber
+export function convertNumbersByUnit(numbers, unitOfNumber) {
+  if (!Array.isArray(numbers) || numbers.length === 0) {
+    console.error("Input is not a valid array of numbers");
+    return { convertedNumbers: [], unit: unitOfNumber || '' };
+  }
+
+  // Determine divisor based on unitOfNumber
+  let divisor;
+  
+  // Handle case-insensitive comparison
+  const unit = unitOfNumber ? unitOfNumber.toLowerCase() : '';
+  
+  if (unit.includes('trillion')) {
+    divisor = 1000000000000;
+  } else if (unit.includes('billion')) {
+    divisor = 1000000000;
+  } else if (unit.includes('million')) {
+    divisor = 1000000;
+  } else if (unit.includes('thousand')) {
+    divisor = 1000;
+  } else {
+    // Default: no conversion
+    divisor = 1;
+  }
+
+  // Convert all numbers by the divisor and round to 2 decimal places
+  const convertedNumbers = numbers.map(num => {
+    if (num === null || num === undefined || isNaN(num)) {
+      return 0;
+    }
+    const scaledValue = num / divisor;
+    return Math.round(scaledValue * 100) / 100; // Round to 2 decimal places
+  });
+
+  // Return the converted numbers and the unit used
+  return {
+    convertedNumbers,
+    unit: unitOfNumber || ''
   };
 }

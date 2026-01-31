@@ -4,7 +4,8 @@ import HighchartsReact from 'highcharts-react-official';
 import GraphHeading from './GraphHeading';
 import { roundOffNumber } from './Calculation';
 
-const SalesChart = ({ data, finData, forecastData }) => {
+const SalesChart = ({ data, finData, forecastData,unitOfNumber }) => {
+  console.log("1221212",unitOfNumber)
   if (!finData || !finData.sales) {
     return null;
   }
@@ -48,9 +49,9 @@ const SalesChart = ({ data, finData, forecastData }) => {
   }  
 
   // Round off the values which is too large
-  let roundedValues = roundOffNumber(updatedSales, finData);
+  let roundedValues = roundOffNumber(updatedSales, unitOfNumber);
   let valueTypes = roundedValues.valueType;
-
+ console.log("valueTypesvalueTypes",valueTypes);
   // Prepare the data for the chart
   const seriesData = year.map((yr, index) => ({
     name: yr,

@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { CalculateGraphData, roundOffNumber } from './Calculation';
 import GraphHeading from './GraphHeading';
 
-const Cogs = ({data, finData , forecastData}) => {
+const Cogs = ({data, finData , forecastData,unitOfNumber}) => {
    if (!finData || !finData.costOfSales) {
     return null;
   }
@@ -57,7 +57,7 @@ const Cogs = ({data, finData , forecastData}) => {
 
 
   // Round off the values which is too large
-  let roundedValues = roundOffNumber(updatedCogs, finData);
+  let roundedValues = roundOffNumber(updatedCogs, unitOfNumber);
   let valueTypes = roundedValues.valueType;
 
   // Prepare the data for the chart

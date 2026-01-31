@@ -74,23 +74,23 @@ const ParameterForm = ({ data, onFormSubmit }) => {
   });
 
   const calculateSales = useCallback((value) => {
-    let valueType = 1;
+    let unitOfNumber = 1;
 
-    if (calculations.finance.valueType === 'Thousands') {
-      valueType = 1000;
-    } else if (calculations.finance.valueType === 'Millions') {
-      valueType = 1000000;
-    } else if (calculations.finance.valueType === 'Billions') {
-      valueType = 1000000000;
-    } else if (calculations.finance.valueType === 'Absolute') {
-      valueType = 1;
+    if (calculations.finance.unitOfNumber === 'Thousands') {
+      unitOfNumber = 1000;
+    } else if (calculations.finance.unitOfNumber === 'Millions') {
+      unitOfNumber = 1000000;
+    } else if (calculations.finance.unitOfNumber === 'Billions') {
+      unitOfNumber = 1000000000;
+    } else if (calculations.finance.unitOfNumber === 'Absolute') {
+      unitOfNumber = 1;
     }
-    else if (calculations.finance.valueType === 'Historical') {
-      valueType = 1000000;
-      return (calculations.finance.sales * valueType * value);
+    else if (calculations.finance.unitOfNumber === 'Historical') {
+      unitOfNumber = 1000000;
+      return (calculations.finance.sales * unitOfNumber * value);
     }
-
-    return (calculations.finance.sales * valueType) / value;
+ 
+    return (calculations.finance.sales * unitOfNumber) * value;
   }, [calculations.finance.sales]);
 
   const getDiscountFactor = useCallback((turnover) => {

@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { CalculateGraphData, roundOffNumber } from './Calculation';
 import GraphHeading from './GraphHeading';
 
-const NetProfit = ({data, finData, forecastData}) => {
+const NetProfit = ({data, finData, forecastData,unitOfNumber}) => {
     if (!finData || !finData.netProfit) {
         return null;
       }
@@ -63,7 +63,7 @@ const NetProfit = ({data, finData, forecastData}) => {
     }  
 
     // Round off the values which is too large
-    let roundedValues = roundOffNumber(updatedNetProfit, finData);
+    let roundedValues = roundOffNumber(updatedNetProfit, unitOfNumber);
     let valueTypes = roundedValues.valueType;
 
     // Prepare the data for the chart

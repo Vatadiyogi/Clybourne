@@ -37,7 +37,7 @@ console.log("formValues",formValues)
                         </tr>
                         <tr>
                             <td className="first-td">Turnover:</td>
-                            <td>{businessDetails.currency} {calculations.finance.sales.toFixed(2) || 0} ({calculations.finance.valueType})</td>
+                            <td>{businessDetails.currency} {calculations.finance.sales.toFixed(2) || 0} ({calculations.finance.unitOfNumber})</td>
                         </tr>
                         <tr>
                             <td className="first-td">Currency Conversion Rate <br />  from USD to 

@@ -6,6 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title> Valuation Report</title>
         <link rel="stylesheet" href="valuatin-report.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <!-- 
         <link
@@ -18,6 +21,7 @@
                 /* background-color: #000; */
                 margin: 0;
                 padding: 0;
+                font-family: "Inter", sans-serif;
             }
             
             @page {
@@ -34,7 +38,7 @@
                 margin: auto;
                 /* padding: 90px 0; */
                 background-color: #FFF;
-                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                font-family: ;
                 width: 210mm ;
                 height: 297mm;
                 color: #000;
@@ -180,7 +184,7 @@
                 font-size: 14px !important;
                  position: absolute;
                 left: 43%;
-                top: 2%;
+                top: 3%;
             }
 
             .strip::after {
@@ -877,7 +881,7 @@
                         <div class="chart-box">
                             <p class=" colorPurple"
                                 style="font-size: 16px; margin-bottom: 18px;">Revenue
-                                Growth (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>
+                                Growth (<%= companyDetails.currency %> <%= companyDetails.valueType %>
                                 )</p>
                             <canvas id="revenueChart"></canvas>
                         </div>
@@ -886,7 +890,7 @@
                         <div class="chart-box">
                             <p class=" colorPurple"
                                 style="font-size: 16px; margin-bottom: 18px;">
-                                COGS (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>)
+                                COGS (<%= companyDetails.currency %> <%= companyDetails.valueType %>)
                             </p>
 
                             <canvas id="cogsChart"></canvas>
@@ -896,7 +900,7 @@
                         <div class="chart-box" style="margin:35px 0 0 0 ;">
                             <p class=" colorPurple"
                                 style="font-size: 16px; margin-bottom: 18px;">
-                                EBITDA (<%= companyDetails.currency %> <%= companyDetails.unitOfNumber %>),
+                                EBITDA (<%= companyDetails.currency %> <%= companyDetails.valueType %>),
                                 EBITDA Margin (%)
                             </p>
 
@@ -908,7 +912,7 @@
                             <p class=" colorPurple"
                                 style="font-size: 16px; margin-bottom: 18px;">
                                 Net Profit (<%= companyDetails.currency %>
-                                <%= companyDetails.unitOfNumber %>), NP Margin (%)
+                                <%= companyDetails.valueType %>), NP Margin (%)
                             </p>
 
                             <canvas id="profitChart" style="height: 200px !important;"></canvas>
@@ -920,7 +924,7 @@
                         <p class=" colorPurple"
                             style="font-size: 16px; margin-bottom: 18px;">
                             Cash Forecast (<%= companyDetails.currency %>
-                            <%= companyDetails.unitOfNumber %>)
+                            <%= companyDetails.valueType %>)
                         </p>
 
                         <canvas id="cashChart"></canvas>
@@ -1101,7 +1105,7 @@
                 </div>
             </div>
               <!-- Edited-page -->
-            <div class="page page-break  page2"  >
+            <div class="page page-break  page2 "    >
             <div class="section"> 
                     <div class="featureSecion" style="margin-bottom: 25px;">
                     <div class="stylus strip">
@@ -1243,8 +1247,8 @@
                             </div>
                         </div>
                     </div>
-                    <p class="smallpara">The valuation presents three scenarios—Lower Case, Base Case, and Best Case—to reflect different assumptions applied to key valuation inputs, to capture a range of potential future outcomes for the company
-                    </p>
+                    <!-- <p class="smallpara">The valuation presents three scenarios—Lower Case, Base Case, and Best Case—to reflect different assumptions applied to key valuation inputs, to capture a range of potential future outcomes for the company
+                    </p> -->
                     <!-- Hidden data for JavaScript -->
                     <div id="method-data"
                         data-method-labels='<%= JSON.stringify(methodLabels) %>'
@@ -2084,7 +2088,47 @@
         <!-- normalchart -->
         <script>
                 document.addEventListener('DOMContentLoaded', function () {
+// Add this function at the top of your script
+function scaleByUnitDifference(originalValue, unitOfNumber, valueType) {
+    if (!originalValue) return 0;
+    
+    // Unit hierarchy in order
+    const unitOrder = ['Thousands', 'Millions', 'Billions', 'Trillions'];
+    
+    // Find positions in hierarchy
+    const fromIndex = unitOrder.indexOf(unitOfNumber);
+    const toIndex = unitOrder.indexOf(valueType);
+    
+    // If units are the same or invalid, return original
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+        return parseFloat(originalValue.toFixed(2));
+    }
+    
+    // Calculate scaling factor: each step is ÷1000
+    const steps = toIndex - fromIndex;
+    const scalingFactor = Math.pow(1000, steps);
+    
+    // Apply scaling
+    const scaledValue = originalValue / scalingFactor;
+    return parseFloat(scaledValue.toFixed(2));
+}
 
+// Or even simpler version:
+function getScalingFactor(unitOfNumber, valueType) {
+    const unitMap = {
+        'Thousands': 1,
+        'Millions': 2,
+        'Billions': 3,
+        'Trillions': 4
+    };
+    
+    const fromLevel = unitMap[unitOfNumber] || 2; // Default to Millions
+    const toLevel = unitMap[valueType] || 2; // Default to Millions
+    
+    // Each level difference is 1000x
+    const levelDiff = toLevel - fromLevel;
+    return Math.pow(1000, levelDiff);
+}
                 // Get chart data from data attributes
                 const chartDataEl = document.getElementById('chart-data');
                 
@@ -2116,15 +2160,33 @@
                 const cashChart = document.getElementById('cashChart');
 
                 // Helper function to format numbers in millions
-                function formatInMillions(value) {
-                    if (value >= 1000000) {
-                    return (value / 1000000).toFixed(1) + 'M';
-                    }
-                    if (value >= 1000) {
-                    return (value / 1000).toFixed(1) + 'K';
-                    }
-                    return value.toFixed(1);
-                }
+               // Keep your existing code, just update this one function:
+function formatInMillions(value) {
+    // If unitOfNumber and valueType are different, scale the value
+    const unitOfNumber = '<%= companyDetails.unitOfNumber || "Millions" %>';
+    const valueType = '<%= companyDetails.valueType || "Millions" %>';
+    
+    // If same unit, return as is
+    if (unitOfNumber === valueType) {
+        return value.toFixed(1);
+    }
+    
+    // Calculate scaling
+    const unitOrder = ['Thousands', 'Millions', 'Billions', 'Trillions'];
+    const fromIndex = unitOrder.indexOf(unitOfNumber);
+    const toIndex = unitOrder.indexOf(valueType);
+    
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+        const steps = toIndex - fromIndex;
+        const scalingFactor = Math.pow(1000, steps);
+        const scaledValue = value / scalingFactor;
+        return scaledValue.toFixed(2);
+    }
+    
+    return value.toFixed(2);
+}
+
+ 
 
                 // Plugin to show data labels on bars
                 const barLabelPlugin = {
@@ -2133,9 +2195,9 @@
                         const { ctx, data } = chart;
                         
                         ctx.save();
-                        ctx.font = 'bold 11px Arial';
+                        ctx.font = 'normal 11px Arial';
                         ctx.textBaseline = 'bottom';
-                        ctx.textAlign = 'left';
+                        ctx.textAlign = 'center';
                         ctx.fillStyle = '#233977';
                         
                         data.datasets.forEach((dataset, datasetIndex) => {
@@ -2167,10 +2229,10 @@
                         const { ctx, data } = chart;
                         
                         ctx.save();
-                        ctx.font = 'bold 10px Arial';
+                        ctx.font = 'normal 10px Arial';
                         ctx.textBaseline = 'middle';
                         ctx.textAlign = 'right';
-                        ctx.fillStyle = '#1aa79c';
+                        ctx.fillStyle = '#5FAFE3';
                         
                         // Only for line datasets (datasetIndex 1 in EBITDA and Profit charts)
                         const meta = chart.getDatasetMeta(1);
@@ -2199,10 +2261,13 @@
                         datasets: [{
                         data: chartData.revenue.data,
                         backgroundColor: '#1e3a8a',
-                        barThickness: 15
+                        barThickness: 15,
+                        borderRadius: 3,
+
                         }]
                     },
                     options: {
+                        devicePixelRatio: 4,
                          layout: {
                             padding: {
                                 top: 20  // 30px padding from top
@@ -2214,7 +2279,7 @@
                         tooltip: {
                             callbacks: {
                             label: function(context) {
-                                return `${formatInMillions(context.raw)}`;
+                                  return `${formatInMillions(context.raw)} <%= companyDetails.valueType || "Millions" %>`;
                             }
                             }
                         }
@@ -2244,10 +2309,12 @@
                         datasets: [{
                         data: chartData.cogs.data,
                         backgroundColor: '#233977',
-                        barThickness: 15
+                        barThickness: 15,
+                         borderRadius: 3,
                         }]
                     },
                     options: {
+                         devicePixelRatio: 4,
                          layout: {
                             padding: {
                                 top: 20  // 30px padding from top
@@ -2292,21 +2359,28 @@
                             data: chartData.ebitda.data,
                             backgroundColor: '#233977',
                             barThickness: 15,
-                            yAxisID: 'y'
+                             borderRadius: 3,
+                            yAxisID: 'y',
+                            order: 2
                         },
                         {
                             type: 'line',
                             label: 'Margin %',
+                            borderWidth: 1,
                             data: chartData.ebitda.margins,
-                            borderColor: '#06b6d4',
+                            borderColor: '#5FAFE3',
                             backgroundColor: 'rgba(6, 182, 212, 0.1)',
                             fill: true,
-                            tension: 0.4,
-                            yAxisID: 'y1'
+                            tension: 0.3,
+                            yAxisID: 'y1',
+                            pointBackgroundColor: '#5FAFE3',
+                             pointRadius: 2.5,       
+                            order: 1
                         }
                         ]
                     },
                     options: {
+                         devicePixelRatio: 4,
                             // responsive: true,
                         //  maintainAspectRatio: false,
                         layout: {
@@ -2374,21 +2448,28 @@
                             data: chartData.profit.data,
                             backgroundColor: '#233977',
                             barThickness: 15,
-                            yAxisID: 'y'
+                             borderRadius: 3,
+                            yAxisID: 'y',
+                              order: 2
                         },
                         {
                             type: 'line',
                             label: 'Margin %',
+                              borderWidth: 1,
                             data: chartData.profit.margins,
-                            borderColor: '#06b6d4',
+                            borderColor: '#5FAFE3',
                             backgroundColor: 'rgba(6, 182, 212, 0.1)',
                             fill: true,
-                            tension: 0.4,
-                            yAxisID: 'y1'
+                            tension: 0.3,
+                             pointRadius: 3,     
+                              pointBackgroundColor: '#5FAFE3',
+                            yAxisID: 'y1',
+                              order: 1
                         }
                         ]
                     },
                     options: {
+                         devicePixelRatio: 4,
                          layout: {
                 padding: {
                     top: 30  // 30px padding from top
@@ -2452,18 +2533,24 @@
                         {
                             label: 'Cash In',
                             data: chartData.cash.cashIn,
+                             borderRadius: 3,
                             backgroundColor: '#233977',
-                            barThickness: 15
+                           categoryPercentage: 0.8,
+                    barPercentage: 0.35,
+                            
                         },
                         {
                             label: 'Cash Out',
                             data: chartData.cash.cashOut,
+                             borderRadius: 3,
                             backgroundColor: '#1aa79c',
-                            barThickness: 15
+                              categoryPercentage: 0.8,
+                    barPercentage: 0.35,
                         }
                         ]
                     },
                     options: {
+                         devicePixelRatio: 4,
                         animation: false,
                         plugins: {
                         legend: {
@@ -2479,9 +2566,12 @@
                         },
                         scales: {
                         x: {
-                            categoryPercentage: 0.6,
-                            barPercentage: 0.7,
-                            grid: { display: false }
+                            stacked: false,
+                    offset: true,
+                    grid: { display: false },
+                    // These control overall category spacing
+                    categoryPercentage: 0.7,  // Try adjusting this
+                    barPercentage: 0.5,      // Try adjusting this
                         },
                         y: {
                             grid: { display: false },
@@ -2491,7 +2581,14 @@
                             }
                             }
                         }
-                        }
+                        },
+                        datasets: {
+                bar: {
+                    // This creates spacing between bars of different datasets
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.4
+                }
+            }
                     },
                      plugins: [barLabelPlugin] // Add label plugin
                     });
@@ -2712,6 +2809,7 @@
                             }]
                         },
                         options: {
+                             devicePixelRatio: 4,
                             cutout: '70%',
                             animation: false,
                             plugins: { legend: { display: false } }
@@ -2772,6 +2870,7 @@
                             }]
                         },
                         options: {
+                             devicePixelRatio: 4,
                             responsive: false,
                             rotation: -90,
                             circumference: 180,
@@ -2798,347 +2897,327 @@
         });
         </script>
      <script>
-    document.addEventListener('DOMContentLoaded', function () {
-    
-    // Get data from hidden element
-    const methodDataEl = document.getElementById('method-data');
-    if (!methodDataEl) return;
-    
-    const methodLabels = JSON.parse(methodDataEl.dataset.methodLabels || '[]');
-    const equityValues = JSON.parse(methodDataEl.dataset.equityValues || '[]');
-    const equityMinValues = JSON.parse(methodDataEl.dataset.equityMinValues || '[]');
-    const equityMaxValues = JSON.parse(methodDataEl.dataset.equityMaxValues || '[]');
-    const weightPercentages = JSON.parse(methodDataEl.dataset.weightPercentages || '[0,0,0,0]');
-    const minValue = parseFloat(methodDataEl.dataset.minValue) || 0;
-    const baseValue = parseFloat(methodDataEl.dataset.baseValue) || 0;
-    const maxValue = parseFloat(methodDataEl.dataset.maxValue) || 0;
-    
-    // Get Equity Value data from the table (for speedometers)
-    const equityValueMin = parseFloat(methodDataEl.dataset.equityValueMin || '0');
-    const equityValueAvg = parseFloat(methodDataEl.dataset.equityValueAvg || '0');
-    const equityValueMax = parseFloat(methodDataEl.dataset.equityValueMax || '0');
-    
-    // Helper function
-    function formatInMillions(value) {
-        if (value >= 1000000) {
-            return '$' + (value / 1000000).toFixed(1) + 'M';
-        }
-        if (value >= 1000) {
-            return '$' + (value / 1000).toFixed(1) + 'K';
-        }
-        return '$' + value.toFixed(1);
-    }
-    
-    // ===== METHOD COMPARISON BARS (Min-Max Range Chart - Vertical Stacked) =====
-    if (equityValues.length > 0 && equityMinValues.length > 0 && equityMaxValues.length > 0) {
-        const methodBarsCanvas = document.getElementById('methodBars');
-        if (methodBarsCanvas) {
-            // Get DCF values from Equity Value of the Company table
-            const dcfMinFromTable = parseFloat(equityValueMin || 0);
-            const dcfAvgFromTable = parseFloat(equityValueAvg || 0);
-            const dcfMaxFromTable = parseFloat(equityValueMax || 0);
+            document.addEventListener('DOMContentLoaded', function () {
             
-            // Find DCF index in the methods array
-            const dcfIndex = methodLabels.findIndex(label => label === 'DCF' || label.includes('DCF'));
+            // Get data from hidden element
+            const methodDataEl = document.getElementById('method-data');
+            if (!methodDataEl) return;
             
-            // Replace DCF values with table values if DCF exists
-            if (dcfIndex >= 0 && dcfMinFromTable > 0 && dcfMaxFromTable > 0) {
-                equityMinValues[dcfIndex] = dcfMinFromTable;
-                equityValues[dcfIndex] = dcfAvgFromTable;
-                equityMaxValues[dcfIndex] = dcfMaxFromTable;
-            }
+            const methodLabels = JSON.parse(methodDataEl.dataset.methodLabels || '[]');
+            const equityValues = JSON.parse(methodDataEl.dataset.equityValues || '[]');
+            const equityMinValues = JSON.parse(methodDataEl.dataset.equityMinValues || '[]');
+            const equityMaxValues = JSON.parse(methodDataEl.dataset.equityMaxValues || '[]');
+            const weightPercentages = JSON.parse(methodDataEl.dataset.weightPercentages || '[0,0,0,0]');
+            const minValue = parseFloat(methodDataEl.dataset.minValue) || 0;
+            const baseValue = parseFloat(methodDataEl.dataset.baseValue) || 0;
+            const maxValue = parseFloat(methodDataEl.dataset.maxValue) || 0;
             
-            // Find overall min and max across all methods for scaling
-            const allValues = [
-                ...equityMinValues.map(v => parseFloat(v) || 0),
-                ...equityValues.map(v => parseFloat(v) || 0),
-                ...equityMaxValues.map(v => parseFloat(v) || 0)
-            ];
-            const overallMin = Math.min(...allValues);
-            const overallMax = Math.max(...allValues);
-            const range = overallMax - overallMin || 1;
+            // Get Equity Value data from the table (for speedometers)
+            const equityValueMin = parseFloat(methodDataEl.dataset.equityValueMin || '0');
+            const equityValueAvg = parseFloat(methodDataEl.dataset.equityValueAvg || '0');
+            const equityValueMax = parseFloat(methodDataEl.dataset.equityValueMax || '0');
             
-            // Prepare data for VERTICAL STACKED bars
-            // For vertical stacked bars centered at 0:
-            // First dataset: Goes from 0 down to -bottomDistance (min side)
-            // Second dataset: Goes from 0 up to +topDistance (max side)
-            const bottomSegmentData = [];  // Negative values (min to avg)
-            const topSegmentData = [];     // Positive values (avg to max)
-            
-            equityValues.forEach((avgValue, index) => {
-                const minVal = parseFloat(equityMinValues[index]) || 0;
-                const avgVal = parseFloat(avgValue) || 0;
-                const maxVal = parseFloat(equityMaxValues[index]) || 0;
-                
-                // Calculate distances from average
-                const distanceFromAvgToMin = avgVal - minVal;
-                const distanceFromAvgToMax = maxVal - avgVal;
-                
-                // Normalize to fit in -100 to 100 range
-                const scaleFactor = 100/ range;
-                const bottomDistance = distanceFromAvgToMin * scaleFactor;
-                const topDistance = distanceFromAvgToMax * scaleFactor;
-                
-                // For VERTICAL stacked bars:
-                // Bottom segment: Goes from 0 down to -bottomDistance
-                // Top segment: Goes from 0 up to +topDistance
-                bottomSegmentData.push(-bottomDistance);  // Negative values (downwards)
-                topSegmentData.push(topDistance);         // Positive values (upwards)
-            });
-            
-            // Create center line plugin (horizontal line at y=0)
-            const centerLine = {
-                id: 'centerLine',
-                afterDraw(chart) {
-                    const { ctx, chartArea, scales: { y } } = chart;
-                    const yCenter = y.getPixelForValue(0);
-                    ctx.save();
-                    ctx.setLineDash([5, 5]);
-                    ctx.strokeStyle = '#233977';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    // Draw horizontal line at center
-                    ctx.moveTo(chartArea.left, yCenter);
-                    ctx.lineTo(chartArea.right, yCenter);
-                    ctx.stroke();
-                    
-                    // Add "0" label at right
-                    ctx.fillStyle = '#233977';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('0', chartArea.right + 10, yCenter);
-                    ctx.restore();
+            // Helper function
+            function formatInMillions(value) {
+                if (value >= 1000000) {
+                    return '$' + (value / 1000000).toFixed(1) + 'M';
                 }
-            };
-            
-            // Clear existing chart if any
-            if (window.methodBarsChartInstance) {
-                window.methodBarsChartInstance.destroy();
+                if (value >= 1000) {
+                    return '$' + (value / 1000).toFixed(1) + 'K';
+                }
+                return '$' + value.toFixed(1);
             }
-             const valueLabelsPlugin = {
-        id: 'valueLabels',
-        afterDatasetsDraw(chart, args, options) {
-            const { ctx, data, scales: { x, y } } = chart;
             
-            ctx.save();
-            ctx.font = 'bold 12px Arial';
-            ctx.textBaseline = 'middle';
-            ctx.textAlign = 'center';
+            // ===== METHOD COMPARISON BARS (Min-Max Range Chart - Vertical Stacked) =====
+           // ===== METHOD COMPARISON BARS (Min-Max Range Chart - Vertical Stacked) =====
+if (equityValues.length > 0 && equityMinValues.length > 0 && equityMaxValues.length > 0) {
+    const methodBarsCanvas = document.getElementById('methodBars');
+    if (methodBarsCanvas) {
+        // Get DCF values from Equity Value of the Company table
+        const dcfMinFromTable = parseFloat(equityValueMin || 0);
+        const dcfAvgFromTable = parseFloat(equityValueAvg || 0);
+        const dcfMaxFromTable = parseFloat(equityValueMax || 0);
+        
+        // Find DCF index in the methods array
+        const dcfIndex = methodLabels.findIndex(label => label === 'DCF' || label.includes('DCF'));
+        
+        // Replace DCF values with table values if DCF exists
+        if (dcfIndex >= 0 && dcfMinFromTable > 0 && dcfMaxFromTable > 0) {
+            equityMinValues[dcfIndex] = dcfMinFromTable;
+            equityValues[dcfIndex] = dcfAvgFromTable;
+            equityMaxValues[dcfIndex] = dcfMaxFromTable;
+        }
+        
+        // Prepare data for VERTICAL STACKED bars with LOGARITHMIC scaling
+        const bottomSegmentData = [];  // Negative values (min to avg)
+        const topSegmentData = [];     // Positive values (avg to max)
+        
+        equityValues.forEach((avgValue, index) => {
+            const minVal = parseFloat(equityMinValues[index]) || 0;
+            const avgVal = parseFloat(avgValue) || 0;
+            const maxVal = parseFloat(equityMaxValues[index]) || 0;
             
-            data.datasets.forEach((dataset, datasetIndex) => {
-                const meta = chart.getDatasetMeta(datasetIndex);
+            // Calculate distances from average (ensure positive)
+            const distanceFromAvgToMin = Math.max(avgVal - minVal, 0);
+            const distanceFromAvgToMax = Math.max(maxVal - avgVal, 0);
+            
+            // LOGARITHMIC TRANSFORMATION to handle large value ranges
+            // Add 1 to avoid log(0) issues, then apply log10
+            const logBottom = distanceFromAvgToMin > 0 ? 
+                Math.log10(distanceFromAvgToMin + 1) * 20 : 0;
+            const logTop = distanceFromAvgToMax > 0 ? 
+                Math.log10(distanceFromAvgToMax + 1) * 20 : 0;
+            
+            // For VERTICAL stacked bars:
+            bottomSegmentData.push(-logBottom);  // Negative values (downwards)
+            topSegmentData.push(logTop);         // Positive values (upwards)
+        });
+        
+        // Calculate dynamic Y-axis range based on log values
+        const allLogValues = [...bottomSegmentData, ...topSegmentData];
+        const maxLogValue = Math.max(...allLogValues.map(Math.abs));
+        const yMin = -Math.max(maxLogValue * 1.2, 30); // 20% padding, min 30
+        const yMax = Math.max(maxLogValue * 1.2, 30);  // 20% padding, min 30
+        
+        // Create center line plugin
+        const centerLine = {
+            id: 'centerLine',
+            afterDraw(chart) {
+                const { ctx, chartArea, scales: { y } } = chart;
+                const yCenter = y.getPixelForValue(0);
+                ctx.save();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = '#233977';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(chartArea.left, yCenter);
+                ctx.lineTo(chartArea.right, yCenter);
+                ctx.stroke();
                 
-                meta.data.forEach((bar, index) => {
-                    // Get the value for this bar
-                    const value = dataset.data[index];
+                // Add "0" label at right
+                ctx.fillStyle = '#233977';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('0', chartArea.right + 10, yCenter);
+                ctx.restore();
+            }
+        };
+        
+        // Value labels plugin (updated for logarithmic scale)
+        const valueLabelsPlugin = {
+            id: 'valueLabels',
+            afterDatasetsDraw(chart, args, options) {
+                const { ctx, data, scales: { x, y } } = chart;
+                
+                ctx.save();
+                ctx.font = 'bold 12px Arial';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                
+                data.datasets.forEach((dataset, datasetIndex) => {
+                    const meta = chart.getDatasetMeta(datasetIndex);
                     
-                    // Calculate position
-                    const xPos = bar.x;
-                    const yPos = bar.y;
-                    
-                    // Get the actual min, avg, max values
-                    const minVal = parseFloat(equityMinValues[index]) || 0;
-                    // const avgVal = parseFloat(equityValues[index]) || 0;
-                    const maxVal = parseFloat(equityMaxValues[index]) || 0;
-                    
-                    // Format the value
-                    let labelText = '';
-                    let labelColor = '#ffffff';
-                    
-                    if (datasetIndex === 0) { // Bottom segment (Min to Avg)
-                        // Position label at the bottom of this segment
-                        labelText = formatInMillions(minVal);
-                        labelColor = '#0ea5a5';
-                        ctx.textBaseline = 'top';
-                    } else { // Top segment (Avg to Max)
-                        // Position label at the top of this segment
-                        labelText = formatInMillions(maxVal);
-                        labelColor = '#233977';
-                        ctx.textBaseline = 'bottom';
-                    }
-                    
-                    // Draw the label
-                    ctx.fillStyle = labelColor;
-                    ctx.fillText(labelText, xPos, yPos);
+                    meta.data.forEach((bar, index) => {
+                        const xPos = bar.x;
+                        const yPos = bar.y;
+                        
+                        const minVal = parseFloat(equityMinValues[index]) || 0;
+                        const maxVal = parseFloat(equityMaxValues[index]) || 0;
+                        
+                        let labelText = '';
+                        let labelColor = '#ffffff';
+                        
+                        if (datasetIndex === 0) { // Bottom segment (Min to Avg)
+                            labelText = formatInMillions(minVal);
+                            labelColor = '#0ea5a5';
+                            ctx.textBaseline = 'top';
+                            // Adjust position for bottom labels
+                            const labelY = yPos + 8;
+                            ctx.fillStyle = labelColor;
+                            ctx.fillText(labelText, xPos, labelY);
+                        } else { // Top segment (Avg to Max)
+                            labelText = formatInMillions(maxVal);
+                            labelColor = '#233977';
+                            ctx.textBaseline = 'bottom';
+                            // Adjust position for top labels
+                            const labelY = yPos - 8;
+                            ctx.fillStyle = labelColor;
+                            ctx.fillText(labelText, xPos, labelY);
+                        }
+                    });
                 });
-            });
-            
-            // Now draw average values at the center (y=0)
-            ctx.fillStyle = '#ffffff';
-            ctx.textBaseline = 'middle';
-            ctx.font = 'bold 13px Arial';
-         
-            ctx.restore();
+                
+                // Draw average values at the center
+                ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'middle';
+                ctx.font = 'bold 13px Arial';
+                
+                equityValues.forEach((avgValue, index) => {
+                    const xPos = x.getPixelForValue(index);
+                    const yCenter = y.getPixelForValue(0);
+                    const avgVal = parseFloat(avgValue) || 0;
+                    ctx.fillText(formatInMillions(avgVal), xPos, yCenter);
+                });
+                
+                ctx.restore();
+            }
+        };
+        
+        // Clear existing chart if any
+        if (window.methodBarsChartInstance) {
+            window.methodBarsChartInstance.destroy();
         }
-    };
-            // Create the VERTICAL STACKED bar chart
-            window.methodBarsChartInstance = new Chart(methodBarsCanvas, {      
-                type: 'bar',
-                data: {
-                    labels: methodLabels,
-                    datasets: [
-                        {
-                            label: 'Min to Avg',
-                            data: bottomSegmentData,
-                            backgroundColor: '#0ea5a5',
-                            borderColor: '#0ea5a5',
-                            borderWidth: 1,
-                            barThickness: 40,
-                            borderRadius: { 
-                                topLeft: 0,
-                                topRight: 0,
-                                bottomLeft: 3,
-                                bottomRight: 3
-                            }
-                        },
-                        {
-                            label: 'Avg to Max',
-                            data: topSegmentData,
-                            backgroundColor: '#233977',
-                            borderColor: '#233977',
-                            borderWidth: 1,
-                            barThickness: 40,
-                            borderRadius: { 
-                                topLeft: 3,
-                                topRight: 3,
-                                bottomLeft: 0,
-                                bottomRight: 0
-                            }
+        
+        // Create the VERTICAL STACKED bar chart with LOGARITHMIC data
+        window.methodBarsChartInstance = new Chart(methodBarsCanvas, {      
+            type: 'bar',
+            data: {
+                labels: methodLabels,
+                datasets: [
+                    {
+                        label: 'Min to Avg',
+                        data: bottomSegmentData,
+                        backgroundColor: '#0ea5a5',
+                        borderColor: '#0ea5a5',
+                        borderWidth: 1,
+                        barThickness: 40,
+                        borderRadius: { 
+                            topLeft: 0,
+                            topRight: 0,
+                            bottomLeft: 4,
+                            bottomRight: 4
                         }
-                    ]
+                    },
+                    {
+                        label: 'Avg to Max',
+                        data: topSegmentData,
+                        backgroundColor: '#233977',
+                        borderColor: '#233977',
+                        borderWidth: 1,
+                        barThickness: 40,
+                        borderRadius: { 
+                            topLeft: 4,
+                            topRight: 4,
+                            bottomLeft: 0,
+                            bottomRight: 0
+                        }
+                    }
+                ]
+            },
+            options: {
+                devicePixelRatio: 4,
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
                 },
-                options: {
-                    // Remove indexAxis or set to 'x' for vertical bars (default)
-                    // indexAxis: 'x', // Optional - 'x' is default for vertical bars
-                    
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
+                plugins: {
+                    legend: { 
+                        display: false 
                     },
-                    plugins: {
-                        legend: { 
-                            display: false 
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                title: function(tooltipItems) {
-                                    return methodLabels[tooltipItems[0].dataIndex];
-                                },
-                                label: function(context) {
-                                    const index = context.dataIndex;
-                                    if (context.datasetIndex === 0) {
-                                        return `Min: ${formatInMillions(equityMinValues[index])} → Avg: ${formatInMillions(equityValues[index])}`;
-                                    } else {
-                                        return `Avg: ${formatInMillions(equityValues[index])} → Max: ${formatInMillions(equityMaxValues[index])}`;
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true, // Stack along X-axis
-                            grid: { 
-                                display: false,
-                                drawBorder: false
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return methodLabels[tooltipItems[0].dataIndex];
                             },
-                            ticks: {
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                color: '#111827'
-                            }
-                        },
-                        y: {
-                            stacked: true, // Stack along Y-axis
-                            min: -120,
-                            max: 120,
-                            grid: { 
-                                display: false,
-                                drawBorder: false,
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            ticks: { 
-                                  position: 'left',
-                                display: false,
-                                callback: function(value) {
-                                    return value;
-                                }
-                            }
-                        },
-                          yRight: { // Add a second Y-axis on the right
-                            type: 'linear',
-                            min: -120,
-                            max: 120,
-                            position: 'right',
-                            grid: {
-                                display: false, // Don't show grid lines for right axis
-                                drawBorder: false
-                            },
-                            ticks: {
-                                display: true,
-                                callback: function(value) {
-                                    return value;
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const avgValue = equityValues[index];
+                                
+                                // Calculate actual value from log scale for tooltip
+                                const logValue = context.raw;
+                                const actualValue = Math.pow(10, Math.abs(logValue) / 20) - 1;
+                                
+                                if (context.datasetIndex === 0) {
+                                    return `Min: ${formatInMillions(equityMinValues[index])} → Avg: ${formatInMillions(avgValue)}`;
+                                } else {
+                                    return `Avg: ${formatInMillions(avgValue)} → Max: ${formatInMillions(equityMaxValues[index])}`;
                                 }
                             }
                         }
                     }
                 },
-                plugins: [centerLine,valueLabelsPlugin]
-            });
-            
-            // Add value labels after chart is drawn
-            // setTimeout(() => {
-            //     const ctx = methodBarsCanvas.getContext('2d');
-            //     const chart = window.methodBarsChartInstance;
-            //     const xScale = chart.scales.x;
-            //     const yScale = chart.scales.y;
-                
-            //     ctx.save();
-            //     ctx.textAlign = 'center';
-            //     ctx.textBaseline = 'middle';
-            //     ctx.font = 'bold 12px Arial';
-                
-            //     equityValues.forEach((avgValue, index) => {
-            //         const xPos = xScale.getPixelForValue(index);
-            //         const yCenter = yScale.getPixelForValue(0);
-            //         const yBottom = yScale.getPixelForValue(bottomSegmentData[index]);
-            //         const yTop = yScale.getPixelForValue(topSegmentData[index]);
-                    
-            //         const avgVal = parseFloat(avgValue) || 0;
-            //         const minVal = parseFloat(equityMinValues[index]) || 0;
-            //         const maxVal = parseFloat(equityMaxValues[index]) || 0;
-                    
-            //         // Draw average value at center (white)
-            //         ctx.fillStyle = '#ffffff';
-            //         ctx.fillText(formatInMillions(avgVal), xPos, yCenter);
-                    
-            //         // Draw min value at bottom end (teal)
-            //         ctx.fillStyle = '#0ea5a5';
-            //         ctx.textBaseline = 'top';
-            //         ctx.fillText(formatInMillions(minVal), xPos, yBottom + 5);
-                    
-            //         // Draw max value at top end (dark blue)
-            //         ctx.fillStyle = '#233977';
-            //         ctx.textBaseline = 'bottom';
-            //         ctx.fillText(formatInMillions(maxVal), xPos, yTop - 5);
-                    
-            //         ctx.textBaseline = 'middle';
-            //     });
-                
-            //     ctx.restore();
-            // }, 100);
-            
-            // Style the chart container for vertical bars
-            methodBarsCanvas.parentElement.style.height = '350px';
-            methodBarsCanvas.parentElement.style.minHeight = '300px';
-        }
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { 
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#111827'
+                        }
+                    },
+                    y: {
+                        type: 'linear', // Keep linear for Y-axis
+                        stacked: true,
+                        min: yMin,
+                        max: yMax,
+                        grid: { 
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: { 
+                            position: 'left',
+                            display: false,
+                            // Optional: Show log scale labels
+                            callback: function(value) {
+                                // Convert back from log scale for display
+                                const actualValue = Math.pow(10, Math.abs(value) / 20) - 1;
+                                return formatInMillions(actualValue);
+                            }
+                        }
+                    },
+                    yRight: {
+                    type: 'linear',
+                    position: 'right', // ← KEY: Position on right
+                    min: yMin,
+                    max: yMax,
+                    grid: {
+                        display: false, // ← No grid lines
+                        drawBorder: false
+                    },
+                    ticks: {
+                        display: true, // ← Show ticks on right
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        color: '#111827',
+                        callback: function(value) {
+                            // Format labels as needed
+                            return value === 0 ? '0' : 
+                                value > 0 ? '+' + value.toFixed(0) : 
+                                value.toFixed(0);
+                        }
+                    }
+                }
+                }
+            },
+            plugins: [centerLine, valueLabelsPlugin]
+        });
+        
+        // Auto-adjust container height
+        const chartContainer = methodBarsCanvas.parentElement;
+        const dynamicHeight = 300 + (yMax * 1.5);
+        chartContainer.style.height = `${Math.min(Math.max(dynamicHeight, 300), 500)}px`;
+        chartContainer.style.minHeight = '300px';
+        
+        console.log('Logarithmic scaling applied:', {
+            originalValues: equityValues,
+            logBottomData: bottomSegmentData,
+            logTopData: topSegmentData,
+            yRange: { min: yMin, max: yMax }
+        });
     }
+}
 });
 </script>

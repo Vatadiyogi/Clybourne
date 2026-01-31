@@ -28,6 +28,7 @@ const PDFDocument = require('pdfkit');
 router.get('/:orderId/report-ejs', async (req, res) => {
     console.log('=== EJS REPORT ROUTE CALLED ===');
     console.log('Order ID:', req.params.orderId);
+    
     console.log('Format:', req.query.format);
 
     try {
@@ -54,7 +55,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        console.log('Order found:', order.business?.companyName);
+        // console.log('Order found:', order.business?.companyName);
         console.log('Order found:', order);
 
         // 2. Fetch valuation data from API
@@ -111,22 +112,22 @@ router.get('/:orderId/report-ejs', async (req, res) => {
         } = valuationData;
         // Add this after fetching valuation data (around line 63-70):
 
-        console.log('=== DEBUG: Valuation Data from API ===');
-        console.log('1. Company Equity Values:');
-        console.log('   - companyEquityMinValue:', companyEquityMinValue);
-        console.log('   - companyEquityAvgValue:', companyEquityAvgValue);
-        console.log('   - companyEquityMaxValue:', companyEquityMaxValue);
-        console.log('2. Enterprise Values:');
-        console.log('   - EnterpriseMinValue:', EnterpriseMinValue);
-        console.log('   - EnterpriseAvgValue:', EnterpriseAvgValue);
-        console.log('   - EnterpriseMaxValue:', EnterpriseMaxValue);
-        console.log('3. Weighted Values:');
-        console.log('   - weightMinEquityValue:', weightMinEquityValue);
-        console.log('   - weightAvgEquityValue:', weightAvgEquityValue);
-        console.log('   - weightMaxEquityValue:', weightMaxEquityValue);
-        console.log('4. Enterprise Value (DCF):', enterpriseValue);
-        console.log('5. Net Debt:', netDebt);
-        console.log('=== END DEBUG ===');
+        // console.log('=== DEBUG: Valuation Data from API ===');
+        // console.log('1. Company Equity Values:');
+        // console.log('   - companyEquityMinValue:', companyEquityMinValue);
+        // console.log('   - companyEquityAvgValue:', companyEquityAvgValue);
+        // console.log('   - companyEquityMaxValue:', companyEquityMaxValue);
+        // console.log('2. Enterprise Values:');
+        // console.log('   - EnterpriseMinValue:', EnterpriseMinValue);
+        // console.log('   - EnterpriseAvgValue:', EnterpriseAvgValue);
+        // console.log('   - EnterpriseMaxValue:', EnterpriseMaxValue);
+        // console.log('3. Weighted Values:');
+        // console.log('   - weightMinEquityValue:', weightMinEquityValue);
+        // console.log('   - weightAvgEquityValue:', weightAvgEquityValue);
+        // console.log('   - weightMaxEquityValue:', weightMaxEquityValue);
+        // console.log('4. Enterprise Value (DCF):', enterpriseValue);
+        // console.log('5. Net Debt:', netDebt);
+        // console.log('=== END DEBUG ===');
 
 
         // 3.5. Fallback to order object if values are missing from API response
@@ -211,12 +212,12 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             }
         };
         // Also add debug for the DCF table data:
-        console.log('=== DCF Table Data Debug ===');
-        console.log('dcfTableData.equityValue:', dcfTableData.equityValue);
-        console.log('dcfTableData.equityValueMin:', dcfTableData.equityValueMin);
-        console.log('dcfTableData.equityValueMax:', dcfTableData.equityValueMax);
-        console.log('dcfTableData.enterpriseAvgValue:', dcfTableData.enterpriseAvgValue);
-        console.log('=== END DCF Debug ===');
+        // console.log('=== DCF Table Data Debug ===');
+        // console.log('dcfTableData.equityValue:', dcfTableData.equityValue);
+        // console.log('dcfTableData.equityValueMin:', dcfTableData.equityValueMin);
+        // console.log('dcfTableData.equityValueMax:', dcfTableData.equityValueMax);
+        // console.log('dcfTableData.enterpriseAvgValue:', dcfTableData.enterpriseAvgValue);
+        // console.log('=== END DCF Debug ===');
         // Add Terminal Value to years if needed
         if (dcfTableData.years.length < 6) {
             dcfTableData.years.push('Terminal');
@@ -510,6 +511,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                 hasEquity: (order.finance?.equity || 0) > 0,
                 hasDebt: (order.finance?.debtLoan || 0) > 0,
                 unitOfNumber: order.finance?.unitOfNumber || "N/A",
+                valueType: order.finance?.valueType || "N/A",
                 competitor2: order.back_end_table[0][0].trim(),
 
             },
@@ -667,22 +669,22 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             }
         };
 
-        console.log("✅ Report data prepared from API");
-        console.log("🔍 Enterprise Value Debug:");
-        console.log("  - EnterpriseAvgValue from API:", EnterpriseAvgValue);
-        console.log("  - EnterpriseAvgValue from order:", order.EnterpriseAvgValue);
-        console.log("  - weightAvgEquityValue from API:", weightAvgEquityValue);
-        console.log("  - weightAvgEquityValue from order:", order.weightAvgEquityValue);
-        console.log("  - finalWeightAvgEquityValue:", finalWeightAvgEquityValue);
-        console.log("  - netDebt from API:", netDebt);
-        console.log("  - netDebt from order:", order.netDebt);
-        console.log("  - finalNetDebt:", finalNetDebt);
-        console.log("  - Calculated (finalWeightAvgEquityValue + finalNetDebt):", finalWeightAvgEquityValue + finalNetDebt);
-        console.log("  - finalEnterpriseAvgValue:", finalEnterpriseAvgValue);
-        console.log("  - enterpriseValue (DCF):", enterpriseValue);
-        console.log("  - valuation.enterpriseAvgValue:", reportData.valuation.enterpriseAvgValue);
-        console.log("  - dcfTableData.enterpriseAvgValue:", reportData.dcfTableData.enterpriseAvgValue);
-        console.log("  - Top-level enterpriseAvgValue:", reportData.enterpriseAvgValue);
+        // console.log("✅ Report data prepared from API");
+        // console.log("🔍 Enterprise Value Debug:");
+        // console.log("  - EnterpriseAvgValue from API:", EnterpriseAvgValue);
+        // console.log("  - EnterpriseAvgValue from order:", order.EnterpriseAvgValue);
+        // console.log("  - weightAvgEquityValue from API:", weightAvgEquityValue);
+        // console.log("  - weightAvgEquityValue from order:", order.weightAvgEquityValue);
+        // console.log("  - finalWeightAvgEquityValue:", finalWeightAvgEquityValue);
+        // console.log("  - netDebt from API:", netDebt);
+        // console.log("  - netDebt from order:", order.netDebt);
+        // console.log("  - finalNetDebt:", finalNetDebt);
+        // console.log("  - Calculated (finalWeightAvgEquityValue + finalNetDebt):", finalWeightAvgEquityValue + finalNetDebt);
+        // console.log("  - finalEnterpriseAvgValue:", finalEnterpriseAvgValue);
+        // console.log("  - enterpriseValue (DCF):", enterpriseValue);
+        // console.log("  - valuation.enterpriseAvgValue:", reportData.valuation.enterpriseAvgValue);
+        // console.log("  - dcfTableData.enterpriseAvgValue:", reportData.dcfTableData.enterpriseAvgValue);
+        // console.log("  - Top-level enterpriseAvgValue:", reportData.enterpriseAvgValue);
         // console.log("similarcompany", reportData.similarCompany);
         // console.log("DCF Equity Value:", reportData.dcfData.equityValue);
         // console.log("Enterprise Value:", reportData.dcfData.enterpriseValue);
@@ -742,6 +744,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                     printBackground: true,
                     margin: { top: '40px', right: '20px', bottom: '40px', left: '20px' },
                     displayHeaderFooter: true,
+                    
                     // headerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Valuation Report</div>',
                     // footerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
                     preferCSSPageSize: true,
@@ -1112,7 +1115,7 @@ router.get('/:orderId/test-actual-pdf', async (req, res) => {
         const page = await browser.newPage();
 
         // Set viewport
-        await page.setViewport({ width: 1920, height: 1080 });
+        await page.setViewport({ width: 1920, height: 1080 ,deviceScaleFactor: 2 });
 
         console.log('📄 Setting HTML content...');
         await page.setContent(actualHtml, {
