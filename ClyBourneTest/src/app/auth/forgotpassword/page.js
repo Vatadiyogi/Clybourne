@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import logo from "../../../static/images/logo.png";
+import logo from "../../../static/images/loginicon.svg";
 import { SectionWrapper } from "../../component/generalComponent/SectionWrapper";
 import Link from "next/link";
 import Image from "next/image";

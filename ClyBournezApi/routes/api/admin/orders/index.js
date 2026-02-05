@@ -28,7 +28,7 @@ const PDFDocument = require('pdfkit');
 router.get('/:orderId/report-ejs', async (req, res) => {
     console.log('=== EJS REPORT ROUTE CALLED ===');
     console.log('Order ID:', req.params.orderId);
-    
+
     console.log('Format:', req.query.format);
 
     try {
@@ -84,6 +84,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             workIncStmt = [],
             workCashFlowStmt = [],
             workBackEndInputs = {},
+            workBackEndTableAvg = {},
             companyEquityAvgValue = 0,
             companyEquityMinValue = 0,
             companyEquityMaxValue = 0,
@@ -110,6 +111,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             netDebt = 0,
             years = []
         } = valuationData;
+        // console.log("valuationDDDDDDDDDDDDD", valuationData)
         // Add this after fetching valuation data (around line 63-70):
 
         // console.log('=== DEBUG: Valuation Data from API ===');
@@ -178,7 +180,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             min: correctWeightMinEquityValue,
             max: correctWeightMaxEquityValue
         };
-        const  dcfEnterpriseValue = order.EnterpriseAvgValue || 0;
+        const dcfEnterpriseValue = order.EnterpriseAvgValue || 0;
         // 5. Prepare DCF table data with safe values
         const dcfTableData = {
             ebitda: workDcfFCFF.slice(0, 5).map(item => item?.ebitda || 0),
@@ -222,12 +224,50 @@ router.get('/:orderId/report-ejs', async (req, res) => {
         if (dcfTableData.years.length < 6) {
             dcfTableData.years.push('Terminal');
         }
+        let interestRate = 0;
+        if (order.forcast_inc_stmt?.length > 0) {
+            interestRate = Number(order.forcast_inc_stmt[0].interestRate) || 0;
+        }
 
+        let corTaxRate = 0;
+        if (order.back_end_inputs) {
+            corTaxRate = Number(order.back_end_inputs.corpTaxRate) || 0;
+        }
+
+        const costOfDebt = (interestRate / 100) * (1 - corTaxRate / 100);
+
+        // console.log("Final costOfDebt %:", (costOfDebt * 100).toFixed(2) + "%");
         // Add cost calculations for key assumptions
+        let treasureRate = 0;
+        let adjustedBetaa = 0;
+        let equityRiskPremium = 0;
+        let centryRiskPremium = 0;
+        let alpha = 0;
+        // for adjbeta
+        let weightOfAdjBeta = 0;
+        let un_lev_beta = 0;
+        let cmpnyDiscFactor = 0;
+        let weightOfMktBeta = 0;
+
+        if (workBackEndInputs) {
+            treasureRate = workBackEndInputs.treasuryondRate;
+            equityRiskPremium = workBackEndInputs.equityRiskPremium;
+            centryRiskPremium = workBackEndInputs.cntryRiskPremium;
+            alpha = workBackEndInputs.alpha;
+            weightOfAdjBeta = workBackEndInputs.weightOfAdjBeta;
+            cmpnyDiscFactor = workBackEndInputs.cmpnyDiscFactor;
+            weightOfMktBeta = workBackEndInputs.weightOfMktBeta;
+            un_lev_beta = workBackEndTableAvg.un_lev_beta;
+        }
+        adjustedBetaa = (weightOfAdjBeta / 100 * (un_lev_beta + cmpnyDiscFactor / 100)) + weightOfMktBeta / 100;
+        console.log("adjustedBetaaadjustedBetaaadjustedBetaa ", adjustedBetaa)
+        const costOfEquity = treasureRate / 100 + (adjustedBetaa * equityRiskPremium / 100) + centryRiskPremium / 100 + alpha / 100;
+        // adjustedBetaa= 0.53884
+        // const costOfEquity = 2.2 / 100 + (adjustedBetaa * 5.4/100) + 0.68/100 + 25 / 100;
         const workBackEndInputsWithCosts = {
             ...workBackEndInputs,
-            costOfEquity: wacc * 0.7, // Rough estimate - you might have actual calculation
-            costOfDebt: wacc * 0.3,   // Rough estimate - you might have actual calculation
+            costOfEquity: costOfEquity * 100, // Rough estimate - you might have actual calculation
+            costOfDebt: (costOfDebt * 100).toFixed(2),
             equityRiskPremium: workBackEndInputs?.equityRiskPremium || 12,
             cmpnyDiscFactor: workBackEndInputs?.cmpnyDiscFactor || 10,
             perpetualGrowthRate: workBackEndInputs?.perpetualGrowthRate || 12
@@ -267,18 +307,15 @@ router.get('/:orderId/report-ejs', async (req, res) => {
 
             cash: {
                 labels: (workCashFlowStmt || []).map((item, index) => 2026 + index),
+                // Cash In = Positive cash flow items (yearEndCash if positive)
                 cashIn: (workCashFlowStmt || []).map(item => {
-                    const netProfit = Math.max(0, item?.netProfit || 0);
-                    const depreciation = Math.max(0, item?.depreciation || 0);
-                    const payable = Math.max(0, item?.payable || 0);
-                    return netProfit + depreciation + payable;
+                    // Use yearEndCash directly for cash in
+                    const yearEndCash = item?.yearEndCash || 0;
+                    return Math.max(0, yearEndCash); // Only positive values
                 }),
-                cashOut: (workCashFlowStmt || []).map(item => {
-                    const capex = Math.abs(item?.capExp || 0);
-                    const receivable = Math.abs(item?.receivable || 0);
-                    const inventory = Math.abs(item?.inventory || 0);
-                    const debtChange = Math.abs(item?.debtChange || 0);
-                    return capex + receivable + inventory + debtChange;
+                cashOut: (workDcfFCFF || []).map(item => {
+                  const freeCashFlow = item?.freeCashFlow || 0;
+                    return Math.max(0, freeCashFlow); // Only positive values
                 })
             }
         };
@@ -513,6 +550,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                 unitOfNumber: order.finance?.unitOfNumber || "N/A",
                 valueType: order.finance?.valueType || "N/A",
                 competitor2: order.back_end_table[0][0].trim(),
+                FinYrEndMonth: order.business?.FinYrEndMonth || "N/A",
 
             },
 
@@ -671,8 +709,8 @@ router.get('/:orderId/report-ejs', async (req, res) => {
 
         // console.log("✅ Report data prepared from API");
         // console.log("🔍 Enterprise Value Debug:");
-        // console.log("  - EnterpriseAvgValue from API:", EnterpriseAvgValue);
-        // console.log("  - EnterpriseAvgValue from order:", order.EnterpriseAvgValue);
+        console.log(" companyDetails", order.business);
+        console.log("  - EnterpriseAvgValue from order:", order.EnterpriseAvgValue);
         // console.log("  - weightAvgEquityValue from API:", weightAvgEquityValue);
         // console.log("  - weightAvgEquityValue from order:", order.weightAvgEquityValue);
         // console.log("  - finalWeightAvgEquityValue:", finalWeightAvgEquityValue);
@@ -680,19 +718,20 @@ router.get('/:orderId/report-ejs', async (req, res) => {
         // console.log("  - netDebt from order:", order.netDebt);
         // console.log("  - finalNetDebt:", finalNetDebt);
         // console.log("  - Calculated (finalWeightAvgEquityValue + finalNetDebt):", finalWeightAvgEquityValue + finalNetDebt);
-        // console.log("  - finalEnterpriseAvgValue:", finalEnterpriseAvgValue);
+        console.log("  - finalEnterpriseAvgValue:", finalEnterpriseAvgValue);
         // console.log("  - enterpriseValue (DCF):", enterpriseValue);
-        // console.log("  - valuation.enterpriseAvgValue:", reportData.valuation.enterpriseAvgValue);
-        // console.log("  - dcfTableData.enterpriseAvgValue:", reportData.dcfTableData.enterpriseAvgValue);
-        // console.log("  - Top-level enterpriseAvgValue:", reportData.enterpriseAvgValue);
+        console.log("  - valuation.enterpriseAvgValue:", reportData.valuation.enterpriseAvgValue);
+        console.log("  - dcfTableData.enterpriseAvgValue:", reportData.dcfTableData.enterpriseAvgValue);
+        console.log("  - Top-level enterpriseAvgValue:", reportData.enterpriseAvgValue);
         // console.log("similarcompany", reportData.similarCompany);
         // console.log("DCF Equity Value:", reportData.dcfData.equityValue);
         // console.log("Enterprise Value:", reportData.dcfData.enterpriseValue);
         // console.log("Checkbox values:", reportData.checkBoxesValues);
         // console.log("activeMethods:", reportData.activeMethods);
         // console.log("methodLabels:", reportData.methodLabels);
-        // console.log("equityValues:", reportData.equityValues);
-        // console.log("weightPercentages:", reportData.weightPercentages);
+        console.log("equityValues:", reportData.equityValues);
+        console.log("equityMinValues:", reportData.equityMinValues);
+        console.log("equityMaxValues:", reportData.equityMaxValues);
         // console.log("minValue:", reportData.minValue);
         // console.log("maxValue:", reportData.maxValue);
         // console.log("baseValue:", reportData.baseValue);
@@ -744,7 +783,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                     printBackground: true,
                     margin: { top: '40px', right: '20px', bottom: '40px', left: '20px' },
                     displayHeaderFooter: true,
-                    
+
                     // headerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Valuation Report</div>',
                     // footerTemplate: '<div style="font-size: 10px; text-align: center; color: #666; width: 100%;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
                     preferCSSPageSize: true,
@@ -1115,7 +1154,7 @@ router.get('/:orderId/test-actual-pdf', async (req, res) => {
         const page = await browser.newPage();
 
         // Set viewport
-        await page.setViewport({ width: 1920, height: 1080 ,deviceScaleFactor: 2 });
+        await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
 
         console.log('📄 Setting HTML content...');
         await page.setContent(actualHtml, {

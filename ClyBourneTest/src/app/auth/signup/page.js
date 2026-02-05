@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import { components } from "react-select";
-import logo from "../../../static/images/logo.png";
+import logo from "../../../static/images/signup.svg";
 const Select = dynamic(() => import("react-select"), { ssr: false });
 import countryList from "react-select-country-list";
 import { SectionWrapper } from "../../component/generalComponent/SectionWrapper";

@@ -177,7 +177,7 @@ const OrderDetails = () => {
         const finalData = baseData.map((item, index) => ({
             ...item,
             salesMain: scaledSales[index],
-            salesExtra: formatToTwoDecimals(scaledSales[index] * 0.95),
+              
             cogsMain: scaledCogs[index],
             cogsExtra: formatToTwoDecimals(scaledCogs[index] * 0.95),
             ebitda: scaledEbitda[index],

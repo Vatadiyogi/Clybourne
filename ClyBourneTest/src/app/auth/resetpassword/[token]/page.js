@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { SectionWrapper } from "../../../component/generalComponent/SectionWrapper";
 import Image from "next/image";
-import logo from "../../../../static/images/logo.png";
+import logo from "../../../../static/images/loginicon.svg";
 import { toast } from "react-toastify";
 import Axios from "../../../../utils/api";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";

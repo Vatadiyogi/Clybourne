@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Axios from "../../../utils/api";
-import logo from "../../../static/images/logo.png";
+import logo from "../../../static/images/loginicon.svg";
 import { SectionWrapper } from "../../component/generalComponent/SectionWrapper";
 import Link from "next/link";
 import { toast } from "react-toastify";

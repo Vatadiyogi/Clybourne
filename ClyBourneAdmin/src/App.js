@@ -13,7 +13,7 @@ export const PrivateRoute = ({ children }) => { // Export PrivateRoute
 const App = () => {
   return (
     <Router>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense  fallback={<div>Loading...</div>}>
         <AppRoutes routes={routes} isAuthenticated={PrivateRoute} />
       </Suspense>
     </Router>
