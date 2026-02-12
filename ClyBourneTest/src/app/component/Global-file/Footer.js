@@ -45,7 +45,7 @@ export default function Footer() {
         <>
             {/* Contact Info Top Bar */}
             <div className="bg-teal-600 text-white py-4 text-center text-sm  md:text-sm lg:text-lg ">
-                Email: <a href="mailto:help@clybourne.com" className="underline">helpassist@clybourneinsights.com</a> 
+                Email: <a href="mailto:help@clybourne.com" className="underline">helpassist@clybourneinsights.com</a>
                 {/* &nbsp; | &nbsp;
                 Phone Support: <a href="tel:+12223450000" className="underline">+1 222-345-0000</a> */}
             </div>
@@ -94,7 +94,7 @@ export default function Footer() {
                                 className="w-full px-4 py-2 text-sm text-black focus:outline-none"
                             />
                             <button disabled={submitting} onClick={handleClick} className="bg-teal-500 px-4 py-2 text-white flex items-center justify-center">
-                                {submitting &&<ClipLoader
+                                {submitting && <ClipLoader
                                     color="#ffffff"
                                     size={20}
                                     speedMultiplier={0.5}
@@ -139,6 +139,27 @@ export default function Footer() {
                     </div>
                 </div>
             </SectionWrapper>
+            <div className="bg-teal-600 text-white py-2 text-center text-xs sm:text-sm md:text-base">
+                Copyright © {new Date().getFullYear()}{" "}
+                <a
+                    href="https://clybourneinsights.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-teal-200 transition"
+                >
+                    clybourneinsights.com
+                </a>
+                . All Rights Reserved. Designed & Developed by{" "}
+                <a
+                    href="https://adiyogitechnosoft.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-teal-200 transition"
+                >
+                    Adiyogi Technosoft Pvt Ltd
+                </a>
+            </div>
+
         </>
     );
 }

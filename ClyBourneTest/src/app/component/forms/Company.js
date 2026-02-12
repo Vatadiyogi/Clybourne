@@ -368,52 +368,52 @@ const Company = ({ orderId, initialData, onSave, editAllowed }) => {
         localStorage.setItem('companyFormData', JSON.stringify(newFormData));
     }, [countryCode, formData, canEditCompany]);
 
- const validateForm = useCallback(() => {
-    const requiredFields = [
-        "companyName",
-        "companyType",
-        "industryType",
-        "yearsInBusiness",
-        "country",
-        "yearEndDay",
-        "yearEndMonth",
-        "yearEndYear",
-        "earningTrend",
-        "businessDescription",
-        "email",
-        "currency",
-        "contact",
-    ];
+    const validateForm = useCallback(() => {
+        const requiredFields = [
+            "companyName",
+            "companyType",
+            "industryType",
+            "yearsInBusiness",
+            "country",
+            "yearEndDay",
+            "yearEndMonth",
+            "yearEndYear",
+            "earningTrend",
+            "businessDescription",
+            "email",
+            "currency",
+            "contact",
+        ];
 
-    for (let field of requiredFields) {
-        if (!formData[field] || formData[field] === "") {
-            console.log(`Missing field: ${field}`, formData[field]);
-            return { valid: false, field };
-        }
-        
-        // Special validation for numeric fields
-        if (field === 'yearEndDay' || field === 'yearEndYear') {
-            const value = parseInt(formData[field]);
-            if (isNaN(value)) {
-                console.log(`Invalid number for field: ${field}`, formData[field]);
-                return { valid: false, field: `${field} must be a number` };
+        for (let field of requiredFields) {
+            if (!formData[field] || formData[field] === "") {
+                console.log(`Missing field: ${field}`, formData[field]);
+                return { valid: false, field };
+            }
+
+            // Special validation for numeric fields
+            if (field === 'yearEndDay' || field === 'yearEndYear') {
+                const value = parseInt(formData[field]);
+                if (isNaN(value)) {
+                    console.log(`Invalid number for field: ${field}`, formData[field]);
+                    return { valid: false, field: `${field} must be a number` };
+                }
+            }
+
+            // Special validation for contact (must be a valid phone number)
+            if (field === 'contact') {
+                const phone = formData[field];
+                // Simple validation - at least 10 digits
+                const digitsOnly = phone.replace(/\D/g, '');
+                if (digitsOnly.length < 10) {
+                    console.log(`Invalid phone number: ${phone}`);
+                    return { valid: false, field: "Contact must be a valid phone number" };
+                }
             }
         }
-        
-        // Special validation for contact (must be a valid phone number)
-        if (field === 'contact') {
-            const phone = formData[field];
-            // Simple validation - at least 10 digits
-            const digitsOnly = phone.replace(/\D/g, '');
-            if (digitsOnly.length < 10) {
-                console.log(`Invalid phone number: ${phone}`);
-                return { valid: false, field: "Contact must be a valid phone number" };
-            }
-        }
-    }
 
-    return { valid: true };
-}, [formData]);
+        return { valid: true };
+    }, [formData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -719,7 +719,7 @@ const Company = ({ orderId, initialData, onSave, editAllowed }) => {
                 {/* Form Section */}
                 <div className="w-full lg:w-[33%] h-fit p-2 xs:p-4 bg-white rounded-md">
                     <div className="flex gap-3 flex-col max-h-[76vh] overflow-y-auto pe-4 custom-scrollbar">
-                        <form className="space-y-5 text-sm" onSubmit={handleSubmit}>
+                        <form className="space-y-5 text-sm" >
                             {/* Company Name */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -985,34 +985,36 @@ const Company = ({ orderId, initialData, onSave, editAllowed }) => {
                             </div>
 
                             {/* Submit Button */}
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={!canEditAll || isLoading}
-                                    className={`w-full py-2 px-4 rounded-md text-white font-medium ${!canEditAll || isLoading
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-themegreen hover:bg-teal-700'
-                                        }`}
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center justify-center">
-                                            <CircularProgress size={20} style={{ color: "white" }} />
-                                            <span className="ml-2">Saving...</span>
-                                        </div>
-                                    ) : isModification ? (
-                                        'Continue to Financial Data'
-                                    ) : (
-                                        'Save & Continue'
-                                    )}
-                                </button>
 
-                                {!canEditAll && (
-                                    <p className="text-red-500 text-xs mt-2 text-center">
-                                        {getReadOnlyMessage()}
-                                    </p>
-                                )}
-                            </div>
                         </form>
+                    </div>
+                    <div className="pt-4">
+                        <button
+                          onClick={handleSubmit}
+                            type="submit"
+                            disabled={!canEditAll || isLoading}
+                            className={`w-full py-2 px-4 rounded-md text-white font-medium ${!canEditAll || isLoading
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-themegreen hover:bg-teal-700'
+                                }`}
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center justify-center">
+                                    <CircularProgress size={20} style={{ color: "white" }} />
+                                    <span className="ml-2">Saving...</span>
+                                </div>
+                            ) : isModification ? (
+                                'Continue to Financial Data'
+                            ) : (
+                                'Save & Continue'
+                            )}
+                        </button>
+
+                        {!canEditAll && (
+                            <p className="text-red-500 text-xs mt-2 text-center">
+                                {getReadOnlyMessage()}
+                            </p>
+                        )}
                     </div>
                 </div>
 

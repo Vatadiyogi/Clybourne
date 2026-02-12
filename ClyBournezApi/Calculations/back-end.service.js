@@ -72,8 +72,3 @@ var BackEndService = exports.BackEndService = function () {
     __setFunctionName(_classThis, "BackEndService");
     return BackEndService = _classThis;
 }();
-
-
-
-
-

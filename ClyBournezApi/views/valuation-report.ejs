@@ -2184,7 +2184,7 @@
                         const { ctx, data } = chart;
                         
                         ctx.save();
-                        ctx.font = 'normal 10px Arial';
+                        ctx.font = 'normal 8px Arial';
                         ctx.textBaseline = 'bottom';
                         ctx.textAlign = 'center';
                         ctx.fillStyle = '#233977';
@@ -2224,83 +2224,6 @@
                         ctx.restore();
                     }
                 };
-// const createLineLabelPlugin = (options = {}) => {
-//     const {
-//         angle = -90, // Degrees, negative for clockwise
-//         offsetY = -20, // Vertical offset from point
-//         fontSize = 10,
-//         fontFamily = 'Arial',
-//         fontStyle = 'normal',
-//         color = '#5FAFE3',
-//         showBackground = false,
-//         backgroundColor = 'rgba(255, 255, 255, 0.8)',
-//         backgroundPadding = 4
-//     } = options;
-    
-//     return {
-//         id: 'lineLabel',
-//         afterDatasetsDraw(chart, args, pluginOptions) {
-//             const { ctx, data } = chart;
-//             const meta = chart.getDatasetMeta(1);
-            
-//             if (meta && meta.type === 'line') {
-//                 meta.data.forEach((point, index) => {
-//                     const value = data.datasets[1].data[index];
-//                     if (value !== null && value !== undefined) {
-//                         const x = point.x+17;
-//                         const y = point.y + offsetY;
-//                         const label = value.toFixed(1) + '%';
-                        
-//                         ctx.save();
-//                         ctx.translate(x, y);
-                        
-//                         // Convert angle to radians
-//                         const angleRad = angle * (Math.PI / 180);
-//                         ctx.rotate(angleRad);
-                        
-//                         // Set font
-//                         ctx.font = `${fontStyle} ${fontSize}px ${fontFamily}`;
-//                         ctx.textBaseline = 'middle';
-//                         ctx.textAlign = 'center';
-                        
-//                         // Draw background if enabled
-//                         if (showBackground) {
-//                             const textWidth = ctx.measureText(label).width;
-//                             const textHeight = fontSize;
-                            
-//                             ctx.fillStyle = backgroundColor;
-//                             ctx.fillRect(
-//                                 -textWidth / 2 - backgroundPadding,
-//                                 -textHeight / 2 - backgroundPadding,
-//                                 textWidth + backgroundPadding * 2,
-//                                 textHeight + backgroundPadding * 2
-//                             );
-//                         }
-                        
-//                         // Draw text
-//                         ctx.fillStyle = color;
-//                         ctx.fillText(label, 0, 0);
-                        
-//                         ctx.restore();
-//                     }
-//                 });
-//             }
-//         }
-//     };
-// };
-
-// // Usage:
-// const lineLabelPlugin = createLineLabelPlugin({
-//     angle: -90, // 90 degrees clockwise
-//     offsetY: -13,
-
-//     fontSize: 10,
-//     fontStyle: 'normal',
-//     color: '#5FAFE3',
-//     showBackground: false,
-//     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-//     backgroundPadding: 3
-// });
                 // Plugin for line chart labels (for margins)
                 const lineLabelPlugin = {
                     id: 'lineLabel',
@@ -2308,7 +2231,7 @@
                         const { ctx, data } = chart;
                         
                         ctx.save();
-                        ctx.font = 'normal 10px Arial';
+                        ctx.font = 'normal 8px Arial';
                         ctx.textBaseline = 'middle';
                         ctx.textAlign = 'center';
                         ctx.fillStyle = '#5FAFE3';
@@ -2320,10 +2243,10 @@
                                 const value = data.datasets[1].data[index];
                                 if (value !== null && value !== undefined) {
                                     // Position label above the point
-                                    const x = point.x;
-                                    const y = point.y - 20;
+                                    const x = point.x-20;
+                                    const y = point.y - 5;
                                     
-                                    ctx.fillText(value.toFixed(1) + '%', x, y);
+                                    ctx.fillText(value.toFixed(0) + '%', x, y);
                                 }
                             });
                         }
@@ -2512,6 +2435,7 @@
                             }
                         }
                         }
+                    
                     },
                    plugins: [barLabelPlugin, lineLabelPlugin] // Add label plugin
                     });
@@ -2688,11 +2612,6 @@
             
             const methodLabels = JSON.parse(methodDataEl.dataset.methodLabels || '[]');
 
-            // const equityValues = JSON.parse(methodDataEl.dataset.equityValues || '[]');
-                       
-            // const equityMinValues = JSON.parse(methodDataEl.dataset.equityMinValues || '[]');
-            // const equityMaxValues = JSON.parse(methodDataEl.dataset.equityMaxValues || '[]');
-            // Parse the equity values array
 
             const weightPercentages = JSON.parse(methodDataEl.dataset.weightPercentages || '[0,0,0,0]');
             const minValue = parseFloat(methodDataEl.dataset.minValue) || 0;

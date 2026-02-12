@@ -339,7 +339,7 @@ var DcfService = exports.DcfService = function () {
 
             var costOfEquity = riskFreeRate + (adjBeta * equityRiskPremium) +
                 countryRiskPremium + alpha;
-console.log("DECENcostOfEquitycostOfEquitycostOfEquitycostOfEquity",costOfEquity)
+
             // Calculate base WACC
             var baseWACC = (debtCapital * aftrTaxCostOfDebt) + ((1 - debtCapital) * costOfEquity);
 

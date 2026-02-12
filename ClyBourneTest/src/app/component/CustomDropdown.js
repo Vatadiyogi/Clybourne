@@ -25,13 +25,20 @@ const CustomDropdown = ({ data, value, onChange, error, name, disabled }) => {
       return (
         <TreeNode
           value={industry}
-          title={industry} // Title for display
+          title={industry}
           key={industry}
-          selectable={false} // Disable selection of main industry
+          selectable={false}
           disabled={disabled}
+          style={{ cursor: 'pointer' }} // Make cursor pointer for better UX
         >
           {sortedSubItems.map(subItem => (
-            <TreeNode value={subItem.name} title={subItem.name} key={subItem.name} disabled={disabled} />
+            <TreeNode 
+              value={subItem.name} 
+              title={subItem.name} 
+              key={subItem.name} 
+              disabled={disabled}
+              style={{ cursor: 'pointer' }} // Make cursor pointer for better UX
+            />
           ))}
         </TreeNode>
       );
@@ -57,6 +64,9 @@ const CustomDropdown = ({ data, value, onChange, error, name, disabled }) => {
     return treeNode.title.toLowerCase().includes(inputValue.toLowerCase());
   };
 
+  // Custom dropdown renderer to make entire row clickable
+  const getPopupContainer = (triggerNode) => triggerNode.parentNode;
+
   return (
     <div className={`form-group financial-info-input ${error ? 'is-invalid' : ''}`}>
       <TreeSelect
@@ -64,13 +74,13 @@ const CustomDropdown = ({ data, value, onChange, error, name, disabled }) => {
         style={{ width: "100%" }}
         value={value || undefined}
         placeholder="Select your Industry"
-        className={` my-custom-select   `}
-
+        className="my-custom-select"
         onChange={handleChangeInternal}
-        showSearch // Enable search feature
-        filterTreeNode={filterTreeNode} // Apply custom search filter
-        treeDefaultExpandAll={false} // Initially collapse all nodes
-       
+        showSearch
+        filterTreeNode={filterTreeNode}
+        treeDefaultExpandAll={false}
+        treeExpandAction="click" // This makes the entire row expand/collapse on click
+        getPopupContainer={getPopupContainer}
       >
         {formatTreeNodes(data)}
       </TreeSelect>
