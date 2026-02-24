@@ -58,6 +58,10 @@ const PhoneSchema = new mongoose.Schema({
 }, { _id: false });
 
 const BusinessInfoSchema = new mongoose.Schema({
+    adminDescription: {
+        type: String,
+        default: null
+    },
     companyName: String,
     companyType: String,
     industryType: String,
@@ -271,6 +275,7 @@ const OrderSchema = new mongoose.Schema(
             type: String,
             default: null
         },
+
         reportDocName: {
             type: String,
             default: null

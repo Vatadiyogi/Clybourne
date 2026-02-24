@@ -9,7 +9,29 @@ import {
   CartesianGrid,
 } from "recharts";
 import GeneralButton from "../GeneralButton";
-
+import { formatToTwoDecimalPlaces } from "../../../utils/utility";
+const CustomTooltip = ({ active, payload, label, unit }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-lg rounded-md">
+        <p className="font-semibold text-sm mb-1">{`Year: ${payload[0].payload.year}`}</p>
+        <p className="text-sm text-gray-700">
+          <span className="font-medium">Net Margin: </span>
+          <span className="text-themeblue">
+            {formatToTwoDecimalPlaces(payload[0].value)} {unit}
+          </span>
+        </p>
+        {/* You can add more custom content here */}
+        {payload[0].payload.growth && (
+          <p className="text-xs text-green-600 mt-1">
+            Growth: {payload[0].payload.growth}%
+          </p>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
 export default function NetMarginChart({ yearly }) {
   return (
     <div className="card p-0 rounded">
@@ -32,11 +54,17 @@ export default function NetMarginChart({ yearly }) {
                 tick={{ fontSize: 11, fill: "#555" }}
               />
               <YAxis hide />
-              <Tooltip
+              {/* <Tooltip
                 contentStyle={{ backgroundColor: "#233977", border: "none" }}
                 itemStyle={{ color: "#fff" }}
                 labelStyle={{ color: "#fff" }}
+                formatter={(value) => `${formatToTwoDecimalPlaces(value)}%`}
+              /> */}
+                 <Tooltip
+                content={<CustomTooltip unit="%" />}
+                cursor={{ stroke: '#233977', strokeWidth: 1 }}
               />
+              
               <Area
                 type="monotone"
                 dataKey="netMargin"

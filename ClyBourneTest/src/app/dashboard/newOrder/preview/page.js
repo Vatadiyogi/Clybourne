@@ -192,6 +192,8 @@ const PreviewData = () => {
         const roundedEbitda = roundOffNumber(ebitdaData, { valueType: [financialData.unitOfNumber || 'Millions'] });
         const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [financialData.unitOfNumber || 'Millions'] });
 
+        const scaledUnit = roundedSales.valueType || financialData.unitOfNumber || 'Millions';
+
         // Update baseData with rounded values
         const finalData = baseData.map((item, index) => ({
             ...item,
@@ -204,13 +206,14 @@ const PreviewData = () => {
             netMargin: formatToTwoDecimals(item.netMargin)
         }));
 
-        return finalData;
+        return { chartData: finalData, chartUnit: scaledUnit };
     };
 
-    // Update chart data when dependencies change
+    // Update chart data and legend unit when dependencies change
     useEffect(() => {
-        const data = generateChartData();
-        setChartData(data);
+        const result = generateChartData();
+        setChartData(result.chartData);
+        setChartUnit(result.chartUnit);
     }, [financialData, companyData, forecastData]);
 
     // Format currency

@@ -57,8 +57,10 @@ var BackEndAvgService = exports.BackEndAvgService = function () {
             this.counterRow[this.ev_ebitda_index + 1] = 0;
             this.counterRow[this.un_lev_beta_index] = 0;
             value.forEach(function (row_data) {
-                var row = row_data;
-                if (row.length < _this.avgRow.length - 2) {
+                var row = Array.isArray(row_data)
+                    ? row_data.map(function (cell) { return typeof cell === "string" ? cell.trim() : (cell != null ? String(cell).trim() : ""); })
+                    : row_data;
+                if (!Array.isArray(row) || row.length < _this.avgRow.length - 2) {
                     if (row.length > 1) {
                         console.log("Error in row with length : " + row.length);
                         console.log(row);
@@ -126,15 +128,15 @@ var BackEndAvgService = exports.BackEndAvgService = function () {
                     }
                 }
             });
-            this.avgRow[this.pe_index] = this.sumRow[this.pe_index] / this.counterRow[this.pe_index];
-            this.avgRow[this.pe_index + 1] = this.sumRow[this.pe_index + 1] / this.counterRow[this.pe_index + 1];
-            this.avgRow[this.ps_index] = this.sumRow[this.ps_index] / this.counterRow[this.ps_index];
-            this.avgRow[this.ps_index + 1] = this.sumRow[this.ps_index + 1] / this.counterRow[this.ps_index + 1];
-            this.avgRow[this.ev_sales_index] = this.sumRow[this.ev_sales_index] / this.counterRow[this.ev_sales_index];
-            this.avgRow[this.ev_sales_index + 1] = this.sumRow[this.ev_sales_index + 1] / this.counterRow[this.ev_sales_index + 1];
-            this.avgRow[this.ev_ebitda_index] = this.sumRow[this.ev_ebitda_index] / this.counterRow[this.ev_ebitda_index];
-            this.avgRow[this.ev_ebitda_index + 1] = this.sumRow[this.ev_ebitda_index + 1] / this.counterRow[this.ev_ebitda_index + 1];
-            this.avgRow[this.un_lev_beta_index] = this.sumRow[this.un_lev_beta_index] / this.counterRow[this.un_lev_beta_index];
+            this.avgRow[this.pe_index] = this.counterRow[this.pe_index] > 0 ? this.sumRow[this.pe_index] / this.counterRow[this.pe_index] : NaN;
+            this.avgRow[this.pe_index + 1] = this.counterRow[this.pe_index + 1] > 0 ? this.sumRow[this.pe_index + 1] / this.counterRow[this.pe_index + 1] : NaN;
+            this.avgRow[this.ps_index] = this.counterRow[this.ps_index] > 0 ? this.sumRow[this.ps_index] / this.counterRow[this.ps_index] : NaN;
+            this.avgRow[this.ps_index + 1] = this.counterRow[this.ps_index + 1] > 0 ? this.sumRow[this.ps_index + 1] / this.counterRow[this.ps_index + 1] : NaN;
+            this.avgRow[this.ev_sales_index] = this.counterRow[this.ev_sales_index] > 0 ? this.sumRow[this.ev_sales_index] / this.counterRow[this.ev_sales_index] : NaN;
+            this.avgRow[this.ev_sales_index + 1] = this.counterRow[this.ev_sales_index + 1] > 0 ? this.sumRow[this.ev_sales_index + 1] / this.counterRow[this.ev_sales_index + 1] : NaN;
+            this.avgRow[this.ev_ebitda_index] = this.counterRow[this.ev_ebitda_index] > 0 ? this.sumRow[this.ev_ebitda_index] / this.counterRow[this.ev_ebitda_index] : NaN;
+            this.avgRow[this.ev_ebitda_index + 1] = this.counterRow[this.ev_ebitda_index + 1] > 0 ? this.sumRow[this.ev_ebitda_index + 1] / this.counterRow[this.ev_ebitda_index + 1] : NaN;
+            this.avgRow[this.un_lev_beta_index] = this.counterRow[this.un_lev_beta_index] > 0 ? this.sumRow[this.un_lev_beta_index] / this.counterRow[this.un_lev_beta_index] : NaN;
             this.workBackEndTableAvg = new query_model_1.BackEndTableAvg(
                 this.CheckValidData(this.avgRow[this.pe_index]) ? this.avgRow[this.pe_index] : NaN,
                 this.CheckValidData(this.avgRow[this.pe_index + 1]) ? this.avgRow[this.pe_index + 1] : NaN,

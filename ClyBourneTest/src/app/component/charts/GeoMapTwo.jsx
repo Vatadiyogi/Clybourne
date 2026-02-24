@@ -15,7 +15,7 @@ if (typeof HC_map === "function") {
 
 export default function GeoMap({ selectedCountry, classes = "w-full", height }) {
     console.log("Selected country code:", selectedCountry);
-    
+
     const chartRef = useRef(null);
 
     // Get country name from code
@@ -28,7 +28,7 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
     useEffect(() => {
         if (chartRef.current && selectedCountry) {
             const chart = chartRef.current.chart;
-            
+
             // Find the country feature to zoom to
             const countryFeature = worldMap.features.find(
                 feature => feature.properties["hc-key"] === highlight
@@ -37,7 +37,7 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
             if (countryFeature) {
                 // Get the bounding box of the country
                 const bbox = countryFeature.bbox || getBBoxFromCoordinates(countryFeature);
-                
+
                 if (bbox) {
                     // Zoom to the country with animation
                     chart.mapZoom(0.5, bbox[0], bbox[1], bbox[2], bbox[3]);
@@ -50,7 +50,7 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
     const getBBoxFromCoordinates = (feature) => {
         if (feature.geometry && feature.geometry.coordinates) {
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-            
+
             const processCoordinates = (coords) => {
                 if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
                     minX = Math.min(minX, coords[0]);
@@ -61,9 +61,9 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
                     coords.forEach(processCoordinates);
                 }
             };
-            
+
             processCoordinates(feature.geometry.coordinates);
-            
+
             return [minX, minY, maxX, maxY];
         }
         return null;
@@ -169,14 +169,14 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
             height: height,
             spacing: [10, 10, 10, 10],
             events: {
-                load: function() {
+                load: function () {
                     // Initial zoom to selected country if exists
                     if (selectedCountry) {
                         setTimeout(() => {
                             const countryFeature = worldMap.features.find(
                                 feature => feature.properties["hc-key"] === highlight
                             );
-                            
+
                             if (countryFeature) {
                                 const bbox = countryFeature.bbox || getBBoxFromCoordinates(countryFeature);
                                 if (bbox) {
@@ -193,7 +193,7 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
         legend: { enabled: false },
         mapNavigation: {
             enabled: true,
-            buttonOptions: { 
+            buttonOptions: {
                 verticalAlign: "bottom",
                 align: "left",
                 y: -5
@@ -227,13 +227,13 @@ export default function GeoMap({ selectedCountry, classes = "w-full", height }) 
                 },
                 point: {
                     events: {
-                        click: function() {
+                        click: function () {
                             // Optional: Zoom to country when clicked
                             const point = this;
                             const bbox = worldMap.features.find(
                                 f => f.properties["hc-key"] === point["hc-key"]
                             )?.bbox;
-                            
+
                             if (bbox) {
                                 point.series.chart.mapZoom(0.5, bbox[0], bbox[1], bbox[2], bbox[3]);
                             }

@@ -11,7 +11,29 @@ import {
     Legend,
 } from "recharts";
 import GeneralButton from "../GeneralButton";
-
+import { formatToTwoDecimalPlaces } from "../../../utils/utility";
+const CustomTooltip = ({ active, payload, label, unit }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-3 border border-gray-200 shadow-lg rounded-md">
+                <p className="font-semibold text-sm mb-1">{`Year: ${payload[0].payload.year}`}</p>
+                <p className="text-sm text-gray-700">
+                    <span className="font-medium">Net Profit: </span>
+                    <span className="text-themeblue">
+                        {formatToTwoDecimalPlaces(payload[0].value)} {unit}
+                    </span>
+                </p>
+                {/* You can add more custom content here */}
+                {payload[0].payload.growth && (
+                    <p className="text-xs text-green-600 mt-1">
+                        Growth: {payload[0].payload.growth}%
+                    </p>
+                )}
+            </div>
+        );
+    }
+    return null;
+};
 export default function NetProfitChart({ yearly, unit }) {
     return (
         <div className="card p-0 rounded">
@@ -38,6 +60,7 @@ export default function NetProfitChart({ yearly, unit }) {
                             axisLine={false}
                             tickLine={false}
                             tick={{ fontSize: 10, fill: "#555" }}
+                            tickFormatter={(value) => formatToTwoDecimalPlaces(value)}
                         />
                         <YAxis
                             type="category"
@@ -47,13 +70,18 @@ export default function NetProfitChart({ yearly, unit }) {
                             width={50}
                             tick={{ fontSize: 10, fill: "#555" }}
                         />
-                        <Tooltip />
+                        {/* <Tooltip formatter={(value) => formatToTwoDecimalPlaces(value)} /> */}
+                         <Tooltip 
+                                                    content={<CustomTooltip unit={unit} />}
+                                                    cursor={{ fill: 'rgba(35, 57, 119, 0.1)' }}
+                                                />
                         <Bar dataKey="netProfit" fill="#233977" radius={[0, 3, 3, 0]} >
                             <LabelList
                                 dataKey="netProfit"
                                 position="right"
                                 fill="#555"
                                 fontSize={12}
+                                formatter={(value) => formatToTwoDecimalPlaces(value)}
                             />
                         </Bar>
                     </BarChart>

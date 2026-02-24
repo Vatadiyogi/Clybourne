@@ -13,6 +13,7 @@ import CogsChart from "../charts/CogsChart"
 import EbitdaChart from "../charts/EbitdaChart"
 import NetProfitChart from "../charts/NetProfitChart"
 import NetMarginChart from "../charts/NetMarginChart"
+import NumericInputIndian from './NumericInputIndian';
 
 // Dynamically import components
 const Select = dynamic(() => import("react-select"), { ssr: false });
@@ -53,11 +54,11 @@ export function roundOffNumber(numbers, finData) {
 
     const maxAbsValue = Math.max(...validNumbers.map(num => Math.abs(num)));
 
-    // Define unit hierarchy
+    // Define unit hierarchy (values are stored IN current unit: 1000 of current = 1 of next)
     const unitHierarchy = {
         'Thousands': { next: 'Millions', divisor: 1000 },
-        'Millions': { next: 'Billions', divisor: 1000000 },
-        'Billions': { next: 'Trillions', divisor: 1000000000 },
+        'Millions': { next: 'Billions', divisor: 1000 },
+        'Billions': { next: 'Trillions', divisor: 1000 },
         'Trillions': { next: 'Trillions', divisor: 1 }
     };
 
@@ -204,25 +205,24 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
         const maxValue = Math.max(...allValues.map(v => Math.abs(v)));
         const digitCount = maxValue > 0 ? Math.floor(Math.log10(maxValue)) + 1 : 0;
 
-        // Define thresholds for each unit
+        // Values are in current unit; when value has 4+ digits (e.g. 1000), scale to next unit
         const unitThresholds = {
-            'Thousands': 4, // 1000 = 4 digits
-            'Millions': 7,  // 1,000,000 = 7 digits  
-            'Billions': 10, // 1,000,000,000 = 10 digits
-            'Trillions': 13 // 1,000,000,000,000 = 13 digits
+            'Thousands': 4,
+            'Millions': 4,
+            'Billions': 4,
+            'Trillions': 4
         };
 
         let targetUnit = currentUnit;
         let divisor = 1;
 
-        // Check if we exceed the threshold for current unit
-        const threshold = unitThresholds[currentUnit] || 7;
+        const threshold = unitThresholds[currentUnit] || 4;
         if (digitCount >= threshold) {
-            // Move to next unit
+            // Move to next unit (1000 of current unit = 1 of next)
             const unitMap = {
                 'Thousands': { next: 'Millions', div: 1000 },
-                'Millions': { next: 'Billions', div: 1000000 },
-                'Billions': { next: 'Trillions', div: 1000000000 },
+                'Millions': { next: 'Billions', div: 1000 },
+                'Billions': { next: 'Trillions', div: 1000 },
                 'Trillions': { next: 'Trillions', div: 1 }
             };
             const nextInfo = unitMap[currentUnit];
@@ -557,7 +557,6 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
     const shouldShowEbitdaChart = formData.ebitda;
     const shouldShowNetProfitChart = formData.netProfit;
     const shouldShowNetMarginChart = formData.netProfit && formData.sales;
-    console.log("chartUnitchartUnitchartUnit:", chartUnit)
     return (
         <div className='lg:ps-8 bg-gray-50 p-3 lg:pe-14 xl:pe-24 lg:pt-3'>
             <div className='flex flex-col justify-between gap-2 md:gap-0'>
@@ -602,14 +601,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Sales */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Sales </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="sales"
                                     value={formData.sales}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Sales"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -619,14 +616,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
                                     Cost of Sales
                                 </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="costOfSales"
                                     value={formData.costOfSales}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Cost of Sales"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -636,14 +631,13 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
                                     EBITDA *
                                 </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="ebitda"
                                     value={formData.ebitda}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter EBITDA"
-                                    step="0.01"
+                                    allowNegative
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -653,14 +647,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
                                     Depreciation
                                 </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="depreciation"
                                     value={formData.depreciation}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Depreciation"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -670,14 +662,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
                                     Interest Expense
                                 </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="interestExpense"
                                     value={formData.interestExpense}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Interest Expense"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -685,14 +675,13 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Net Profit */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Net Profit *</label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="netProfit"
                                     value={formData.netProfit}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Net Profit"
-                                    step="0.01"
+                                    allowNegative
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -716,44 +705,38 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Cash Balance */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Cash Balance </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="cashBalance"
                                     value={formData.cashBalance}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Cash Balance"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
 
                             {/* Debt Loan */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-2">Debt Loan </label>
-                                <input
-                                    type="number"
+                                <label className="block text-xs font-medium text-gray-700 mb-2">Total Debt</label>
+                                <NumericInputIndian
                                     name="debtLoan"
                                     value={formData.debtLoan}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
-                                    placeholder="Enter Debt Loan"
-                                    step="0.01"
+                                    placeholder="Enter Total Debt"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
 
                             {/* Equity */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-2">Equity </label>
-                                <input
-                                    type="number"
+                                <label className="block text-xs font-medium text-gray-700 mb-2">Share Capital </label>
+                                <NumericInputIndian
                                     name="equity"
                                     value={formData.equity}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
-                                    placeholder="Enter Equity"
-                                    step="0.01"
+                                    placeholder="Enter Share Capital"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -761,14 +744,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Receivables */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Receivables </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="receivables"
                                     value={formData.receivables}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Receivables"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -776,14 +757,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Inventories */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Inventories </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="inventories"
                                     value={formData.inventories}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Inventories"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -791,14 +770,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Payables */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Payables </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="payables"
                                     value={formData.payables}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Payables"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>
@@ -806,14 +783,12 @@ const FinancialInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) =>
                             {/* Net Fixed Assets */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">Net Fixed Assets </label>
-                                <input
-                                    type="number"
+                                <NumericInputIndian
                                     name="netFixedAssets"
                                     value={formData.netFixedAssets}
                                     onChange={handleChange}
                                     disabled={!editAllowed}
                                     placeholder="Enter Net Fixed Assets"
-                                    step="0.01"
                                     className="w-full border border-gray-300 rounded-md p-2 focus:border-themegreen focus:outline-none disabled:bg-gray-100"
                                 />
                             </div>

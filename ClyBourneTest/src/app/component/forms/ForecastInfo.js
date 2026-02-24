@@ -40,12 +40,12 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
         // Count digits
         const digitCount = Math.floor(Math.log10(maxAbsValue)) + 1;
 
-        // Define scaling thresholds for each unit
+        // Values are in current unit; scale to next when value has 4+ digits (e.g. 1000)
         const thresholds = {
-            'Thousands': 4,  // 1000 has 4 digits
-            'Millions': 7,   // 1,000,000 has 7 digits
-            'Billions': 10,  // 1,000,000,000 has 10 digits
-            'Trillions': 13  // 1,000,000,000,000 has 13 digits
+            'Thousands': 4,
+            'Millions': 4,
+            'Billions': 4,
+            'Trillions': 4
         };
 
         // Define next units
@@ -57,7 +57,7 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
         };
 
         // Get the threshold for current unit
-        const threshold = thresholds[currentUnit] || 7;
+        const threshold = thresholds[currentUnit] || 4;
 
         // If digit count exceeds threshold, move to next unit
         if (digitCount >= threshold) {
@@ -350,11 +350,11 @@ const ForecastInfo = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
         // Calculate the digit count of the maximum value
         const digitCount = maxAbsValue > 0 ? Math.floor(Math.log10(maxAbsValue)) + 1 : 0;
 
-        // Define unit hierarchy and thresholds
+        // Define unit hierarchy (values in current unit: 1000 of current = 1 of next)
         const unitHierarchy = {
             'Thousands': { next: 'Millions', divisor: 1000, threshold: 4 },
-            'Millions': { next: 'Billions', divisor: 1000000, threshold: 4 },
-            'Billions': { next: 'Trillions', divisor: 1000000000, threshold: 4 },
+            'Millions': { next: 'Billions', divisor: 1000, threshold: 4 },
+            'Billions': { next: 'Trillions', divisor: 1000, threshold: 4 },
             'Trillions': { next: 'Trillions', divisor: 1, threshold: 4 }
         };
 

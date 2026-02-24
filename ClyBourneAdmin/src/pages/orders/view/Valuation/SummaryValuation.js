@@ -841,12 +841,47 @@ const SummaryValuation = ({ data }) => {
         weightMaxEquityValue: data?.weightMaxEquityValue || 0,
         EnterpriseMinValue: data?.EnterpriseMinValue || 0,
         EnterpriseAvgValue: data?.EnterpriseAvgValue || 0,
-        EnterpriseMaxValue: data?.EnterpriseMaxValue || 0
+        EnterpriseMaxValue: data?.EnterpriseMaxValue || 0,
+        adminDescription: data?.adminDescription ?? data?.query?.adminDescription ?? ''
       };
 
       setFormData(newFormData);
     }
   }, [data]);
+
+  const openAddDescriptionModal = async () => {
+    if (!formData?.query?._id) {
+      Swal.fire('Error!', 'Order ID is missing.', 'error');
+      return;
+    }
+    const currentDescription = formData.adminDescription || '';
+    const { value: adminDescription } = await Swal.fire({
+      title: 'Add Description',
+      html: '<p class="text-muted small mb-2">Admin description for this valuation (saved to valuation data).</p>',
+      input: 'textarea',
+      inputLabel: 'Description',
+      inputValue: currentDescription,
+      inputPlaceholder: 'Enter description...',
+      inputAttributes: { rows: 5 },
+      showCancelButton: true,
+      confirmButtonText: 'Save',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => null,
+    });
+    if (adminDescription === undefined) return;
+    try {
+      await axios.put(
+        `${apiURL}api/admin/orders/valuation-data/${formData.query._id}/admin-description`,
+        { adminDescription: adminDescription || null },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      setFormData((prev) => (prev ? { ...prev, adminDescription: adminDescription || '' } : prev));
+      Swal.fire('Saved!', 'Admin description has been saved.', 'success');
+    } catch (err) {
+      console.error('Error saving admin description:', err);
+      Swal.fire('Error!', 'Failed to save description.', 'error');
+    }
+  };
 
   const handleCheckboxChange = async (key) => {
     if (!formData || !formData.query?._id) {
@@ -1519,6 +1554,14 @@ const SummaryValuation = ({ data }) => {
               </button>
             ) : (
               <div className="buttons d-flex justify-content-center flex-wrap gap-2">
+                 <button
+                  className="btn btn-sm btn-primary"
+                  onClick={openAddDescriptionModal}
+                  disabled={!formData?.query?._id}
+                  title="Add or edit admin description for this valuation"
+                >
+                  Add Description
+                </button>
                 {/* Existing Button 1: View Current Report */}
                 <button
                   className="btn btn-sm btn-primary"

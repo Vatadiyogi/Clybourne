@@ -26,9 +26,15 @@ export const Header = () => {
   const hamburgerButtonRef = useRef(null);
 
   useEffect(() => {
-    dispatch(fetchUser());
     setMounted(true);
-  }, [dispatch]);
+  }, []);
+
+  // Fetch user data when logged in - re-run when isLoggedIn changes (e.g., after login)
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(fetchUser());
+    }
+  }, [dispatch, isLoggedIn]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {

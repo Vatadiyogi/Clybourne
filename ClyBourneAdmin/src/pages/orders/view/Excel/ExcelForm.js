@@ -22,9 +22,12 @@ const ExcelForm = ({order, onValuationSuccess }) => {
     if (pastedText !== '') {
       setShowTable(true);
       const data = [];
-      const rows = pastedText;
+      const rows = Array.isArray(pastedText) ? pastedText : [];
       for (let i = 0; i < rows.length; i++) {
-        const cells = rows[i];
+        const row = rows[i];
+        const cells = Array.isArray(row)
+          ? row.map((cell) => (cell != null ? String(cell).trim() : ''))
+          : [row];
         data.push(cells);
       }
       setTable(data);

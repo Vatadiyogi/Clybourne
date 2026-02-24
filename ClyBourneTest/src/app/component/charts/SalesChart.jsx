@@ -1,7 +1,29 @@
 "use client";
 import { ResponsiveContainer, LabelList, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import GeneralButton from "../GeneralButton";
-
+import { formatToTwoDecimalPlaces } from "../../../utils/utility";
+const CustomTooltip = ({ active, payload, label, unit }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-3 border border-gray-200 shadow-lg rounded-md">
+                <p className="font-semibold text-sm mb-1">{`Year: ${payload[0].payload.year}`}</p>
+                <p className="text-sm text-gray-700">
+                    <span className="font-medium">Sales: </span>
+                    <span className="text-themeblue">
+                        {formatToTwoDecimalPlaces(payload[0].value)} {unit}
+                    </span>
+                </p>
+                {/* You can add more custom content here */}
+                {payload[0].payload.growth && (
+                    <p className="text-xs text-green-600 mt-1">
+                        Growth: {payload[0].payload.growth}%
+                    </p>
+                )}
+            </div>
+        );
+    }
+    return null;
+};
 export default function SalesChart({ yearly, unit }) {
     return (
         <div className="card p-0 rounded">
@@ -31,7 +53,11 @@ export default function SalesChart({ yearly, unit }) {
                             tickLine={false}
                             tick={{ fontSize: 10, fill: "#555" }}
                         />
-                        <Tooltip />
+                        {/* <Tooltip formatter={(value) => formatToTwoDecimalPlaces(value)} /> */}
+                        <Tooltip 
+                            content={<CustomTooltip unit={unit} />}
+                            cursor={{ fill: 'rgba(35, 57, 119, 0.1)' }}
+                        />
                         {/* <Legend wrapperStyle={{ fontSize: "14px", fontFamily: "Arial", boxShadow: "none" }} /> */}
                         <Bar dataKey="salesMain" stackId="a" fill="#233977" >
                              <LabelList
@@ -39,6 +65,7 @@ export default function SalesChart({ yearly, unit }) {
                                 position="top"
                                 fill="#555"
                                 fontSize={12}
+                                formatter={(value) => formatToTwoDecimalPlaces(value)}
                             />
                         </Bar>
                         {/* <Bar

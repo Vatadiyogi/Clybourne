@@ -3,15 +3,29 @@ import goldenlogo from "../../assets/finimg/logo-golden.png";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import './Navbar.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 
 
 const Navbar = () => {
 
+    const [userName, setUserName] = useState(() => {
+        // Initialize from localStorage (runs once on mount)
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('name') || '';
+        }
+        return '';
+    });
     const role = localStorage.getItem('role');
+    const location = useLocation();
+
+    // Sync userName from localStorage on mount and when route changes (e.g., after login redirect)
+    useEffect(() => {
+        const name = localStorage.getItem('name') || '';
+        setUserName(name);
+    }, [location.pathname]);
 
     const handleLogout = () => {
         localStorage.clear(); // Clear all data from localStorage
@@ -145,7 +159,7 @@ const Navbar = () => {
                         </div>
                         <div className="col-auto text-end d-flex">
                             <div className="header-icon lh-1">
-                                <div className="header-button fs-16">Hi, {localStorage.getItem('name')}</div>
+                                <div className="header-button fs-16">Hi, {userName || 'User'}</div>
                             </div>
                             {role && role !== 'admin' &&
                                 <div className="header-icon lh-1 ms-15px">

@@ -379,17 +379,17 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
         // };
         // latest
         RelativeValuationService_1.prototype.calculateSummaryValuation = function (checkBoxValues) {
-            console.log("=== DEBUG: Starting calculateSummaryValuation ===");
+            // console.log("=== DEBUG: Starting calculateSummaryValuation ===");
 
             // 1. Check if we have netDebt (allow 0 as valid)
             if (this.netDebt === undefined || this.netDebt === null) {
-                console.log("❌ Skipping: netDebt is undefined or null");
+                // console.log("❌ Skipping: netDebt is undefined or null");
                 return;
             }
 
-            console.log("netDebt:", this.netDebt);
-            console.log("DCF companyEquityAvgValue:", this.dcfService?.companyEquityAvgValue);
-            console.log("DCF weight:", this.backEndService.workBackEndInputs.dcfWeightPercentage);
+            // console.log("netDebt:", this.netDebt);
+            // console.log("DCF companyEquityAvgValue:", this.dcfService?.companyEquityAvgValue);
+            // console.log("DCF weight:", this.backEndService.workBackEndInputs.dcfWeightPercentage);
 
             // 2. Initialize or use provided checkbox values
             var checkBoxValuesLocal = checkBoxValues || {};
@@ -408,7 +408,7 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
                 }
             });
 
-            console.log("Checkbox values after initialization:", checkBoxValuesLocal);
+            // console.log("Checkbox values after initialization:", checkBoxValuesLocal);
 
             // 4. ❌ REMOVED: Auto-check methods that have values
             // This was overriding user's saved checkbox preferences from the database!
@@ -422,8 +422,8 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
             if (this.EV_SALES && this.EV_SALES.equityValue > 0) methodsWithValues.push("EV_SALES");
             if (this.EV_EBITDA && this.EV_EBITDA.equityValue > 0) methodsWithValues.push("EV_EBITDA");
             
-            console.log("Methods with valid values (for reference only):", methodsWithValues);
-            console.log("Using checkbox values from database/user preferences:", checkBoxValuesLocal);
+            // console.log("Methods with valid values (for reference only):", methodsWithValues);
+            // console.log("Using checkbox values from database/user preferences:", checkBoxValuesLocal);
 
             // 5. Count selected methods
             var count = 0;
@@ -447,8 +447,8 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
                 }
             });
 
-            console.log("Selected methods:", selectedMethods);
-            console.log("Count:", count);
+            // console.log("Selected methods:", selectedMethods);
+            // console.log("Count:", count);
 
             // 6. Calculate weights
             var dcfWeightPercentage = this.backEndService.workBackEndInputs.dcfWeightPercentage || 0;
@@ -461,8 +461,8 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
                 this.RelativeWeightPercent = (1 - dcfWeight) / count;
             }
 
-            console.log("DCF Weight:", dcfWeight);
-            console.log("RelativeWeightPercent:", this.RelativeWeightPercent);
+            // console.log("DCF Weight:", dcfWeight);
+            // console.log("RelativeWeightPercent:", this.RelativeWeightPercent);
 
             // 7. Initialize weighted values
             var weightAvgEquityValue = 0;
@@ -472,7 +472,7 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
             // 🔧 FIX: Handle negative DCF value
             var dcfValue = this.dcfService.companyEquityAvgValue || 0;
             if (dcfValue < 0) {
-                console.log("⚠️ Warning: DCF value is negative:", dcfValue);
+                // console.log("⚠️ Warning: DCF value is negative:", dcfValue);
                 // Option: Use 0 if DCF is negative, or reduce its weight
                 dcfValue = 0; // Or use Math.abs(dcfValue) if business logic allows
             }
@@ -481,7 +481,7 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
             weightMinEquityValue += (this.dcfService.companyEquityMinValue || 0) * dcfWeight;
             weightMaxEquityValue += (this.dcfService.companyEquityMaxValue || 0) * dcfWeight;
 
-            console.log("DCF contribution:", dcfValue * dcfWeight);
+            // console.log("DCF contribution:", dcfValue * dcfWeight);
 
             // 8. Add relative valuation portions
             methodsToCheck.forEach(function (method) {
@@ -495,7 +495,7 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
                     // 🔧 FIX: Always set RelativeWeightPercent
                     method.obj.RelativeWeightPercent = relativeWeight * 100;
 
-                    console.log("Added " + method.name + ":", method.obj.equityValue, "*", relativeWeight);
+                    // console.log("Added " + method.name + ":", method.obj.equityValue, "*", relativeWeight);
                 } else {
                     // 🔧 FIX: Set to 0 even if not selected
                     if (method.obj) {
@@ -509,11 +509,11 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
             this.weightMinEquityValue = weightMinEquityValue;
             this.weightMaxEquityValue = weightMaxEquityValue;
 
-            console.log("Weighted values before netDebt:", {
-                avg: this.weightAvgEquityValue,
-                min: this.weightMinEquityValue,
-                max: this.weightMaxEquityValue
-            });
+            // console.log("Weighted values before netDebt:", {
+            //     avg: this.weightAvgEquityValue,
+            //     min: this.weightMinEquityValue,
+            //     max: this.weightMaxEquityValue
+            // });
 
             // 10. Calculate enterprise values
             this.EnterpriseAvgValue = (this.weightAvgEquityValue || 0) + (this.netDebt || 0);
@@ -523,17 +523,17 @@ var RelativeValuationService = exports.RelativeValuationService = function () {
             // 11. Set ValuationCheckBox with all fields
             this.ValuationCheckBox = checkBoxValuesLocal;
 
-            console.log("=== DEBUG: Final Results ===");
-            console.log("- weightAvgEquityValue:", this.weightAvgEquityValue);
-            console.log("- weightMinEquityValue:", this.weightMinEquityValue);
-            console.log("- weightMaxEquityValue:", this.weightMaxEquityValue);
-            console.log("- netDebt:", this.netDebt);
-            console.log("- EnterpriseAvgValue:", this.EnterpriseAvgValue);
-            console.log("- EnterpriseMinValue:", this.EnterpriseMinValue);
-            console.log("- EnterpriseMaxValue:", this.EnterpriseMaxValue);
-            console.log("- ValuationCheckBox:", this.ValuationCheckBox);
-            console.log("- RelativeWeightPercent:", this.RelativeWeightPercent);
-            console.log("=== END DEBUG ===");
+            // console.log("=== DEBUG: Final Results ===");
+            // console.log("- weightAvgEquityValue:", this.weightAvgEquityValue);
+            // console.log("- weightMinEquityValue:", this.weightMinEquityValue);
+            // console.log("- weightMaxEquityValue:", this.weightMaxEquityValue);
+            // console.log("- netDebt:", this.netDebt);
+            // console.log("- EnterpriseAvgValue:", this.EnterpriseAvgValue);
+            // console.log("- EnterpriseMinValue:", this.EnterpriseMinValue);
+            // console.log("- EnterpriseMaxValue:", this.EnterpriseMaxValue);
+            // console.log("- ValuationCheckBox:", this.ValuationCheckBox);
+            // console.log("- RelativeWeightPercent:", this.RelativeWeightPercent);
+            // console.log("=== END DEBUG ===");
         };
         return RelativeValuationService_1;
     }());

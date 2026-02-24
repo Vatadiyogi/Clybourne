@@ -779,7 +779,7 @@ const Company = ({ orderId, initialData, onSave, editAllowed }) => {
                             {/* Similar Company */}
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-2">
-                                    Similar Company
+                                    Similar Public Company
                                 </label>
                                 <input
                                     type="text"

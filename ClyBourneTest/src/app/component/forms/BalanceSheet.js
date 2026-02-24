@@ -235,6 +235,7 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
         const roundedNetProfit = roundOffNumber(netProfitData, { valueType: [financialData.unitOfNumber || 'Millions'] });
 
         // Update baseData with rounded values and ensure 2 decimal places
+        const scaledUnit = roundedSales.valueType || financialData.unitOfNumber || 'Millions';
         const finalData = baseData.map((item, index) => ({
             ...item,
             salesMain: formatToTwoDecimals(roundedSales.roundedNumbers[index]),
@@ -247,12 +248,14 @@ const BalanceSheet = ({ orderId, initialData, onSave, onBack, editAllowed }) => 
             netMargin: formatToTwoDecimals(item.netMargin)
         }));
 
-        return finalData;
+        return { chartData: finalData, chartUnit: scaledUnit };
     }, [forecastData, financialData, companyData, forecastYears]);
 
-    // Update chart data when dependencies change
+    // Update chart data and legend unit when dependencies change
     useEffect(() => {
-        setChartData(generateChartData);
+        const result = generateChartData;
+        setChartData(result.chartData);
+        setChartUnit(result.chartUnit);
     }, [generateChartData]);
 
     const handleForecastChange = (yearIndex, field, value) => {

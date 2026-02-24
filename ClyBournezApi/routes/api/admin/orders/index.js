@@ -55,8 +55,9 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // console.log('Order found:', order.business?.companyName);
-        console.log('Order found:', order);
+        console.log('Order11111 found:', order.weightAvgEquityValue);
+        // console.log('Order found:', order);
+        // console.log('Order123 found:', order.EnterpriseMinValue);
 
         // 2. Fetch valuation data from API
         let valuationData = {};
@@ -260,7 +261,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             un_lev_beta = workBackEndTableAvg.un_lev_beta;
         }
         adjustedBetaa = (weightOfAdjBeta / 100 * (un_lev_beta + cmpnyDiscFactor / 100)) + weightOfMktBeta / 100;
-        console.log("adjustedBetaaadjustedBetaaadjustedBetaa ", adjustedBetaa)
+        // console.log("adjustedBetaaadjustedBetaaadjustedBetaa ", adjustedBetaa)
         const costOfEquity = treasureRate / 100 + (adjustedBetaa * equityRiskPremium / 100) + centryRiskPremium / 100 + alpha / 100;
         // adjustedBetaa= 0.53884
         // const costOfEquity = 2.2 / 100 + (adjustedBetaa * 5.4/100) + 0.68/100 + 25 / 100;
@@ -314,7 +315,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                     return Math.max(0, yearEndCash); // Only positive values
                 }),
                 cashOut: (workDcfFCFF || []).map(item => {
-                  const freeCashFlow = item?.freeCashFlow || 0;
+                    const freeCashFlow = item?.freeCashFlow || 0;
                     return Math.max(0, freeCashFlow); // Only positive values
                 })
             }
@@ -492,6 +493,48 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             }
             return '$' + val.toFixed(1);
         };
+
+        const getFinancialYear = (finYrEndMonth, finYrEnd) => {
+            // finYrEndMonth: e.g., "March", "Dec", "Jun"
+            // finYrEnd: e.g., "2025", "2026"
+
+            const months = {
+                'January': 1, 'Feburary': 2, 'March': 3, 'April': 4, 'Apr': 4,
+                'May': 5, 'June': 6, 'July': 7, 'Jul': 7,
+                'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12,
+                 
+            };
+
+            // Get the month number
+            const endMonthNum = months[finYrEndMonth] || 3; // default to March if not found
+
+            // Convert end year to number
+            const endYear = parseInt(finYrEnd);
+
+            // Calculate start year and month
+            let startYear, startMonth;
+
+            if (endMonthNum === 12) { // If FY ends in Dec
+                startYear = endYear;
+                startMonth = 1; // January
+            } else { // For all other months (Jan-Nov)
+                startYear = endYear - 1;
+                startMonth = endMonthNum + 1;
+            }
+
+            // Convert month numbers back to names
+            const monthNames = {
+                1: 'January', 2: 'Feburary', 3: 'March', 4: 'April',
+                5: 'May', 6: 'June', 7: 'July', 8: 'August',
+                9: 'September', 10: 'October', 11: 'November', 12: 'December'
+            };
+
+            const startMonthName = monthNames[startMonth];
+            const endMonthName = finYrEndMonth;
+
+            return `${startMonthName} ${startYear} - ${endMonthName} ${endYear}`;
+        };
+
         // const baseUrl = process.env.NODE_ENV === 'production'
         //     ? process.env.APIURL
         //     : `http://localhost:${process.env.PORT || 3000}`;
@@ -508,6 +551,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
 
             // Company Info
             companyName: order.business?.companyName || "Company Name",
+
             // similarCompany: order.business?.similarCompany || "NA",
             reportDate: new Date().toLocaleDateString('en-GB', {
                 day: 'numeric',
@@ -531,9 +575,14 @@ router.get('/:orderId/report-ejs', async (req, res) => {
             formattedMaxValue: formatValueForDisplay(maxValue),
 
             companyDetails: {
+                enterpriseValueMin: order.EnterpriseMinValue,
+                enterpriseValueAvg: order.EnterpriseAvgValue,
+                enterpriseValueMax: order.EnterpriseMaxValue,
+                weightAvgEquityValue:order.weightAvgEquityValue,
                 name: order.business?.companyName || "N/A",
                 country: order.business?.country || "N/A",
                 description: order.business?.description || "N/A",
+                adminDescription: order.business?.adminDescription || order.business?.description,
                 currency: order.business?.currency || "USD",
                 similarCompany: order.business?.similarCompany || "N/A",
                 type: order.business?.companyType || "N/A",
@@ -542,7 +591,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                 developmentStage: order.business?.developmentStage || "N/A",
                 scalable: order.business?.scalable || "N/A",
                 earningTrend: order.business?.earningTrend || "N/A",
-                financialYear: `Jan ${order.finance?.dataYear || 2024} – Dec ${order.finance?.dataYear || 2024}`,
+                financialYear: `${getFinancialYear(order.business.FinYrEndMonth, order.business.FinYrEnd)}`,
                 financialYearEnd: order.business?.FinYrEnd || 2024,
                 isProfitable: (order.finance?.netProfit || 0) > 0,
                 hasEquity: (order.finance?.equity || 0) > 0,
@@ -631,67 +680,64 @@ router.get('/:orderId/report-ejs', async (req, res) => {
 
             // Helper functions for formatting
             formatCurrency: function (num, currency = 'USD') {
-                if (typeof num !== 'number' || isNaN(num)) return `${currency} 0`;
-                if (num >= 1000000) {
-                    return `${currency} ${(num / 1000000).toFixed(2)}M`;
-                }
-                if (num >= 1000) {
-                    return `${currency} ${(num / 1000).toFixed(2)}K`;
-                }
-                return `${currency} ${num.toLocaleString()}`;
+                if (typeof num !== 'number' || isNaN(num)) return `${currency} 0.00`;
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                return num < 0 ? `${currency} (${absValue})` : `${currency} ${absValue}`;
             },
             formatCurrencySymbol: function (num, currency = '$') {
-                if (typeof num !== 'number' || isNaN(num)) return `${currency} 0`;
-                if (num >= 1000000) {
-                    return `${currency}${(num / 1000000).toFixed(2)}M`;
-                }
-                if (num >= 1000) {
-                    return `${currency}${(num / 1000).toFixed(2)}K`;
-                }
-                return `${currency}${num.toLocaleString()}`;
+                if (typeof num !== 'number' || isNaN(num)) return `${currency}0.00`;
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                return num < 0 ? `${currency}(${absValue})` : `${currency}${absValue}`;
             },
             formatNumber: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "0";
-
-                // If number is very large, format in millions
-                if (num >= 1000000) {
-                    const valueInMillions = num / 1000000;
-                    // Truncate to 2 decimals without rounding
-                    const truncated = Math.floor(valueInMillions * 100) / 100;
-                    return truncated.toFixed(2);
-                }
-
-                // Truncate to 2 decimals without rounding
-                const truncated = Math.floor(num * 100) / 100;
-                return truncated.toFixed(2);
+                if (typeof num !== 'number' || isNaN(num)) return "0.00";
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                return num < 0 ? `(${absValue})` : absValue;
             },
 
             formatDCFValue: function (num) {
                 if (typeof num !== 'number' || isNaN(num)) return "-";
                 if (num === 0) return "-";
 
+                const withCommas = function (n) {
+                    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                };
+
                 // Handle negative values with parentheses like formatParentheses
                 if (num < 0) {
-                    // For negatives, truncate toward zero (use Math.ceil for negative numbers)
                     const absoluteValue = Math.abs(num);
                     const truncated = Math.floor(absoluteValue * 100) / 100;
-                    return `(${truncated.toFixed(2)})`;
+                    return `(${withCommas(truncated)})`;
                 }
 
-                // Truncate to 2 decimals without rounding
+                // Truncate to 2 decimals without rounding, then add comma separator
                 const truncated = Math.floor(num * 100) / 100;
-                return truncated.toFixed(2);
+                return withCommas(truncated);
             },
             formatPercentage: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "0%";
-                return `${num.toFixed(1)}%`;
+                // if (typeof num !== 'number' || isNaN(num)) return "0.0%";
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1
+                });
+                return num < 0 ? `(${absValue})%` : `${absValue}%`;
             },
             formatParentheses: function (num) {
-                if (typeof num !== 'number' || isNaN(num)) return "";
-                if (num < 0) {
-                    return `(${Math.abs(num).toFixed(0)})`;
-                }
-                return num.toFixed(0);
+                if (typeof num !== 'number' || isNaN(num)) return "0.00";
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                return num < 0 ? `(${absValue})` : absValue;
             },
             formatDecimal: function (num) {
                 if (typeof num !== 'number' || isNaN(num)) return "0.0";
@@ -704,9 +750,54 @@ router.get('/:orderId/report-ejs', async (req, res) => {
                 }
                 // Format to 2 decimal places
                 return parseFloat(num).toFixed(2);
+            },
+
+            /**
+             * Format number with comma as thousands separator (e.g. 38595.77 -> "38,595.77").
+             * @param {number} num - value to format
+             * @param {number} [decimals=2] - decimal places (default 2)
+             * @returns {string}
+             */
+            formatThousands: function (num, decimals) {
+                if (typeof num !== 'number' || isNaN(num)) return "0.00";
+                const d = decimals != null ? decimals : 2;
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: d,
+                    maximumFractionDigits: d
+                });
+                return num < 0 ? `(${absValue})` : absValue;
+            },
+
+            /**
+             * For valuation summary only: scale value to next unit when 4+ digits in current unit.
+             * e.g. 38595.77 Millions -> { value: "38.60", unit: "Billions" } so you get "NGN 38.60 Billions".
+             * @param {number} value - numeric value in the given unit
+             * @param {string} unitOfNumber - "Thousands" | "Millions" | "Billions" | "Trillions"
+             * @returns {{ value: string, unit: string }}
+             */
+            formatValuationSummaryValue: function (value, unitOfNumber) {
+                const u = (unitOfNumber || "Millions").toLowerCase();
+                const units = ["thousands", "millions", "billions", "trillions"];
+                const idx = units.indexOf(u);
+                if (typeof value !== 'number' || isNaN(value)) {
+                    return { value: "0.00", unit: unitOfNumber || "Millions" };
+                }
+                let num = value;
+                let label = unitOfNumber || "Millions";
+                const threshold = 1000;
+                if (idx >= 0 && idx < 3 && Math.abs(num) >= threshold) {
+                    num = num / threshold;
+                    label = idx === 0 ? "Millions" : idx === 1 ? "Billions" : "Trillions";
+                }
+                const absValue = Math.abs(num).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                const formatted = num < 0 ? `(${absValue})` : absValue;
+                return { value: formatted, unit: label };
             }
         };
-
+        console.log("helko", reportData.companyDetails.financialYear);
         // console.log("✅ Report data prepared from API");
         // console.log("🔍 Enterprise Value Debug:");
         console.log(" companyDetails", order.business);
@@ -719,7 +810,7 @@ router.get('/:orderId/report-ejs', async (req, res) => {
         // console.log("  - finalNetDebt:", finalNetDebt);
         // console.log("  - Calculated (finalWeightAvgEquityValue + finalNetDebt):", finalWeightAvgEquityValue + finalNetDebt);
         console.log("  - finalEnterpriseAvgValue:", finalEnterpriseAvgValue);
-        // console.log("  - enterpriseValue (DCF):", enterpriseValue);
+        console.log("  - enterpriseValue (DCF):", enterpriseValue);
         console.log("  - valuation.enterpriseAvgValue:", reportData.valuation.enterpriseAvgValue);
         console.log("  - dcfTableData.enterpriseAvgValue:", reportData.dcfTableData.enterpriseAvgValue);
         console.log("  - Top-level enterpriseAvgValue:", reportData.enterpriseAvgValue);
@@ -1773,7 +1864,54 @@ router.get('/valuation-data/:_id', async function (req, res) {
     } else {
         return res.status(500).json({ message: 'Internal server error' });
     }
-})
+});
+
+// UPDATE ADMIN DESCRIPTION ENDPOINT
+router.put('/valuation-data/:id/admin-description', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { adminDescription } = req.body;
+
+        console.log('Updating admin description for order:', id);
+        console.log('New description:', adminDescription);
+
+        // Find and update the order
+        const updatedOrder = await Orders.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    'business.adminDescription': adminDescription || null
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedOrder) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        console.log('Admin description updated successfully');
+
+        return res.status(200).json({
+            success: true,
+            message: 'Admin description updated successfully',
+            data: {
+                adminDescription: updatedOrder.business?.adminDescription || null
+            }
+        });
+
+    } catch (error) {
+        console.error('Error updating admin description:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update admin description',
+            error: error.message
+        });
+    }
+});
 
 router.delete('/reset-data/:_id', async function (req, res) {
     const query = await Orders.findById(req.params._id);

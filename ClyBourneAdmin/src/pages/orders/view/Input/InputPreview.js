@@ -174,50 +174,50 @@ const InputPreview = () => {
                                                         </div>
                                                         <hr/>
                                                         {/* Business Details */}
-                                                        <div>
-                                                            <h4>Business Details</h4>
-                                                            {order.businessDetails.business ?
-                                                            <>
-                                                                {BusinessDetails.map((statement, rowIndex) => (
-                                                                    <div className="row" key={rowIndex}>
-                                                                        <div className="col-md-10">
-                                                                            <div className="label-value">
-                                                                                <b><span className="label1">{statement.label}: </span> </b>
-                                                                                <span className="label2"> 
-                                                                                {statement.key === "companyName" ? ( 
-                                                                                    <span>{order.companyName}</span>
-                                                                                    ) : statement.key === "companyType" ? ( 
-                                                                                        <span>{order.businessDetails.business.companyType}</span>
-                                                                                    ) : statement.key === "industryType" ? ( 
-                                                                                        <span>{order.businessDetails.business.industryType}</span>
-                                                                                    ) : statement.key === "yearsInBusiness" ? ( 
-                                                                                        <span>{order.businessDetails.business.companyAge}</span>
-                                                                                    ) : statement.key === "country" ? ( 
-                                                                                        <span>{order.businessDetails.business.country}</span>
-                                                                                    ) : statement.key === "financialYearEnd" ? ( 
-                                                                                        <span>{getMonthName(order.businessDetails.business.FinYrEndMonth)} {order.businessDetails.business.FinYrEndDate} {order.businessDetails.business.FinYrEnd}</span>
-                                                                                    ) : statement.key === "historicalEarningTrend" ? ( 
-                                                                                        <span>{order.businessDetails.business.earningTrend}</span>
-                                                                                    ) : statement.key === "shortDescription" ? ( 
-                                                                                        <span>{order.businessDetails.business.description}</span>
-                                                                                    ) : statement.key === "contactNumber" ? ( 
-                                                                                        <span>+{order.businessDetails.business.contact.dialCode}-{order.businessDetails.business.contact.phoneNumber}</span>
-                                                                                    ) : statement.key === "emailAddress" ? ( 
-                                                                                        <span>{order.businessDetails.business.email}</span>
-                                                                                    ) :statement.key === "currencyUsed" ? ( 
-                                                                                        <span>{order.businessDetails.business.currency}</span>
-                                                                                    ) :(
-                                                                                        ""
-                                                                                    ) }
-                                                                                </span> 
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                             </>
-                                                            : <></> 
-                                                            }
-                                                        </div>
+                    <div>
+                        <h4>Business Details</h4>
+                        {order.businessDetails.business ?
+                        <>
+                            {BusinessDetails.map((statement, rowIndex) => (
+                                <div className="row" key={rowIndex}>
+                                    <div className="col-md-10">
+                                        <div className="label-value">
+                                            <b><span className="label1">{statement.label}: </span> </b>
+                                            <span className="label2"> 
+                                            {statement.key === "companyName" ? ( 
+                                                <span>{order.companyName}</span>
+                                                ) : statement.key === "companyType" ? ( 
+                                                    <span>{order.businessDetails.business.companyType}</span>
+                                                ) : statement.key === "industryType" ? ( 
+                                                    <span>{order.businessDetails.business.industryType}</span>
+                                                ) : statement.key === "yearsInBusiness" ? ( 
+                                                    <span>{order.businessDetails.business.companyAge}</span>
+                                                ) : statement.key === "country" ? ( 
+                                                    <span>{order.businessDetails.business.country}</span>
+                                                ) : statement.key === "financialYearEnd" ? ( 
+                                                    <span>{order.businessDetails.business.FinYrEndDate} {order.businessDetails.business.FinYrEndMonth}  {order.businessDetails.business.FinYrEnd}</span>
+                                                ) : statement.key === "historicalEarningTrend" ? ( 
+                                                    <span>{order.businessDetails.business.earningTrend}</span>
+                                                ) : statement.key === "shortDescription" ? ( 
+                                                    <span>{order.businessDetails.business.description}</span>
+                                                ) : statement.key === "contactNumber" ? ( 
+                                                    <span>+{order.businessDetails.business.contact.dialCode}-{order.businessDetails.business.contact.phoneNumber}</span>
+                                                ) : statement.key === "emailAddress" ? ( 
+                                                    <span>{order.businessDetails.business.email}</span>
+                                                ) :statement.key === "currencyUsed" ? ( 
+                                                    <span>{order.businessDetails.business.currency}</span>
+                                                ) :(
+                                                    ""
+                                                ) }
+                                            </span> 
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            </>
+                        : <></> 
+                        }
+                    </div>
                                                         <hr/>
                                                         {/* Current Financial Information */}
                                                          {console.log("order.calculations",order )}

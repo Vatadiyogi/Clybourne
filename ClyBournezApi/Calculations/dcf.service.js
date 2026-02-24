@@ -49,30 +49,30 @@
 
 //                 workDcfFCFF.push(dcfFcff);
 //                 waccPlusOne = (1 + wacc) * waccPlusOne;
-//                 console.log("waccPlusOnewaccPlusOne", waccPlusOne)
+//                 //  console.log("waccPlusOnewaccPlusOne", waccPlusOne)
 //                 cumulativePV = cumulativePV  + workDcfFCFF[index].presentFreeCashFlow;
 
 //             }
-//             console.log("workDcfFCFFworkDcfFCFF", workDcfFCFF)
-//             console.log(" wacc, perpetualGrowthRate")
+//             //  console.log("workDcfFCFFworkDcfFCFF", workDcfFCFF)
+//             //  console.log(" wacc, perpetualGrowthRate")
 //             var fcffTerminalValue = ((workDcfFCFF[4].freeCashFlow * (1 + perpetualGrowthRate)) / (wacc - perpetualGrowthRate));
-//             console.log("fcffTerminalValue", fcffTerminalValue)
+//             //  console.log("fcffTerminalValue", fcffTerminalValue)
 //             var fcffPresentValue = workDcfFCFF[4].discountFactor * fcffTerminalValue;
-//             console.log("fcffPresentValue", fcffPresentValue)
-//             console.log("cumulativePV", cumulativePV)
+//             //  console.log("fcffPresentValue", fcffPresentValue)
+//             //  console.log("cumulativePV", cumulativePV)
 
 //           const  enterpriseValue = cumulativePV + fcffPresentValue;
-//             console.log("enterpriseValue22", enterpriseValue)
-//             // console.log(enterpriseValue);
-//             console.log("11", this.backEndService.workBalSheet[0].debtLoan);
-//             console.log("22", this.backEndService.workBalSheet[0].cashBalance);
-//             console.log("33", enterpriseValue - (this.backEndService.workBalSheet[0].debtLoan - this.backEndService.workBalSheet[0].cashBalance));
+//             //  console.log("enterpriseValue22", enterpriseValue)
+//             // //  console.log(enterpriseValue);
+//             //  console.log("11", this.backEndService.workBalSheet[0].debtLoan);
+//             //  console.log("22", this.backEndService.workBalSheet[0].cashBalance);
+//             //  console.log("33", enterpriseValue - (this.backEndService.workBalSheet[0].debtLoan - this.backEndService.workBalSheet[0].cashBalance));
 
 //             return [(enterpriseValue - (this.backEndService.workBalSheet[0].debtLoan - this.backEndService.workBalSheet[0].cashBalance)), workDcfFCFF];
 //         };
 
 //         DcfService_1.prototype.calculateCompanyEquityValue = function (dbQuery) {
-//             // console.log(" dbQuerydbQuery", dbQuery)
+//             // //  console.log(" dbQuerydbQuery", dbQuery)
 //             // if (!dbQuery) {
 //             //     return;
 //             // }
@@ -82,21 +82,21 @@
 //             //     this.backEndService.populateBackEndData(dbQuery);
 //             // }
 //             var perpetualGrowthRate = this.backEndService.workBackEndInputs.perpetualGrowthRate / 100;
-//             // console.log(" this.backEndService.workBackEndInputs.perpetualGrowthRate", this.backEndService)
+//             // //  console.log(" this.backEndService.workBackEndInputs.perpetualGrowthRate", this.backEndService)
 //             var debtCapital = this.backEndService.workBalSheet[0].debtLoan / (this.backEndService.workBalSheet[0].debtLoan + this.backEndService.workBalSheet[0].equity);
 //             var aftrTaxCostOfDebt = +dbQuery.forcast_inc_stmt[0].interestRate * (1 - (this.backEndService.workBackEndInputs.corpTaxRate / 100)) / 100;
 //             var levBetaCmpny = this.backEndService.workBackEndTableAvg.un_lev_beta * (1 + ((1 - (this.backEndService.workBackEndInputs.corpTaxRate / 100)) * (debtCapital))); //=IFERROR(D58*(1+((1-D59)*(D61))),0)
 //             var adjBeta = ((this.backEndService.workBackEndInputs.weightOfAdjBeta / 100) * (levBetaCmpny + (this.backEndService.workBackEndInputs.cmpnyDiscFactor / 100))) + (this.backEndService.workBackEndInputs.weightOfMktBeta / 100); //'Back End'!C77*DCF!D63+'Back End'!C78*'Back End'!C79
 //             var costOfEquity = (this.backEndService.workBackEndInputs.treasuryondRate + (adjBeta * this.backEndService.workBackEndInputs.equityRiskPremium) + this.backEndService.workBackEndInputs.cntryRiskPremium + this.backEndService.workBackEndInputs.alpha) / 100; //=('Back End'!C61)+(D64)*('Back End'!C62)+('Back End'!C63)+('Back End'!C82)
-//             // console.log("  debtCapitaldebtCapital ", debtCapital);
-//             // console.log("aftrTaxCostOfDebtaftrTaxCostOfDebt   ", aftrTaxCostOfDebt);
-//             // console.log(" costOfEquitycostOfEquity  ", costOfEquity);
-//             // console.log(" perpetualGrowthRateperpetualGrowthRate  ", perpetualGrowthRate);
-//             // console.log(" levBetaCmpnylevBetaCmpny  ", levBetaCmpny);
-//             // console.log(" adjBetaadjBeta  ", adjBeta);
+//             // //  console.log("  debtCapitaldebtCapital ", debtCapital);
+//             // //  console.log("aftrTaxCostOfDebtaftrTaxCostOfDebt   ", aftrTaxCostOfDebt);
+//             // //  console.log(" costOfEquitycostOfEquity  ", costOfEquity);
+//             // //  console.log(" perpetualGrowthRateperpetualGrowthRate  ", perpetualGrowthRate);
+//             // //  console.log(" levBetaCmpnylevBetaCmpny  ", levBetaCmpny);
+//             // //  console.log(" adjBetaadjBeta  ", adjBeta);
 
 //             var wacc = (debtCapital * aftrTaxCostOfDebt) + ((1 - debtCapital) * costOfEquity);
-//             console.log("  waccwacc ", wacc);
+//             //  console.log("  waccwacc ", wacc);
 //             {
 //                 // Average Valuation 	 15,178 (WACC 10% and perp = 2.5%)
 //                 var _a = this.computeFCFF(dbQuery, wacc, perpetualGrowthRate), eqVal = _a[0], fcffArray = _a[1];
@@ -112,7 +112,7 @@
 //             }
 //             {
 //                 // Minimum 	 8,363 (WACC = 15% and perp = 1.5%)
-//                 // console.log("dbqery",dbQuery, "perpetualGrowthRate", perpetualGrowthRate)
+//                 // //  console.log("dbqery",dbQuery, "perpetualGrowthRate", perpetualGrowthRate)
 //                 var _b = this.computeFCFF(dbQuery, wacc +    0.05, perpetualGrowthRate - 0.01), eqVal = _b[0], fcffArray = _b[1];
 //                 this.companyEquityMinValue = eqVal;
 //                 // var _b = this.computeFCFF(dbQuery, 0.094 + 0.05, 0.01 - 0.01), eqVal = _b[0], fcffArray = _b[1];
@@ -173,19 +173,19 @@ var DcfService = exports.DcfService = function () {
         };
 
         DcfService_1.prototype.computeFCFF = function (dbQuery, wacc, perpetualGrowthRate) {
-            console.log("🔍 === DEBUG computeFCFF STARTED ===");
-            console.log("📊 Parameters:", {
-                WACC: wacc,
-                WACC_Percent: (wacc * 100).toFixed(2) + "%",
-                GrowthRate: perpetualGrowthRate,
-                GrowthRate_Percent: (perpetualGrowthRate * 100).toFixed(2) + "%"
-            });
+            //  console.log("🔍 === DEBUG computeFCFF STARTED ===");
+            //  console.log("📊 Parameters:", {
+            //     WACC: wacc,
+            //     WACC_Percent: (wacc * 100).toFixed(2) + "%",
+            //     GrowthRate: perpetualGrowthRate,
+            //     GrowthRate_Percent: (perpetualGrowthRate * 100).toFixed(2) + "%"
+            // });
 
             // CRITICAL VALIDATION
             if (perpetualGrowthRate >= wacc) {
-                console.log("❌ ERROR: Growth rate >= WACC!");
-                console.log("   Growth:", perpetualGrowthRate, "WACC:", wacc);
-                console.log("   Terminal value will be infinite!");
+                //  console.log("❌ ERROR: Growth rate >= WACC!");
+                //  console.log("   Growth:", perpetualGrowthRate, "WACC:", wacc);
+                //  console.log("   Terminal value will be infinite!");
                 return [0, []];
             }
 
@@ -196,18 +196,18 @@ var DcfService = exports.DcfService = function () {
                 dbQuery.business.FinYrEndDate + " " +
                 dbQuery.business.FinYrEnd);
 
-            console.log("📅 Time calculation:", {
-                FiscalEnd: dbQuery.business.FinYrEndMonth + " " + dbQuery.business.FinYrEndDate + " " + dbQuery.business.FinYrEnd,
-                DaysRemaining: Math.round(dayRem * 365),
-                YearsFraction: dayRem
-            });
+            //  console.log("📅 Time calculation:", {
+            //     FiscalEnd: dbQuery.business.FinYrEndMonth + " " + dbQuery.business.FinYrEndDate + " " + dbQuery.business.FinYrEnd,
+            //     DaysRemaining: Math.round(dayRem * 365),
+            //     YearsFraction: dayRem
+            // });
 
             var waccPlusOne = Math.pow((1 + wacc), dayRem);
-            console.log("📉 Initial discount factor (1+WACC)^(dayRem):", waccPlusOne);
+            //  console.log("📉 Initial discount factor (1+WACC)^(dayRem):", waccPlusOne);
 
             // Calculate 5-year FCFF
             for (var index = 0; index < 5; index++) {
-                console.log(`\n📊 Year ${index + 1} (${2026 + index}) Calculation:`);
+                //  console.log(`\n📊 Year ${index + 1} (${2026 + index}) Calculation:`);
 
                 // Get input values
                 var ebitda = this.backEndService.workIncStmt[index + 1].ebitda;
@@ -218,16 +218,16 @@ var DcfService = exports.DcfService = function () {
                 var workCapChange = -1 * (currentWC - previousWC);
                 var capex = +dbQuery.forcast_bal_sheet[index].fixedAssets;
 
-                console.log("   Inputs:", {
-                    EBITDA: ebitda,
-                    InterestExpense: intExp,
-                    TaxShield: -1 * (intExp * taxRate),
-                    CurrentWC: currentWC,
-                    PreviousWC: previousWC,
-                    WorkCapChange: workCapChange,
-                    CAPEX: capex,
-                    DiscountFactor: waccPlusOne
-                });
+                //  console.log("   Inputs:", {
+                //     EBITDA: ebitda,
+                //     InterestExpense: intExp,
+                //     TaxShield: -1 * (intExp * taxRate),
+                //     CurrentWC: currentWC,
+                //     PreviousWC: previousWC,
+                //     WorkCapChange: workCapChange,
+                //     CAPEX: capex,
+                //     DiscountFactor: waccPlusOne
+                // });
 
                 var dcfFcff = new dcf_model_1.WorkDcfFCFF(
                     this.backEndService.workIncStmt[index + 1].year,
@@ -238,79 +238,79 @@ var DcfService = exports.DcfService = function () {
                     waccPlusOne
                 );
 
-                console.log("   Results:", {
-                    FreeCashFlow: dcfFcff.freeCashFlow,
-                    PresentValue: dcfFcff.presentFreeCashFlow
-                });
+                //  console.log("   Results:", {
+                //     FreeCashFlow: dcfFcff.freeCashFlow,
+                //     PresentValue: dcfFcff.presentFreeCashFlow
+                // });
 
                 workDcfFCFF.push(dcfFcff);
                 cumulativePV += dcfFcff.presentFreeCashFlow;
 
                 waccPlusOne = (1 + wacc) * waccPlusOne;
-                console.log("   Cumulative PV so far:", cumulativePV);
-                console.log("   Next discount factor:", waccPlusOne);
+                //  console.log("   Cumulative PV so far:", cumulativePV);
+                //  console.log("   Next discount factor:", waccPlusOne);
             }
 
-            console.log("\n🏁 === TERMINAL VALUE CALCULATION ===");
-            console.log("   Year 5 FCFF:", workDcfFCFF[4].freeCashFlow);
-            console.log("   Discount Factor (Year 5):", workDcfFCFF[4].discountFactor);
-            console.log("   WACC:", wacc);
-            console.log("   Perpetual Growth Rate:", perpetualGrowthRate);
+            //  console.log("\n🏁 === TERMINAL VALUE CALCULATION ===");
+            //  console.log("   Year 5 FCFF:", workDcfFCFF[4].freeCashFlow);
+            //  console.log("   Discount Factor (Year 5):", workDcfFCFF[4].discountFactor);
+            //  console.log("   WACC:", wacc);
+            //  console.log("   Perpetual Growth Rate:", perpetualGrowthRate);
 
             // Calculate terminal value
             var fcffTerminalValue = ((workDcfFCFF[4].freeCashFlow * (1 + perpetualGrowthRate)) /
                 (wacc - perpetualGrowthRate));
-            console.log("   Terminal Value Formula: (FCFF × (1+g)) ÷ (WACC - g)");
-            console.log("   Terminal Value: (", workDcfFCFF[4].freeCashFlow, "×", (1 + perpetualGrowthRate), ") ÷ (", wacc, "-", perpetualGrowthRate, ")");
-            console.log("   Terminal Value Result:", fcffTerminalValue);
+            //  console.log("   Terminal Value Formula: (FCFF × (1+g)) ÷ (WACC - g)");
+            //  console.log("   Terminal Value: (", workDcfFCFF[4].freeCashFlow, "×", (1 + perpetualGrowthRate), ") ÷ (", wacc, "-", perpetualGrowthRate, ")");
+            //  console.log("   Terminal Value Result:", fcffTerminalValue);
 
             var fcffPresentValue = workDcfFCFF[4].discountFactor * fcffTerminalValue;
-            console.log("   Present Value of Terminal:", fcffPresentValue,
-                " (", workDcfFCFF[4].discountFactor, "×", fcffTerminalValue, ")");
+            //  console.log("   Present Value of Terminal:", fcffPresentValue,
+                // " (", workDcfFCFF[4].discountFactor, "×", fcffTerminalValue, ")");
 
             var enterpriseValue = cumulativePV + fcffPresentValue;
-            console.log("\n💰 === ENTERPRISE VALUE ===");
-            console.log("   Cumulative 5-year PV:", cumulativePV);
-            console.log("   + Terminal Value PV:", fcffPresentValue);
-            console.log("   = Total Enterprise Value:", enterpriseValue);
+            //  console.log("\n💰 === ENTERPRISE VALUE ===");
+            //  console.log("   Cumulative 5-year PV:", cumulativePV);
+            //  console.log("   + Terminal Value PV:", fcffPresentValue);
+            //  console.log("   = Total Enterprise Value:", enterpriseValue);
 
             // Calculate net debt
             var netDebt = this.backEndService.workBalSheet[0].debtLoan -
                 this.backEndService.workBalSheet[0].cashBalance;
-            console.log("\n💳 === NET DEBT CALCULATION ===");
-            console.log("   Total Debt:", this.backEndService.workBalSheet[0].debtLoan);
-            console.log("   Cash Balance:", this.backEndService.workBalSheet[0].cashBalance);
-            console.log("   Net Debt (Debt - Cash):", netDebt);
+            //  console.log("\n💳 === NET DEBT CALCULATION ===");
+            //  console.log("   Total Debt:", this.backEndService.workBalSheet[0].debtLoan);
+            //  console.log("   Cash Balance:", this.backEndService.workBalSheet[0].cashBalance);
+            //  console.log("   Net Debt (Debt - Cash):", netDebt);
 
             // Calculate equity value
             var equityValue = enterpriseValue - netDebt;
-            console.log("\n🎯 === EQUITY VALUE ===");
-            console.log("   Formula: Equity = Enterprise Value - Net Debt");
-            console.log("   Calculation:", enterpriseValue, "-", netDebt, "=", equityValue);
-            console.log("   Note: If Net Debt is negative (cash > debt), equity is HIGHER than enterprise!");
+            //  console.log("\n🎯 === EQUITY VALUE ===");
+            //  console.log("   Formula: Equity = Enterprise Value - Net Debt");
+            //  console.log("   Calculation:", enterpriseValue, "-", netDebt, "=", equityValue);
+            //  console.log("   Note: If Net Debt is negative (cash > debt), equity is HIGHER than enterprise!");
 
-            console.log("✅ === DEBUG computeFCFF COMPLETED ===");
+            //  console.log("✅ === DEBUG computeFCFF COMPLETED ===");
 
             return [equityValue, workDcfFCFF];
         };
         DcfService_1.prototype.calculateCompanyEquityValue = function (dbQuery) {
-            console.log("\n🎯 === DEBUG calculateCompanyEquityValue STARTED ===");
+            //  console.log("\n🎯 === DEBUG calculateCompanyEquityValue STARTED ===");
 
             // ======================== GET ALL USER INPUTS ========================
-            console.log("📊 USER INPUTS (already in percentage):");
-            console.log("   perpetualGrowthRate:", this.backEndService.workBackEndInputs.perpetualGrowthRate + "%");
-            console.log("   pptlDelta:", this.backEndService.workBackEndInputs.pptlDelta + "%");
-            console.log("   waccDelta:", this.backEndService.workBackEndInputs.waccDelta + "%");
+            //  console.log("📊 USER INPUTS (already in percentage):");
+            //  console.log("   perpetualGrowthRate:", this.backEndService.workBackEndInputs.perpetualGrowthRate + "%");
+            //  console.log("   pptlDelta:", this.backEndService.workBackEndInputs.pptlDelta + "%");
+            //  console.log("   waccDelta:", this.backEndService.workBackEndInputs.waccDelta + "%");
 
             // Parameters are already in percentage, divide by 100 to get decimal
             var baseGrowthRate = this.backEndService.workBackEndInputs.perpetualGrowthRate / 100;
             var growthDelta = this.backEndService.workBackEndInputs.pptlDelta / 100;
             var waccDelta = this.backEndService.workBackEndInputs.waccDelta / 100;
 
-            console.log("\n📊 CONVERTED TO DECIMAL:");
-            console.log("   Base Growth Rate:", baseGrowthRate, "(", (baseGrowthRate * 100).toFixed(2) + "%)");
-            console.log("   Growth Delta:", growthDelta, "(", (growthDelta * 100).toFixed(2) + "%)");
-            console.log("   WACC Delta:", waccDelta, "(", (waccDelta * 100).toFixed(2) + "%)");
+            //  console.log("\n📊 CONVERTED TO DECIMAL:");
+            //  console.log("   Base Growth Rate:", baseGrowthRate, "(", (baseGrowthRate * 100).toFixed(2) + "%)");
+            //  console.log("   Growth Delta:", growthDelta, "(", (growthDelta * 100).toFixed(2) + "%)");
+            //  console.log("   WACC Delta:", waccDelta, "(", (waccDelta * 100).toFixed(2) + "%)");
 
             // ======================== WACC CALCULATION START ========================
             // Calculate WACC components
@@ -343,15 +343,15 @@ var DcfService = exports.DcfService = function () {
             // Calculate base WACC
             var baseWACC = (debtCapital * aftrTaxCostOfDebt) + ((1 - debtCapital) * costOfEquity);
 
-            console.log("\n⚖️ BASE WACC CALCULATION:");
-            console.log("   Calculated WACC:", (baseWACC * 100).toFixed(2) + "%");
+            //  console.log("\n⚖️ BASE WACC CALCULATION:");
+            //  console.log("   Calculated WACC:", (baseWACC * 100).toFixed(2) + "%");
 
             // Store for later use
             this.wacc = baseWACC * 100;
             this.adjustedBeta = adjBeta;
 
             // ======================== DYNAMIC ARRAY GENERATION ========================
-            console.log("\n🎯 DYNAMIC ARRAY GENERATION USING USER DELTAS");
+            //  console.log("\n🎯 DYNAMIC ARRAY GENERATION USING USER DELTAS");
 
             // DYNAMIC WACC ARRAY - 5 values centered around base WACC
             var waccValues = [];
@@ -362,8 +362,8 @@ var DcfService = exports.DcfService = function () {
                 waccValues.push(Math.max(Number(currentWacc.toFixed(4)), 0.01)); // Min 1%
             }
 
-            console.log("   WACC Values using waccDelta =", (waccDelta * 100).toFixed(2) + "%:");
-            console.log("     [" + waccValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
+            //  console.log("   WACC Values using waccDelta =", (waccDelta * 100).toFixed(2) + "%:");
+            //  console.log("     [" + waccValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
 
             // DYNAMIC GROWTH ARRAY - 5 values centered around base growth rate
             var growthValues = [];
@@ -374,14 +374,14 @@ var DcfService = exports.DcfService = function () {
                 growthValues.push(Math.max(Number(currentGrowth.toFixed(4)), 0)); // Min 0%
             }
 
-            console.log("   Growth Values using pptlDelta =", (growthDelta * 100).toFixed(2) + "%:");
-            console.log("     [" + growthValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
+            //  console.log("   Growth Values using pptlDelta =", (growthDelta * 100).toFixed(2) + "%:");
+            //  console.log("     [" + growthValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
 
             // ======================== AVERAGE CASE ========================
-            console.log("\n📊 AVERAGE/BASE CASE:");
-            console.log("   Using calculated WACC and user growth rate");
-            console.log("   WACC:", (baseWACC * 100).toFixed(2) + "%");
-            console.log("   Growth:", (baseGrowthRate * 100).toFixed(2) + "%");
+            //  console.log("\n📊 AVERAGE/BASE CASE:");
+            //  console.log("   Using calculated WACC and user growth rate");
+            //  console.log("   WACC:", (baseWACC * 100).toFixed(2) + "%");
+            //  console.log("   Growth:", (baseGrowthRate * 100).toFixed(2) + "%");
 
             var _a = this.computeFCFF(dbQuery, baseWACC, baseGrowthRate),
                 avgEqVal = _a[0],
@@ -402,7 +402,7 @@ var DcfService = exports.DcfService = function () {
             }
 
             // ======================== MIN/MAX CALCULATION ========================
-            console.log("\n🎯 MIN/MAX CALCULATION ACROSS ALL COMBINATIONS");
+            //  console.log("\n🎯 MIN/MAX CALCULATION ACROSS ALL COMBINATIONS");
 
             var minEquityValue = Number.MAX_VALUE;
             var maxEquityValue = Number.MIN_VALUE;
@@ -413,7 +413,7 @@ var DcfService = exports.DcfService = function () {
             var dataTableResults = [];
 
             var totalCombinations = waccValues.length * growthValues.length;
-            console.log("   Testing", totalCombinations, "combinations");
+            //  console.log("   Testing", totalCombinations, "combinations");
 
             for (var i = 0; i < waccValues.length; i++) {
                 for (var j = 0; j < growthValues.length; j++) {
@@ -422,7 +422,7 @@ var DcfService = exports.DcfService = function () {
 
                     // Skip invalid combinations
                     if (testGrowth >= testWacc) {
-                        console.log("   Skipping: Growth", (testGrowth * 100).toFixed(2) + "% >= WACC", (testWacc * 100).toFixed(2) + "%");
+                        //  console.log("   Skipping: Growth", (testGrowth * 100).toFixed(2) + "% >= WACC", (testWacc * 100).toFixed(2) + "%");
                         continue;
                     }
 
@@ -460,32 +460,32 @@ var DcfService = exports.DcfService = function () {
             this.dataTableGrowthValues = growthValues;
 
             // ======================== RESULTS SUMMARY ========================
-            console.log("\n📊 FINAL RESULTS:");
-            console.log("   Average Equity Value:", this.companyEquityAvgValue?.toFixed(2) || "N/A");
-            console.log("   Minimum Equity Value:", minEquityValue.toFixed(2),
-                "at WACC=", (minWaccUsed * 100).toFixed(2) + "%",
-                "Growth=", (minGrowthUsed * 100).toFixed(2) + "%");
-            console.log("   Maximum Equity Value:", maxEquityValue.toFixed(2),
-                "at WACC=", (maxWaccUsed * 100).toFixed(2) + "%",
-                "Growth=", (maxGrowthUsed * 100).toFixed(2) + "%");
+            //  console.log("\n📊 FINAL RESULTS:");
+            //  console.log("   Average Equity Value:", this.companyEquityAvgValue?.toFixed(2) || "N/A");
+            //  console.log("   Minimum Equity Value:", minEquityValue.toFixed(2),
+                // "at WACC=", (minWaccUsed * 100).toFixed(2) + "%",
+                // "Growth=", (minGrowthUsed * 100).toFixed(2) + "%");
+            //  console.log("   Maximum Equity Value:", maxEquityValue.toFixed(2),
+                // "at WACC=", (maxWaccUsed * 100).toFixed(2) + "%",
+                // "Growth=", (maxGrowthUsed * 100).toFixed(2) + "%");
 
             // ======================== COMPARE WITH EXCEL EXPECTATIONS ========================
-            console.log("\n📊 COMPARISON WITH EXCEL DATA TABLE:");
+            //  console.log("\n📊 COMPARISON WITH EXCEL DATA TABLE:");
 
             // Excel shows these specific values:
             var excelWaccArray = [7.31, 8.31, 9.31, 10.00, 11.00];
             var excelGrowthArray = [0.00, 0.50, 1.00, 1.50, 2.00];
 
-            console.log("   Excel uses:");
-            console.log("     WACC: [" + excelWaccArray.map(v => v.toFixed(2) + "%").join(", ") + "]");
-            console.log("     Growth: [" + excelGrowthArray.map(v => v.toFixed(2) + "%").join(", ") + "]");
+            //  console.log("   Excel uses:");
+            //  console.log("     WACC: [" + excelWaccArray.map(v => v.toFixed(2) + "%").join(", ") + "]");
+            //  console.log("     Growth: [" + excelGrowthArray.map(v => v.toFixed(2) + "%").join(", ") + "]");
 
-            console.log("   Your generated:");
-            console.log("     WACC: [" + waccValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
-            console.log("     Growth: [" + growthValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
+            //  console.log("   Your generated:");
+            //  console.log("     WACC: [" + waccValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
+            //  console.log("     Growth: [" + growthValues.map(v => (v * 100).toFixed(2) + "%").join(", ") + "]");
 
             // Check what values would match Excel
-            console.log("\n📊 TO MATCH EXCEL EXACTLY:");
+            //  console.log("\n📊 TO MATCH EXCEL EXACTLY:");
 
             // Calculate required deltas to match Excel
             if (baseWACC * 100 === 9.31) {
@@ -495,40 +495,40 @@ var DcfService = exports.DcfService = function () {
                 var excelWaccStep3 = 10.00 - 9.31; // 0.69%
                 var excelWaccStep4 = 11.00 - 10.00; // 1.0%
 
-                console.log("   For WACC to match Excel exactly:");
-                console.log("     Your waccDelta should be ~1.0%");
-                console.log("     Note: Excel has uneven steps (0.69% between 9.31% and 10%)");
+                //  console.log("   For WACC to match Excel exactly:");
+                //  console.log("     Your waccDelta should be ~1.0%");
+                //  console.log("     Note: Excel has uneven steps (0.69% between 9.31% and 10%)");
             }
 
             if (baseGrowthRate * 100 === 1.00) {
                 // If base growth is 1.00%, what delta gives Excel's array?
                 var excelGrowthStep = 0.5; // All steps are 0.5%
 
-                console.log("   For Growth to match Excel exactly:");
-                console.log("     Your pptlDelta should be 0.5%");
+                //  console.log("   For Growth to match Excel exactly:");
+                //  console.log("     Your pptlDelta should be 0.5%");
             }
 
             // ======================== DEBUG INFO ========================
-            console.log("\n📊 DEBUG INFORMATION:");
-            console.log("   User Input Summary:");
-            console.log("     - perpetualGrowthRate:", this.backEndService.workBackEndInputs.perpetualGrowthRate + "%");
-            console.log("     - pptlDelta:", this.backEndService.workBackEndInputs.pptlDelta + "%");
-            console.log("     - waccDelta:", this.backEndService.workBackEndInputs.waccDelta + "%");
-            console.log("     - Calculated Base WACC:", (baseWACC * 100).toFixed(2) + "%");
+            //  console.log("\n📊 DEBUG INFORMATION:");
+            //  console.log("   User Input Summary:");
+            //  console.log("     - perpetualGrowthRate:", this.backEndService.workBackEndInputs.perpetualGrowthRate + "%");
+            //  console.log("     - pptlDelta:", this.backEndService.workBackEndInputs.pptlDelta + "%");
+            //  console.log("     - waccDelta:", this.backEndService.workBackEndInputs.waccDelta + "%");
+            //  console.log("     - Calculated Base WACC:", (baseWACC * 100).toFixed(2) + "%");
 
-            console.log("\n   To get Excel-like results:");
-            console.log("     Set perpetualGrowthRate = 1%");
-            console.log("     Set pptlDelta = 0.5%");
-            console.log("     Ensure calculated WACC ≈ 9.31%");
-            console.log("     Set waccDelta = 1.0%");
+            //  console.log("\n   To get Excel-like results:");
+            //  console.log("     Set perpetualGrowthRate = 1%");
+            //  console.log("     Set pptlDelta = 0.5%");
+            //  console.log("     Ensure calculated WACC ≈ 9.31%");
+            //  console.log("     Set waccDelta = 1.0%");
 
             // Show sample of data table
-            console.log("\n   Data Table Sample (first 5):");
+            //  console.log("\n   Data Table Sample (first 5):");
             if (dataTableResults.length > 0) {
                 for (var k = 0; k < Math.min(5, dataTableResults.length); k++) {
                     var result = dataTableResults[k];
-                    console.log(`     ${k + 1}. WACC ${result.waccPercent}, Growth ${result.growthPercent}: ` +
-                        `Equity ${result.equityValue.toFixed(2)}`);
+                    //  console.log(`     ${k + 1}. WACC ${result.waccPercent}, Growth ${result.growthPercent}: ` +
+                        // `Equity ${result.equityValue.toFixed(2)}`);
                 }
             }
         };
